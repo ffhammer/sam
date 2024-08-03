@@ -1,0 +1,10 @@
+conc,no stress,food,organism,chemical,hormesis_concentration
+0,100,,Gammarus pulex,Clothianidin,0.1
+0.01,94.8,,,,
+0.1,99,,,,
+1,93.8,,,,
+10,95.8,,,,
+100,67.7,,,,
+215,39.6,,,,
+465,6.3,,,,
+1000,0,,,,

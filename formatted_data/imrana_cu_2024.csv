@@ -1,0 +1,10 @@
+conc,no stress,food,organism,chemical,hormesis_concentration
+0,80,,Daphnia magna,Copper,8
+0.03,90,,,,
+0.1,95,,,,
+0.3,95,,,,
+1,95,,,,
+3,80,,,,
+10,75,,,,
+33,0,,,,
+100,0,,,,
