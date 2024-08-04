@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 from scipy.stats import beta
-from icecream import ic
 from dataclasses import dataclass
 from typing import Optional, Tuple, Dict, List, Callable
 import warnings
@@ -18,6 +17,12 @@ class StandardSettings:
     survival_max: float = 100
     len_curves = 10_000
 
+@dataclass
+class ModelInputs:
+    concentration: np.ndarray
+    survival_observerd: np.ndarray
+    hormesis_concentration: Optional[float]
+    cfg: StandardSettings
 
 @dataclass
 class ModelPredictions:
@@ -29,7 +34,9 @@ class ModelPredictions:
     model: Callable
     lc1: float
     lc99: float
-    hormesis_index : int
+    hormesis_index: int
+    inputs : ModelInputs
+
 
 
 def dose_response_fit(
@@ -39,7 +46,6 @@ def dose_response_fit(
     cfg: StandardSettings = StandardSettings(),
 ) -> ModelPredictions:
 
-    survival_observerd[0] = cfg.survival_max
 
     # general value checks
     if cfg.survival_max <= 0:
@@ -71,6 +77,13 @@ def dose_response_fit(
     if any(survival_observerd > cfg.survival_max) or any(survival_observerd < 0):
         raise ValueError("Observed survival must be between 0 and survival_max.")
 
+    inputs = ModelInputs(
+        concentration=concentration,
+        survival_observerd=survival_observerd,
+        hormesis_concentration=hormesis_concentration,
+        cfg=cfg,
+    )
+    
     regress_conc, regress_surv, hormesis_index = get_regression_data(
         orig_concentration=concentration,
         orig_survival_observerd=survival_observerd,
@@ -83,7 +96,11 @@ def dose_response_fit(
     )
 
     return compute_predictions(
-        model=fitted_func, optim_param=optim_param, concentration=concentration, cfg=cfg, hormesis_index = hormesis_index,
+        model=fitted_func,
+        optim_param=optim_param,
+        inputs=inputs,
+        cfg=cfg,
+        hormesis_index=hormesis_index,
     )
 
 
@@ -102,26 +119,28 @@ def compute_lc(model, lc: int, min_val: float, max_val: float):
 
 
 def compute_predictions(
-    model, optim_param: np.array, concentration: np.array, cfg: StandardSettings, hormesis_index : int
+    model,
+    optim_param: np.array,
+    inputs : ModelInputs,
+    cfg: StandardSettings,
+    hormesis_index: int,
 ):
 
     min_val = 1e-9
     max_val = find_lc_99_max(model)
-    
 
     lc1 = compute_lc(model=model, lc=1, max_val=max_val, min_val=min_val)
     lc99 = compute_lc(model=model, lc=99, max_val=max_val, min_val=min_val)
-    
-    padded_concentration = pad_controll_concentration(concentration)
+
+    padded_concentration = pad_controll_concentration(inputs.concentration)
 
     concentration_curve = 10 ** np.linspace(
-        np.log10(padded_concentration[0]), np.log10(concentration.max()), cfg.len_curves
+        np.log10(padded_concentration[0]), np.log10(inputs.concentration.max()), cfg.len_curves
     )
     pred_survival = model(concentration_curve)
     survival_curve = cfg.survival_max * pred_survival
     stress_curve = survival_to_stress(pred_survival, p=cfg.beta_p, q=cfg.beta_q)
     predicted_survival = model(padded_concentration)
-
 
     return ModelPredictions(
         concentration_curve=concentration_curve,
@@ -132,7 +151,8 @@ def compute_predictions(
         model=model,
         lc1=lc1,
         lc99=lc99,
-        hormesis_index=hormesis_index
+        hormesis_index=hormesis_index,
+        inputs=inputs,
     )
 
 
@@ -164,9 +184,9 @@ def get_regression_data(
     concentration = pad_controll_concentration(orig_concentration=orig_concentration)
 
     survival = orig_survival_observerd / cfg.survival_max
+    survival[0] = 1
 
     if hormesis_concentration is not None:
-
         if hormesis_concentration not in concentration:
             raise ValueError(
                 "hormesis_concentration must equal one of the concentration values."
@@ -184,6 +204,9 @@ def get_regression_data(
             (concentration[:2], concentration[hormesis_index:])
         )
         survival = np.concatenate((survival[:2], survival[hormesis_index:]))
+
+    else:
+        hormesis_index = None
 
     return concentration, survival, hormesis_index
 

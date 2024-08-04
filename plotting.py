@@ -1,74 +1,50 @@
-
 import matplotlib.pyplot as plt
 import numpy as np
+from model import ModelPredictions, ModelInputs
 
+def plot_complete(model: ModelPredictions, title=None):
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
+    plot_survival(model, ax=axs[0, 0], xscale="linear", show_legend=False, xlab=None, ylab="Survival", title="Survival")
+    plot_stress(model, ax=axs[0, 1], xscale="linear", show_legend=False, xlab=None, ylab="Stress", title="Stress")
+    plot_survival(model, ax=axs[1, 0], xscale="log", show_legend=False, xlab="Concentration", ylab="Survival", title=None)
+    plot_stress(model, ax=axs[1, 1], xscale="log", show_legend=False, xlab="Concentration", ylab="Stress", title=None)
+    
+    if title:
+        fig.suptitle(title)
+    
+    plt.tight_layout()
+    return fig
 
-def plot_stress(model, xscalse = "linear", show_legend=False, xlab="concentration", ylab="stress", main=None):
-    if not isinstance(model, dict):
-        raise ValueError("Model must be a dictionary containing necessary data")
+def plot_stress(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Stress", title=None):
+    ax.set_xscale(xscale)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    if title:
+        ax.set_title(title)
 
-    curves = model["curves"]
-    point_concentration = np.concatenate(([curves["concentration_for_plots"][0]], model["args"]["concentration"][1:]))
+    ax.plot(model.concentration_curve, model.stress_curve, color="deepskyblue", linestyle='--')
 
-    # Determine ymax for the plot
-    ymax = max(curves["stress"].max(), 1)
-
-    plt.figure()
-    plt.xscale(xscalse)
-    # plt.xlim([curves["concentration_for_plots"][0], curves["concentration_for_plots"][-1]])
-    # plt.ylim([0, ymax])
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    if main:
-        plt.title(main)
-
-    plt.plot(curves["concentration_for_plots"], curves["stress"], color="deepskyblue", linestyle='--')
-
-    # Add legend if requested
     if show_legend:
-        plt.legend()
+        ax.legend()
 
-    plt.show()
+def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Survival", title=None):
+    ax.set_xscale(xscale)
+    ax.set_xlabel(xlab)
+    ax.set_ylabel(ylab)
+    if title:
+        ax.set_title(title)
     
-
-def plot_survival(model, xscalse = "linear", show_legend=False, xlab="concentration", ylab="survival", main=None):
-    if not isinstance(model, dict):
-        raise ValueError("Model must be a dictionary containing necessary data")
-
-    curves = model["curves"]
-    point_concentration = np.concatenate(([curves["concentration_for_plots"][0]], model["args"]["concentration"][1:]))
-
-    plt.figure()
-    plt.xscale(xscalse)
-    # plt.xlim([curves["concentration_for_plots"][0], curves["concentration_for_plots"][-1]])
-    # plt.ylim([0, model["args"]["survival_max"]])
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    if main:
-        plt.title(main)
-
-    # Plot "survival_tox_observed"
+    inputs = model.inputs
     
+    if inputs.hormesis_concentration is not None:
+        colors = np.where(inputs.concentration == inputs.hormesis_concentration, "red", "blue")
+    else:
+        colors = np.array(["blue" for _ in range(len(inputs.concentration))])
     
-    colors = np.where(point_concentration == model["args"]["hormesis_concentration"], "red", "blue")
-    
-    
-    plt.scatter(point_concentration, model["args"]["survival_tox_observed"], label="survival_tox_observed", zorder=5, c= colors)
+    ax.scatter(inputs.concentration, inputs.survival_observerd, label="Survival_observed", zorder=5, c=colors)
 
-    # Plot "survival_tox"
-    plt.plot(curves["concentration_for_plots"], curves["survival"], color="deepskyblue", linestyle='--', label="survival")
+    ax.plot(model.concentration_curve, model.survival_curve, color="deepskyblue", linestyle='--', label="Survival")
 
-
-    # x = np.linspace(0, 1, 1000)
-
-    # plt.plot(x * curves["concentration_for_plots"][-1], (1 - beta.cdf(x, 3.2, 3.2)) * 100)
-
-    # Plot "survival_tox_LL5"
-    # plt.plot(curves["concentration_for_plots"], curves["survival_LL5"], color="darkblue", linestyle='-.', label="survival_LL5")
-
-    # Add legend if requested
     if show_legend:
-        plt.legend()
-
-    plt.show()
+        ax.legend()

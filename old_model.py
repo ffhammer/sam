@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from scipy.interpolate import interp1d
 from scipy.stats import beta
-from icecream import ic
 
 def ecxsys(
     concentration : np.ndarray,
