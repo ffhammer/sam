@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
-from scipy.interpolate import interp1d
-from scipy.stats import beta
 from dataclasses import dataclass
 from typing import Optional, Tuple, Callable
 import warnings
-from scipy.optimize import brentq
 from data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
+from stress_survival_conversion import survival_to_stress
+from helpers import find_lc_99_max, compute_lc
 
 @dataclass
 class StandardSettings:
@@ -84,21 +83,7 @@ def dose_response_fit(
 
     if cfg.survival_max <= 0:
         raise ValueError("survival_max must be >= 0")
-    if len(concentration) != len(survival_observerd):
-        raise ValueError("concentration and survival_observerd must have the same length.")
-    if len(concentration) > len(set(concentration)):
-        raise ValueError("Concentrations must be unique.")
-    if (np.sort(concentration) != concentration).all():
-        raise ValueError("The concentration values must be in sorted order.")
-    if any(np.array(concentration) < 0):
-        raise ValueError("Concentrations must be >= 0")
-    if min(concentration) > 0:
-        raise ValueError("No control is given. The first concentration must be 0.")
-    if np.isnan(concentration).any():
-        raise ValueError("concentration must be none NaN")
-    if np.isnan(survival_observerd).any():
-        raise ValueError("survival_observerd must be none NaN")
-
+    
 
     if not isinstance(concentration, np.ndarray) or concentration.dtype != np.float64:
         warnings.warn("Casting concentration to np.float64 array")
@@ -131,28 +116,7 @@ def dose_response_fit(
         hormesis_index=hormesis_index,
     )
 
-def compute_lc(model, lc: int, min_val: float, max_val: float) -> float:
-    """
-    Computes the lethal concentration for a given percentage of the population.
 
-    Args:
-        model (Callable): The fitted model.
-        lc (int): Lethal concentration percentage.
-        min_val (float): Minimum value for the root-finding algorithm.
-        max_val (float): Maximum value for the root-finding algorithm.
-
-    Returns:
-        float: The computed lethal concentration.
-    """
-    val = 1 - lc / 100
-
-    def func(x):
-        return model(x) - val
-
-    if func(min_val) < 0:
-        return min_val
-
-    return brentq(func, min_val, max_val)
 
 def compute_predictions(
     model,
@@ -204,22 +168,6 @@ def compute_predictions(
         cfg = cfg
     )
 
-def find_lc_99_max(func) -> float:
-    """
-    Finds the maximum concentration value for which the survival is less than 1%.
-
-    Args:
-        func (Callable): The fitted Weibull function.
-
-    Returns:
-        float: The maximum concentration value.
-    """
-    x = 10.0
-
-    while not func(x) < 0.01:
-        x *= 2
-
-    return x
 
 def pad_controll_concentration(orig_concentration: np.array) -> np.array:
     """
@@ -296,34 +244,3 @@ def fit_weibull(concentration: np.ndarray, survival: np.ndarray) -> Tuple[Callab
     popt, _ = curve_fit(weibull, concentration, survival, bounds=bounds)
     return lambda x: weibull(x, *popt), popt
 
-def clamp(x: np.ndarray, lower: float = 0, upper: float = 1) -> np.ndarray:
-    """
-    Clamps the values in x to be within the interval [lower, upper].
-
-    Args:
-        x (np.ndarray): Input values.
-        lower (float, optional): Lower bound. Defaults to 0.
-        upper (float, optional): Upper bound. Defaults to 1.
-
-    Returns:
-        np.ndarray: Clamped values.
-    """
-    return np.minimum(np.maximum(x, lower), upper)
-
-def survival_to_stress(survival: np.ndarray, p: float = 3.2, q: float = 3.2) -> np.ndarray:
-    """
-    Converts survival rates to stress values using the beta distribution CDF.
-
-    Args:
-        survival (np.ndarray): Survival rates.
-        p (float, optional): Beta distribution shape parameter. Defaults to 3.2.
-        q (float, optional): Beta distribution shape parameter. Defaults to 3.2.
-
-    Returns:
-        np.ndarray: Stress values.
-    """
-    if p < 0 or q < 0:
-        raise ValueError("Parameters p and q must be non-negative.")
-
-    survival = clamp(survival)
-    return beta.ppf(1 - survival, p, q)

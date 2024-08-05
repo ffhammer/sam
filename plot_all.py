@@ -1,6 +1,6 @@
 import os
-from model import dose_response_fit, ModelPredictions, StandardSettings
-from plotting import plot_complete
+from dose_reponse_fit import dose_response_fit, ModelPredictions, StandardSettings
+from plotting import plot_fit_prediction
 import pandas as pd
 import numpy as np
 import glob
@@ -16,7 +16,7 @@ for path in glob.glob("data/*.xlsx"):
     )
 
     title = f"{data.meta.chemical} - {data.meta.organism}"
-    fig = plot_complete(model=res, title=title)
+    fig = plot_fit_prediction(model=res, title=title)
 
     save_path = f"python_plots/{os.path.split(path.replace('xlsx', 'png'))[1]}"
 

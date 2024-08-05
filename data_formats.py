@@ -22,6 +22,23 @@ class DoseResponseSeries:
         self.concentration = self.concentration.astype(np.float64)
         self.survival_rate = self.survival_rate.astype(np.float64)
 
+        if len(self.concentration) != len(self.survival_rate):
+            raise ValueError("concentration and survival_observerd must have the same length.")
+        if len(self.concentration) > len(set(self.concentration)):
+            raise ValueError("Concentrations must be unique.")
+        if (np.sort(self.concentration) != self.concentration).all():
+            raise ValueError("The concentration values must be in sorted order.")
+        if any(np.array(self.concentration) < 0):
+            raise ValueError("Concentrations must be >= 0")
+        if min(self.concentration) > 0:
+            raise ValueError("No control is given. The first concentration must be 0.")
+        if np.isnan(self.concentration).any():
+            raise ValueError("concentration must be none NaN")
+        if np.isnan(self.survival_rate).any():
+            raise ValueError("survival_observerd must be none NaN")
+
+
+
     @property
     def hormesis_concentration(self) -> Optional[float]:
         

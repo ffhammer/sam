@@ -1,8 +1,30 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from model import ModelPredictions
+from dose_reponse_fit import ModelPredictions
+from data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
+from typing import Optional
+from matplotlib.colors import to_rgb, to_hex
 
-def plot_complete(model: ModelPredictions, title=None):
+
+def darken_color(color, amount=0.5):
+    """
+    Darkens the given color by multiplying (1-amount) to its RGB values.
+    
+    Args:
+        color (str or tuple): The color to darken.
+        amount (float): The amount to darken the color by (0 to 1).
+        
+    Returns:
+        str: The darkened color as a hex string.
+    """
+    try:
+        c = to_rgb(color)
+        c = [max(0, min(1, 1 - (1 - channel) * (1 - amount))) for channel in c]
+        return to_hex(c)
+    except ValueError:
+        return color
+
+def plot_fit_prediction(model: ModelPredictions, title=None):
     """
     Plots the complete set of survival and stress curves on both linear and logarithmic scales.
 
@@ -15,23 +37,72 @@ def plot_complete(model: ModelPredictions, title=None):
     """
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
-    plot_survival(model, ax=axs[0, 0], xscale="linear", show_legend=False, xlab=None, ylab="Survival", title="Survival")
-    plot_stress(model, ax=axs[0, 1], xscale="linear", show_legend=False, xlab=None, ylab="Stress", title="Stress")
-    plot_survival(model, ax=axs[1, 0], xscale="log", show_legend=False, xlab="Concentration", ylab="Survival", title=None)
-    plot_stress(model, ax=axs[1, 1], xscale="log", show_legend=False, xlab="Concentration", ylab="Stress", title=None)
-    
+    plot_survival(
+        model.concentration_curve,
+        model.survival_curve,
+        ax=axs[0, 0],
+        orig_series=model.inputs,
+        xscale="linear",
+        show_legend=False,
+        xlab=None,
+        ylab="Survival",
+        title="Survival",
+    )
+    plot_stress(
+        model.concentration_curve,
+        model.stress_curve,
+        ax=axs[0, 1],
+        xscale="linear",
+        show_legend=False,
+        xlab=None,
+        ylab="Stress",
+        title="Stress",
+    )
+    plot_survival(
+        model.concentration_curve,
+        model.survival_curve,
+        ax=axs[1, 0],
+        orig_series=model.inputs,
+        xscale="log",
+        show_legend=False,
+        xlab="Concentration",
+        ylab="Survival",
+        title=None,
+    )
+    plot_stress(
+        model.concentration_curve,
+        model.stress_curve,
+        ax=axs[1, 1],
+        xscale="log",
+        show_legend=False,
+        xlab="Concentration",
+        ylab="Stress",
+        title=None,
+    )
+
     if title:
         fig.suptitle(title)
-    
+
     plt.tight_layout()
     return fig
 
-def plot_stress(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Stress", title=None):
+
+def plot_stress(
+    concentration_curve: np.ndarray,
+    stress_curve: np.ndarray,
+    ax,
+    xscale="linear",
+    show_legend=False,
+    xlab="Concentration",
+    ylab="Stress",
+    title=None,
+    label = None,
+    color = "deepskyblue",
+    ):
     """
     Plots the stress curve.
 
     Args:
-        model (ModelPredictions): The model predictions containing the stress data to be plotted.
         ax (matplotlib.axes.Axes): The axes object on which to plot the stress curve.
         xscale (str, optional): Scale for the x-axis. Defaults to "linear".
         show_legend (bool, optional): Whether to show the legend. Defaults to False.
@@ -45,12 +116,28 @@ def plot_stress(model: ModelPredictions, ax, xscale="linear", show_legend=False,
     if title:
         ax.set_title(title)
 
-    ax.plot(model.concentration_curve, model.stress_curve, color="deepskyblue", linestyle='--')
+    ax.plot(concentration_curve, stress_curve, color=color, linestyle="--", label = label)
 
     if show_legend:
         ax.legend()
 
-def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Survival", title=None):
+
+
+
+
+def plot_survival(
+    concentration_curve: np.ndarray,
+    survival_curve: np.ndarray,
+    ax,
+    orig_series: Optional[DoseResponseSeries] = None,
+    xscale="linear",
+    show_legend=False,
+    xlab="Concentration",
+    ylab="Survival",
+    label = None,
+    title=None,
+    color = "deepskyblue"
+):
     """
     Plots the survival curve and observed survival data points.
 
@@ -68,17 +155,132 @@ def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=Fals
     ax.set_ylabel(ylab)
     if title:
         ax.set_title(title)
-    
-    inputs = model.inputs
-    
-    if inputs.hormesis_concentration is not None:
-        colors = np.where(inputs.concentration == inputs.hormesis_concentration, "red", "blue")
-    else:
-        colors = np.array(["blue" for _ in range(len(inputs.concentration))])
-    
-    ax.scatter(inputs.concentration, inputs.survival_rate, label="Survival_observered", zorder=5, c=colors)
 
-    ax.plot(model.concentration_curve, model.survival_curve, color="deepskyblue", linestyle='--', label="Survival")
+    ax.plot(
+        concentration_curve,
+        survival_curve,
+        color=color,
+        linestyle="--",
+        label=label,
+    )
+    
+    if orig_series is not None:
+
+        # if orig_series.hormesis_concentration is not None:
+        #     colors = np.where(
+        #         orig_series.concentration == orig_series.hormesis_concentration, "red", color
+        #     )
+        # else:
+        #     colors = np.array([color for _ in range(len(orig_series.concentration))])
+
+        ax.scatter(
+            orig_series.concentration,
+            orig_series.survival_rate,
+            label=label,
+            zorder=5,
+            c=color,
+        )
+
 
     if show_legend:
         ax.legend()
+
+
+
+
+def plot_sam_prediction(
+    main_fit: ModelPredictions,
+    stressor_fit: ModelPredictions,
+    predicted_survival_curve,
+    predicted_stress_curve,
+    title = None
+):
+
+    stress_label = "Toxicant + " + stressor_fit.inputs.name
+    tox_label = "Toxicant"
+    sam_label = "SAM"
+
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+
+    def first_plot(conc, surv, orig_series, label):
+        plot_survival(
+            conc,
+            surv,
+            ax=axs[0, 0],
+            orig_series=orig_series,
+            xscale="linear",
+            show_legend=False,
+            xlab=None,
+            ylab="Survival",
+            title="Survival",
+            label=label,
+            color=None,
+        )
+
+    def second_plot(x, y, label):
+        plot_stress(
+            x,
+            y,
+            ax=axs[0, 1],
+            xscale="linear",
+            show_legend=False,
+            xlab=None,
+            ylab="Stress",
+            title="Stress",
+            color=None,
+            label=label,
+        )
+
+    def third_plot(conc, surv, orig_series, label):
+        plot_survival(
+            conc,
+            surv,
+            ax=axs[1, 0],
+            orig_series=orig_series,
+            xscale="log",
+            show_legend=False,
+            xlab="Concentration",
+            ylab="Survival",
+            title="Survival",
+            label=label,
+            color=None,
+        )
+
+    def fourth_plot(x, y, label):
+        plot_stress(
+            x,
+            y,
+            ax=axs[1, 1],
+            xscale="log",
+            show_legend=True,
+            xlab="Concentration",
+            ylab="Stress",
+            title="Stress",
+            color=None,
+            label=label,
+        )
+
+    # Plotting in the correct order
+    first_plot(main_fit.concentration_curve, main_fit.survival_curve, main_fit.inputs, label=tox_label)
+    first_plot(stressor_fit.concentration_curve, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
+    first_plot(stressor_fit.concentration_curve, predicted_survival_curve, None, label=sam_label)
+
+    second_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
+    second_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
+    second_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
+
+    third_plot(main_fit.concentration_curve, main_fit.survival_curve, main_fit.inputs, label=tox_label)
+    third_plot(stressor_fit.concentration_curve, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
+    third_plot(stressor_fit.concentration_curve, predicted_survival_curve, None, label=sam_label)
+
+    fourth_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
+    fourth_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
+    fourth_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
+
+    if title is not None:
+        plt.suptitle(title)
+
+    plt.tight_layout()
+    
+    
+    return fig

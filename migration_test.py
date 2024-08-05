@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
-from model import dose_response_fit, ModelPredictions
+from dose_reponse_fit import dose_response_fit, ModelPredictions
 import glob
-
+from data_formats import read_data, ExperimentData, DoseResponseSeries
 
 def plot_diffs(orig_conc, orig_survival,hormesis_conc, new_hormesis_index, r_pred, res_new, save_to):
 
