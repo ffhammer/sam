@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple, Callable
 import warnings
 from scipy.optimize import brentq
+from data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
 
 @dataclass
 class StandardSettings:
@@ -25,22 +26,6 @@ class StandardSettings:
     len_curves = 10_000
 
 @dataclass
-class ModelInputs:
-    """
-    Holds the input data required for the dose-response model.
-
-    Attributes:
-        concentration (np.ndarray): Array of concentration values.
-        survival_observered (np.ndarray): Array of observed survival values.
-        hormesis_concentration (Optional[float]): Concentration value at which hormesis occurs.
-        cfg (StandardSettings): Configuration settings.
-    """
-    concentration: np.ndarray
-    survival_observered: np.ndarray
-    hormesis_concentration: Optional[float]
-    cfg: StandardSettings
-
-@dataclass
 class ModelPredictions:
     """
     Stores the results of the model predictions.
@@ -55,7 +40,8 @@ class ModelPredictions:
         lc1 (float): Lethal concentration for 1% of the population.
         lc99 (float): Lethal concentration for 99% of the population.
         hormesis_index (int): Index of the hormesis concentration.
-        inputs (ModelInputs): The inputs provided to the model.
+        inputs (DoseResponseSeries): The inputs provided to the model.
+        cfg (StandardSettings): Settings used
     """
     concentration_curve: np.ndarray
     survival_curve: np.array
@@ -66,12 +52,11 @@ class ModelPredictions:
     lc1: float
     lc99: float
     hormesis_index: int
-    inputs : ModelInputs
+    inputs : DoseResponseSeries
+    cfg : StandardSettings
 
 def dose_response_fit(
-    concentration: np.ndarray,
-    survival_observerd: np.ndarray,
-    hormesis_concentration: Optional[float] = None,
+    dose_response_data : DoseResponseSeries,
     cfg: StandardSettings = StandardSettings(),
 ) -> ModelPredictions:
     """
@@ -86,14 +71,16 @@ def dose_response_fit(
           (e.g., regression_data = concentration[:2] + concentration[hormesis_index:] and survival[:2] + survival[hormesis_index:]).
 
     Args:
-        concentration (np.ndarray): Array of concentration values.
-        survival_observerd (np.ndarray): Array of observed survival values.
-        hormesis_concentration (Optional[float], optional): Concentration value at which hormesis occurs. Defaults to None.
         cfg (StandardSettings, optional): Configuration settings. Defaults to StandardSettings().
 
     Returns:
         ModelPredictions: The fitted model predictions and related data.
     """
+    
+    concentration = dose_response_data.concentration
+    survival_observerd = dose_response_data.survival_rate
+    hormesis_concentration = dose_response_data.hormesis_concentration 
+    
 
     if cfg.survival_max <= 0:
         raise ValueError("survival_max must be >= 0")
@@ -107,6 +94,11 @@ def dose_response_fit(
         raise ValueError("Concentrations must be >= 0")
     if min(concentration) > 0:
         raise ValueError("No control is given. The first concentration must be 0.")
+    if np.isnan(concentration).any():
+        raise ValueError("concentration must be none NaN")
+    if np.isnan(survival_observerd).any():
+        raise ValueError("survival_observerd must be none NaN")
+
 
     if not isinstance(concentration, np.ndarray) or concentration.dtype != np.float64:
         warnings.warn("Casting concentration to np.float64 array")
@@ -119,12 +111,6 @@ def dose_response_fit(
     if any(survival_observerd > cfg.survival_max) or any(survival_observerd < 0):
         raise ValueError("Observed survival must be between 0 and survival_max.")
 
-    inputs = ModelInputs(
-        concentration=concentration,
-        survival_observered=survival_observerd,
-        hormesis_concentration=hormesis_concentration,
-        cfg=cfg,
-    )
     
     regress_conc, regress_surv, hormesis_index = get_regression_data(
         orig_concentration=concentration,
@@ -140,7 +126,7 @@ def dose_response_fit(
     return compute_predictions(
         model=fitted_func,
         optim_param=optim_param,
-        inputs=inputs,
+        inputs=dose_response_data,
         cfg=cfg,
         hormesis_index=hormesis_index,
     )
@@ -171,7 +157,7 @@ def compute_lc(model, lc: int, min_val: float, max_val: float) -> float:
 def compute_predictions(
     model,
     optim_param: np.array,
-    inputs : ModelInputs,
+    inputs : DoseResponseSeries,
     cfg: StandardSettings,
     hormesis_index: int,
 ) -> ModelPredictions:
@@ -181,7 +167,7 @@ def compute_predictions(
     Args:
         model (Callable): The fitted Weibull model.
         optim_param (np.array): Optimized parameters.
-        inputs (ModelInputs): The input data.
+        inputs (DoseResponseSeries): The input data.
         cfg (StandardSettings): Configuration settings.
         hormesis_index (int): Index of the hormesis concentration.
 
@@ -215,6 +201,7 @@ def compute_predictions(
         lc99=lc99,
         hormesis_index=hormesis_index,
         inputs=inputs,
+        cfg = cfg
     )
 
 def find_lc_99_max(func) -> float:
@@ -278,7 +265,7 @@ def get_regression_data(
 
         hormesis_index = np.where(hormesis_concentration == concentration)[0][0]
 
-        if hormesis_index < 2 or hormesis_index + 1 >= len(concentration):
+        if hormesis_index < 1 or hormesis_index + 1 >= len(concentration):
             raise ValueError("hormesis_concentration must correspond to an index between the first and last position")
 
         concentration = np.concatenate((concentration[:2], concentration[hormesis_index:]))

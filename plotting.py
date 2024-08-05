@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from model import ModelPredictions, ModelInputs
+from model import ModelPredictions
 
 def plot_complete(model: ModelPredictions, title=None):
     """
@@ -76,7 +76,7 @@ def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=Fals
     else:
         colors = np.array(["blue" for _ in range(len(inputs.concentration))])
     
-    ax.scatter(inputs.concentration, inputs.survival_observed, label="Survival_observed", zorder=5, c=colors)
+    ax.scatter(inputs.concentration, inputs.survival_rate, label="Survival_observered", zorder=5, c=colors)
 
     ax.plot(model.concentration_curve, model.survival_curve, color="deepskyblue", linestyle='--', label="Survival")
 

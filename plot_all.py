@@ -1,27 +1,23 @@
 import os
-from model import dose_response_fit, ModelPredictions
+from model import dose_response_fit, ModelPredictions, StandardSettings
 from plotting import plot_complete
 import pandas as pd
 import numpy as np
+import glob
+from data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries, read_data
 
-for path in os.listdir("formatted_data"):
+for path in glob.glob("data/*.xlsx"):
 
-    df = pd.read_csv(f"formatted_data/{path}")
-
-    conc = df.conc.values.astype(np.float64)
-    survival = df["no stress"].values.astype(np.float64)
-    hormesis = df.hormesis_concentration.iloc[0]
-
-    if np.isnan(hormesis):
-        hormesis = None
-
+    data : ExperimentData = read_data(path)
+    
+    
     res: ModelPredictions = dose_response_fit(
-        conc, survival, hormesis_concentration=hormesis
+        data.main_series, StandardSettings(survival_max=data.meta.max_survival)
     )
 
-    title = f"{df.chemical.iloc[0]} - {df.organism.iloc[0]}"
+    title = f"{data.meta.chemical} - {data.meta.organism}"
     fig = plot_complete(model=res, title=title)
 
-    save_path = f"python_plots/{path.replace('csv', 'png')}"
+    save_path = f"python_plots/{os.path.split(path.replace('xlsx', 'png'))[1]}"
 
     fig.savefig(save_path)
