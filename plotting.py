@@ -3,6 +3,16 @@ import numpy as np
 from model import ModelPredictions, ModelInputs
 
 def plot_complete(model: ModelPredictions, title=None):
+    """
+    Plots the complete set of survival and stress curves on both linear and logarithmic scales.
+
+    Args:
+        model (ModelPredictions): The model predictions containing the data to be plotted.
+        title (str, optional): Title for the entire figure. Defaults to None.
+
+    Returns:
+        matplotlib.figure.Figure: The figure object containing the plots.
+    """
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
     plot_survival(model, ax=axs[0, 0], xscale="linear", show_legend=False, xlab=None, ylab="Survival", title="Survival")
@@ -17,6 +27,18 @@ def plot_complete(model: ModelPredictions, title=None):
     return fig
 
 def plot_stress(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Stress", title=None):
+    """
+    Plots the stress curve.
+
+    Args:
+        model (ModelPredictions): The model predictions containing the stress data to be plotted.
+        ax (matplotlib.axes.Axes): The axes object on which to plot the stress curve.
+        xscale (str, optional): Scale for the x-axis. Defaults to "linear".
+        show_legend (bool, optional): Whether to show the legend. Defaults to False.
+        xlab (str, optional): Label for the x-axis. Defaults to "Concentration".
+        ylab (str, optional): Label for the y-axis. Defaults to "Stress".
+        title (str, optional): Title for the plot. Defaults to None.
+    """
     ax.set_xscale(xscale)
     ax.set_xlabel(xlab)
     ax.set_ylabel(ylab)
@@ -29,6 +51,18 @@ def plot_stress(model: ModelPredictions, ax, xscale="linear", show_legend=False,
         ax.legend()
 
 def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=False, xlab="Concentration", ylab="Survival", title=None):
+    """
+    Plots the survival curve and observed survival data points.
+
+    Args:
+        model (ModelPredictions): The model predictions containing the survival data to be plotted.
+        ax (matplotlib.axes.Axes): The axes object on which to plot the survival curve.
+        xscale (str, optional): Scale for the x-axis. Defaults to "linear".
+        show_legend (bool, optional): Whether to show the legend. Defaults to False.
+        xlab (str, optional): Label for the x-axis. Defaults to "Concentration".
+        ylab (str, optional): Label for the y-axis. Defaults to "Survival".
+        title (str, optional): Title for the plot. Defaults to None.
+    """
     ax.set_xscale(xscale)
     ax.set_xlabel(xlab)
     ax.set_ylabel(ylab)
@@ -42,7 +76,7 @@ def plot_survival(model: ModelPredictions, ax, xscale="linear", show_legend=Fals
     else:
         colors = np.array(["blue" for _ in range(len(inputs.concentration))])
     
-    ax.scatter(inputs.concentration, inputs.survival_observerd, label="Survival_observed", zorder=5, c=colors)
+    ax.scatter(inputs.concentration, inputs.survival_observed, label="Survival_observed", zorder=5, c=colors)
 
     ax.plot(model.concentration_curve, model.survival_curve, color="deepskyblue", linestyle='--', label="Survival")
 
