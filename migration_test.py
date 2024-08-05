@@ -2,12 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
-from old_model import *
 from model import dose_response_fit, ModelPredictions
 import glob
 
 
-def plot_diffs(orig_conc, orig_survival,hormesis_conc, new_hormesis_index, pred, r_pred, res_new, save_to):
+def plot_diffs(orig_conc, orig_survival,hormesis_conc, new_hormesis_index, r_pred, res_new, save_to):
 
     plt.figure(figsize=(10, 6))
 
@@ -95,11 +94,7 @@ for path in paths:
         orig_conc = df.conc.values
         orig_survival = df["no stress"].values
         hormesis = df.hormesis_concentration.iloc[0]
-        
-        model = ecxsys(
-            orig_conc, hormesis, orig_survival
-        )   
-
+      
         res_new : ModelPredictions = dose_response_fit(orig_conc.astype(np.float64), orig_survival.astype(np.float64), hormesis)
 
         new_df = pd.DataFrame({
@@ -109,25 +104,12 @@ for path in paths:
         })
 
 
-        curves = model["curves"]
-
-        pred = (
-            pd.DataFrame(curves)
-            .rename(
-                columns={
-                    "survival_LL5": "survival_tox_LL5",
-                    "stress": "stress_tox",
-                    "survival": "survival_tox",
-                }
-            )
-            .drop(columns="concentration")
-        )
 
         r_pred = pd.read_csv(os.path.join("r_preds", path))
 
         save_to = f"migration_validation/{path.replace('csv','png')}"
 
-        plot_diffs(orig_conc, orig_survival, hormesis, res_new.hormesis_index, pred, r_pred, new_df, save_to)
+        plot_diffs(orig_conc, orig_survival, hormesis, res_new.hormesis_index, r_pred, new_df, save_to)
 
     except Exception as e:
         print(path, e)
