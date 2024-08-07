@@ -55,19 +55,19 @@ class Predicted_LCs:
     sam_lc50 : float
     
     
+    
 def get_sam_lcs(
-        main_series: DoseResponseSeries,
-    stressor_series: DoseResponseSeries,
+        stress_fit : ModelPredictions,
+        sam_sur : np.ndarray,
     meta: ExperimentMetaData,
 ):
 
-    main_fit, stress_fit, sam_sur, sam_stress = sam_prediction(main_series, stressor_series, meta)
     max_val = find_lc_99_max(stress_fit.model)
 
     stress_lc10 = compute_lc(stress_fit.model, 10, 1e-7, max_val)
     stress_lc50 = compute_lc(stress_fit.model, 50, 1e-7, max_val)
 
-    sam_lc10 = compute_lc_from_curve(main_fit.concentration_curve, sam_sur, llc=10, survival_max=meta.max_survival)
-    sam_lc50 = compute_lc_from_curve(main_fit.concentration_curve, sam_sur, llc=50, survival_max=meta.max_survival)
+    sam_lc10 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, llc=10, survival_max=meta.max_survival)
+    sam_lc50 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, llc=50, survival_max=meta.max_survival)
     
     return Predicted_LCs(stress_lc10=stress_lc10, stress_lc50=stress_lc50, sam_lc10=sam_lc10, sam_lc50=sam_lc50)
