@@ -4,6 +4,7 @@ from dose_reponse_fit import (
     ModelPredictions,
     StandardSettings,
     survival_to_stress,
+    Transforms
 )
 from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
 from plotting import plot_fit_prediction
@@ -25,25 +26,39 @@ def compute_additional_stress(stressor_series: DoseResponseSeries, survival_max 
     return survival_to_stress(stressor_series.survival_rate[0] / survival_max)
 
 
+@dataclass
+class SAM_Setting:
+    beta_q : float = 3.2
+    beta_p : float = 3.2
+    param_d_norm : bool = False
+    transform : Transforms = Transforms.williams_and_linear_interpolation
+
 def sam_prediction(
     main_series: DoseResponseSeries,
     stressor_series: DoseResponseSeries,
     meta: ExperimentMetaData,
+    settings: SAM_Setting = SAM_Setting(),
 ):
+    
+    dose_cfg = StandardSettings(survival_max=meta.max_survival, beta_q=settings.beta_q, beta_p=settings.beta_p, param_d_norm=settings.param_d_norm)
 
     main_fit = dose_response_fit(
-        main_series, cfg=StandardSettings(survival_max=meta.max_survival)
+        main_series, cfg=dose_cfg
     )
     stressor_fit = dose_response_fit(
-        stressor_series, cfg=StandardSettings(survival_max=meta.max_survival)
+        stressor_series, cfg=dose_cfg
     )
 
 
-    additional_stress = compute_additional_stress(stressor_series=stressor_series, survival_max = meta.max_survival)
+    if settings.param_d_norm:
+        additional_stress = survival_to_stress(stressor_fit.optim_param["d"] / main_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q) 
+        predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
+        predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * main_fit.optim_param["d"] * meta.max_survival
+    else:
+        additional_stress = compute_additional_stress(stressor_series=stressor_series, survival_max = meta.max_survival)
+        predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
+        predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * meta.max_survival
 
-    predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
-
-    predicted_survival_curve = stress_to_survival(predicted_stress_curve) * meta.max_survival
 
     return main_fit, stressor_fit, predicted_survival_curve, predicted_stress_curve
 

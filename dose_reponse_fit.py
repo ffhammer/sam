@@ -7,7 +7,21 @@ import warnings
 from data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
 from stress_survival_conversion import survival_to_stress
 from helpers import find_lc_99_max, compute_lc
+from scipy.interpolate import interp1d
+from enum import Enum
 
+# Constants
+CONC0_MAX_DY = 5.0 / 100
+CONC0_MIN_EXP = -100
+LINEAR_INTER_STEPS = 10
+
+
+class Transforms(Enum):
+    none = 'none'
+    linear_interpolation = 'linear_interpolation'
+    williams = 'williams'
+    williams_and_linear_interpolation = 'williams_and_linear_interpolation'
+    
 @dataclass
 class StandardSettings:
     """
@@ -23,6 +37,8 @@ class StandardSettings:
     beta_p: float = 3.2
     survival_max: float = 100
     len_curves = 10_000
+    transform : Transforms = Transforms.williams_and_linear_interpolation
+    param_d_norm : bool = False
 
 @dataclass
 class ModelPredictions:
@@ -34,7 +50,6 @@ class ModelPredictions:
         survival_curve (np.array): Predicted survival values.
         stress_curve (np.array): Stress values computed from the survival data.
         predicted_survival (np.array): Predicted survival values for the input concentrations.
-        optim_param (np.array): Optimized parameters of the Weibull model.
         model (Callable): The fitted Weibull model.
         lc1 (float): Lethal concentration for 1% of the population.
         lc99 (float): Lethal concentration for 99% of the population.
@@ -46,11 +61,10 @@ class ModelPredictions:
     survival_curve: np.array
     stress_curve: np.array
     predicted_survival: np.array
-    optim_param: np.array
+    optim_param: dict
     model: Callable
     lc1: float
     lc99: float
-    hormesis_index: int
     inputs : DoseResponseSeries
     cfg : StandardSettings
 
@@ -97,14 +111,13 @@ def dose_response_fit(
         raise ValueError("Observed survival must be between 0 and survival_max.")
 
     
-    regress_conc, regress_surv, hormesis_index = get_regression_data(
+    regress_conc, regress_surv = get_regression_data(
         orig_concentration=concentration,
         orig_survival_observerd=survival_observerd,
-        hormesis_concentration=hormesis_concentration,
         cfg=cfg,
     )
 
-    fitted_func, optim_param = fit_weibull(
+    fitted_func, optim_param = fit_ll5(
         concentration=regress_conc, survival=regress_surv
     )
 
@@ -113,7 +126,6 @@ def dose_response_fit(
         optim_param=optim_param,
         inputs=dose_response_data,
         cfg=cfg,
-        hormesis_index=hormesis_index,
     )
 
 
@@ -123,7 +135,6 @@ def compute_predictions(
     optim_param: np.array,
     inputs : DoseResponseSeries,
     cfg: StandardSettings,
-    hormesis_index: int,
 ) -> ModelPredictions:
     """
     Computes the survival and stress predictions based on the fitted model.
@@ -133,7 +144,6 @@ def compute_predictions(
         optim_param (np.array): Optimized parameters.
         inputs (DoseResponseSeries): The input data.
         cfg (StandardSettings): Configuration settings.
-        hormesis_index (int): Index of the hormesis concentration.
 
     Returns:
         ModelPredictions: The model predictions.
@@ -144,14 +154,19 @@ def compute_predictions(
     lc1 = compute_lc(model=model, lc=1, max_val=max_val, min_val=min_val)
     lc99 = compute_lc(model=model, lc=99, max_val=max_val, min_val=min_val)
 
-    padded_concentration = pad_controll_concentration(inputs.concentration)
+    padded_concentration = pad_c0(inputs.concentration)
 
     concentration_curve = 10 ** np.linspace(
         np.log10(padded_concentration[0]), np.log10(inputs.concentration.max()), cfg.len_curves
     )
     pred_survival = model(concentration_curve)
     survival_curve = cfg.survival_max * pred_survival
-    stress_curve = survival_to_stress(pred_survival, p=cfg.beta_p, q=cfg.beta_q)
+    
+    if cfg.param_d_norm:
+        stress_curve = survival_to_stress(pred_survival / optim_param["d"], p=cfg.beta_p, q=cfg.beta_q)
+    else:
+        stress_curve = survival_to_stress(pred_survival, p=cfg.beta_p, q=cfg.beta_q)
+
     predicted_survival = model(padded_concentration)
 
     return ModelPredictions(
@@ -163,13 +178,12 @@ def compute_predictions(
         model=model,
         lc1=lc1,
         lc99=lc99,
-        hormesis_index=hormesis_index,
         inputs=inputs,
         cfg = cfg
     )
 
 
-def pad_controll_concentration(orig_concentration: np.array) -> np.array:
+def pad_c0(orig_concentration: np.array) -> np.array:
     """
     Pads the control concentration value.
 
@@ -184,63 +198,110 @@ def pad_controll_concentration(orig_concentration: np.array) -> np.array:
     concentration[0] = min_conc
     return concentration
 
+
+
+def transform_none(conc, surv):
+    return conc, surv
+
+def transform_linear_interpolation(conc, surv):
+    c0 = conc[1] / 2
+    e0 = surv[1]
+    points = np.linspace(np.log10(c0), np.log10(conc[-1]), LINEAR_INTER_STEPS)
+    
+    conc[0] = c0
+    
+    interp_func = interp1d(np.log10(conc), surv)
+    return 10 ** points, interp_func(points)
+
+
+def transform_williams(conc, surv):
+    vec = np.array(surv)
+    count = np.ones_like(vec)
+    steps = vec[:-1] - vec[1:]
+    outlier = np.where(steps < 0)[0]
+
+    while outlier.size > 0:
+        
+        index = outlier[0]
+        
+        if index + 1 >= len(vec):
+            break
+        
+        # Averaging over the current and the next value
+        weighted_avg = np.average([vec[index], vec[index + 1]], weights=[count[index], count[index + 1]])
+        vec[index] = weighted_avg
+        count[index] += count[index + 1]
+    
+        # Removing the next value after the current index
+        vec = np.delete(vec, index + 1)
+        count = np.delete(count, index + 1)
+        
+        steps = vec[:-1] - vec[1:]
+        outlier = np.where(steps < 0)[0]
+
+    # Replicating values based on their counts
+    vec_f = np.repeat(vec, count.astype(int))
+    return conc, vec_f
+
+def transform_williams_and_linear_interpolation(conc, surv):
+    conc_t, surv_t = transform_williams(conc, surv)
+    return transform_linear_interpolation(conc_t, surv_t)
+
+
 def get_regression_data(
     orig_concentration: np.ndarray,
     orig_survival_observerd: np.ndarray,
-    hormesis_concentration: Optional[float] = None,
     cfg: StandardSettings = StandardSettings(),
-) -> Tuple[np.ndarray, np.ndarray, int]:
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Prepares the data for regression analysis, handling hormesis concentration if provided.
 
     Args:
         orig_concentration (np.ndarray): Original concentration values.
         orig_survival_observerd (np.ndarray): Original observed survival values.
-        hormesis_concentration (Optional[float], optional): Hormesis concentration. Defaults to None.
         cfg (StandardSettings, optional): Configuration settings. Defaults to StandardSettings().
 
     Returns:
         Tuple[np.ndarray, np.ndarray, int]: Prepared concentration and survival data, and hormesis index.
     """
-    concentration = pad_controll_concentration(orig_concentration=orig_concentration)
 
     survival = orig_survival_observerd / cfg.survival_max
-    survival[0] = 1
 
-    if hormesis_concentration is not None:
-        if hormesis_concentration not in concentration:
-            raise ValueError("hormesis_concentration must equal one of the concentration values.")
+    transform_func = globals()[f"transform_{cfg.transform.value}"]
 
-        hormesis_index = np.where(hormesis_concentration == concentration)[0][0]
+    return transform_func(orig_concentration, survival)
+    
 
-        if hormesis_index < 1 or hormesis_index + 1 >= len(concentration):
-            raise ValueError("hormesis_concentration must correspond to an index between the first and last position")
 
-        concentration = np.concatenate((concentration[:2], concentration[hormesis_index:]))
-        survival = np.concatenate((survival[:2], survival[hormesis_index:]))
+def ll5(conc, b, c, d, e, f):
+    return c + (d - c) / (1 + (conc / e) ** b) ** f
 
-    else:
-        hormesis_index = None
+def fit_ll5(concentration: np.ndarray, survival: np.ndarray) -> Tuple[Callable, np.array]:
 
-    return concentration, survival, hormesis_index
+    fixed_params = {
+        'c': 0,
+        'd': survival[0],
+    }
+    
+    bounds = {"b": [0, 100], "c": [0, max(survival)], "d": [0, 2*max(survival)], "e": [0, max(concentration)], "f": [0.1, 10]}
 
-def fit_weibull(concentration: np.ndarray, survival: np.ndarray) -> Tuple[Callable, np.array]:
-    """
-    Fits a Weibull model to the data.
+    keep = {k: v for k, v in bounds.items() if k not in fixed_params}
+    
+    bounds_tup = tuple(zip(*keep.values())) 
+    
+    
+    def fitting_func(concentration, *args):
+            
+        params = fixed_params.copy()
+        params.update({k: v for k, v in zip(keep.keys(), args)})
+        return ll5(concentration,**params)
+    
+    
+    popt, pcov = curve_fit(fitting_func, concentration, survival, p0=np.ones_like(bounds_tup[0]), bounds=bounds_tup)
+    
+    params = fixed_params.copy()
+    params.update({k: v for k, v in zip(keep.keys(), popt)})
 
-    Args:
-        concentration (np.ndarray): Concentration values.
-        survival (np.ndarray): Survival values.
+    fitted_func = lambda conc: ll5(conc, **params)
 
-    Returns:
-        Callable: The fitted Weibull function.
-        np.array: Optimized parameters.
-    """
-    def weibull(x, b, e):
-        return np.exp(-np.exp(b * (np.log(x) - e)))
-
-    bounds = ([1e-7, 1e-7], [np.inf, np.inf])
-
-    popt, _ = curve_fit(weibull, concentration, survival, bounds=bounds)
-    return lambda x: weibull(x, *popt), popt
-
+    return fitted_func, params
