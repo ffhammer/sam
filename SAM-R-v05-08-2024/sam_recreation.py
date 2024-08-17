@@ -153,6 +153,8 @@ class PredictionData:
     survival_ca: np.ndarray = field(default_factory=lambda: np.array([]))
     lc_sam_conc: np.ndarray = field(default_factory=lambda: np.array([]))
     lc_sam_surv: np.ndarray = field(default_factory=lambda: np.array([]))
+    stress_a : np.ndarray = field(default_factory=lambda: np.array([]))
+    stress_b : np.ndarray = field(default_factory=lambda: np.array([]))
 
     def to_csv(self, filename: str):
         import pandas as pd
@@ -170,7 +172,9 @@ class PredictionData:
             "EA": pad(self.survival_ea),
             "CA": pad(self.survival_ca),
             "LC_SAM_Concentration": pad(self.lc_sam_conc),
-            "LC_SAM_Survival": pad(self.lc_sam_surv)
+            "LC_SAM_Survival": pad(self.lc_sam_surv),
+            "Stress_A": pad(self.stress_a),
+            "Stress_B": pad(self.stress_b),
         }
         df = pd.DataFrame(data)
         df.to_csv(filename, index=False)
@@ -233,7 +237,9 @@ def generate_predictions(name, conc, surv_a, surv_b, transform_name, f = None):
             survival_ea=surv_line_ea,
             survival_ca=surv_line_ca,
             lc_sam_conc=lc_sam_conc,
-            lc_sam_surv=lc_sam_surv
+            lc_sam_surv=lc_sam_surv,
+            stress_a=stress_a,
+            stress_b=np.array([stress_b]),
         )
     return predictions
 

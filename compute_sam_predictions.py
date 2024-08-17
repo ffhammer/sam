@@ -1,5 +1,5 @@
 import glob
-from stress_addition_model import sam_prediction, Predicted_LCs, get_sam_lcs
+from stress_addition_model import sam_prediction, Predicted_LCs, get_sam_lcs, SAM_Setting
 from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
 from plotting import plot_sam_prediction
 from data_formats import ExperimentData, read_data
@@ -7,7 +7,9 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-PLOT = False
+sam_settings = SAM_Setting(beta_q=3.17, beta_p=2.83, param_d_norm=True, stress_form="substract")
+
+PLOT = True
 
 rows = []
 
@@ -18,14 +20,15 @@ for path in glob.glob("data/*.xlsx"):
     for name, val in data.additional_stress.items():
 
         main_fit, stress_fit, sam_sur, sam_stress = sam_prediction(
-            data.main_series, val, data.meta
+            data.main_series, val, data.meta, settings=sam_settings,
         )
 
         lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
 
         if PLOT:
 
-            title = f"Fitted LC10: {lcs.stress_lc10 :.2f} LC50: {lcs.stress_lc50 :.2f} - SAM Predictions LC10: {lcs.sam_lc10 :.2f} LC50: {lcs.sam_lc50 :.2f}"
+            # title = f"Fitted LC10: {lcs.stress_lc10 :.2f} LC50: {lcs.stress_lc50 :.2f} - SAM Predictions LC10: {lcs.sam_lc10 :.2f} LC50: {lcs.sam_lc50 :.2f}"
+            title = None
             fig = plot_sam_prediction(
                 main_fit, stress_fit, sam_sur, sam_stress, title=title
             )

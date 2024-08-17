@@ -32,6 +32,7 @@ class SAM_Setting:
     beta_p : float = 3.2
     param_d_norm : bool = False
     transform : Transforms = Transforms.williams_and_linear_interpolation
+    stress_form : str = "only_stress" # "only_stress" or "div" "substract"
 
 def sam_prediction(
     main_series: DoseResponseSeries,
@@ -49,14 +50,31 @@ def sam_prediction(
         stressor_series, cfg=dose_cfg
     )
 
-
+    if settings.stress_form == "div":
+        additional_stress = stressor_fit.optim_param["d"] / main_fit.optim_param["d"]
+    elif settings.stress_form == "substract":
+        additional_stress = 1 - (main_fit.optim_param["d"]  - stressor_fit.optim_param["d"])
+    elif settings.stress_form == "only_stress":
+        additional_stress = 1 - stressor_fit.optim_param["d"] 
+    elif settings.stress_form == "stress_add":
+        
+        a = survival_to_stress(stressor_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q)
+        b = survival_to_stress(main_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q)
+        # print(a, b, a -b ) 
+        
+        additional_stress = stress_to_survival(a -b, p=settings.beta_p, q=settings.beta_q)
+        
+    else:
+        raise ValueError(f"Unknown stress form '{settings.stress_form}'")
+        
+    additional_stress = survival_to_stress(additional_stress, p=settings.beta_p, q=settings.beta_q)
+        
+    predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
+    
+        
     if settings.param_d_norm:
-        additional_stress = survival_to_stress(stressor_fit.optim_param["d"] / main_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q) 
-        predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
         predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * main_fit.optim_param["d"] * meta.max_survival
     else:
-        additional_stress = compute_additional_stress(stressor_series=stressor_series, survival_max = meta.max_survival)
-        predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
         predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * meta.max_survival
 
 
