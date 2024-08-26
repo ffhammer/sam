@@ -9,6 +9,7 @@ class ExperimentMetaData:
     organism: str
     chemical: str
     max_survival: float
+    path : str
     hormesis_concentration: Optional[float] = None
     pub: Optional[str] = None
 
@@ -80,7 +81,7 @@ def read_data(path: str) -> ExperimentData:
 
     meta = df[["meta_category", "info"]].dropna()
     meta_dict = dict(zip(meta.meta_category.str.strip(), meta["info"]))
-    meta_data = ExperimentMetaData(**meta_dict)
+    meta_data = ExperimentMetaData(**meta_dict,  path = path)
 
     main_series = DoseResponseSeries(df["concentration"].values, df["survival"].values, name="Toxicant")
 
