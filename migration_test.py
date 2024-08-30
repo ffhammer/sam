@@ -1,115 +1,48 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import os
-from dose_reponse_fit import dose_response_fit, ModelPredictions
 import glob
-from data_formats import read_data, ExperimentData, DoseResponseSeries
-
-def plot_diffs(orig_conc, orig_survival,hormesis_conc, new_hormesis_index, r_pred, res_new, save_to):
-
-    plt.figure(figsize=(10, 6))
-
-    def create_comparison_plot(x, y, x_label, y_label, xscale = "linear"):
-
-
-        plt.plot(res_new[x], res_new[y], label=f"Python", color="red")
-        plt.plot(r_pred[x], r_pred[y], label=f"R", color="blue")
-        
-
-        # Add labels and title
-        plt.xlabel(x_label)
-        plt.title(y_label)
-        plt.grid(True)
-        plt.xscale(xscale)
-
-    ax1 = plt.subplot(2, 2, 1)
-    create_comparison_plot(
-        x="concentration_for_plots",
-        y="survival_tox",
-        x_label="Concentration",
-        y_label="Survival Tox",
-    )
-    
-    hormesis_index = np.where(orig_conc == hormesis_conc)[0][0]
-    colors = np.where(orig_conc == hormesis_conc, "red", "blue")
-    
-    plt.scatter(orig_conc, orig_survival, c=colors)
-
-    if hormesis_index != new_hormesis_index:
-        print("orig hormesis index", hormesis_index, "new", new_hormesis_index)
+from stress_addition_model import sam_prediction, Predicted_LCs, get_sam_lcs, SAM_Setting, NEW_STANDARD, OLD_STANDARD
+from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
+from plotting import plot_sam_prediction
+from data_formats import ExperimentData, read_data
+import os
+import matplotlib.pyplot as plt
+import pandas as pd
 
 
-    ax2 = plt.subplot(2, 2, 2)
-    create_comparison_plot(
-        x="concentration_for_plots",
-        y="stress_tox",
-        x_label="Concentration",
-        y_label="Stress Tox",
-    )
-    
-    ax3 = plt.subplot(2, 2, 3)
-    create_comparison_plot(
-        x="concentration_for_plots",
-        y="survival_tox",
-        x_label=None,
-        y_label=None,
-        xscale="log"
-    )
-    
-    hormesis_index = np.where(orig_conc == hormesis_conc)[0][0]
-    colors = np.where(orig_conc == hormesis_conc, "red", "blue")
-    
-    plt.scatter(orig_conc, orig_survival, c=colors)
 
+def compute_preds(settings : SAM_Setting, dir : str) -> pd.DataFrame:
 
-    ax4 = plt.subplot(2, 2, 4)
-    create_comparison_plot(
-        x="concentration_for_plots",
-        y="stress_tox",
-        x_label=None,
-        y_label=None,
-        xscale="log"
-    )
-    
-    
-    
-    
-    plt.legend()
+    dir_path = os.path.join("migration", dir)
+    os.makedirs(dir_path, exist_ok=True)
 
-    plt.tight_layout()
-
-    plt.savefig(save_to)
-
-
-paths = os.listdir("r_preds")
-
-for path in paths:
-
-    try:
+    clean_path = lambda x: os.path.basename(x).split(".")[0]
+    for path in glob.glob("data/*.xlsx"):
         
         
-        df = pd.read_csv(f"formatted_data/{path}")
+
+        data: ExperimentData = read_data(path)
+
+        for name, val in data.additional_stress.items():
+
+            main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
+                data.main_series, val, data.meta, settings=settings,
+            )
+
+            row = {
+                "Concentration": main_fit.concentration_curve,
+                "Survival_A": main_fit.survival_curve,
+                "Survival_B" : stress_fit.survival_curve,
+                "SAM": sam_sur,
+                "Stress_A": main_fit.stress_curve,
+                "Stress_B": stress_fit.stress_curve,
+            }
+            df = pd.DataFrame(row)
+            df["exp_name"] = name
+            df["path"] = path
+            save_to = f"{dir_path}/{clean_path(path)}_{name}.csv"
+            df.to_csv(save_to)
         
-        orig_conc = df.conc.values
-        orig_survival = df["no stress"].values
-        hormesis = df.hormesis_concentration.iloc[0]
-      
-        res_new : ModelPredictions = dose_response_fit(orig_conc.astype(np.float64), orig_survival.astype(np.float64), hormesis)
-
-        new_df = pd.DataFrame({
-            "concentration_for_plots" : res_new.concentration_curve,
-            "stress_tox": res_new.stress_curve,
-            "survival_tox" : res_new.survival_curve,
-        })
+    return df
 
 
-
-        r_pred = pd.read_csv(os.path.join("r_preds", path))
-
-        save_to = f"migration_validation/{path.replace('csv','png')}"
-
-        plot_diffs(orig_conc, orig_survival, hormesis, res_new.hormesis_index, r_pred, new_df, save_to)
-
-    except Exception as e:
-        print(path, e)
+new = compute_preds(NEW_STANDARD, "new_standard")
+old = compute_preds(OLD_STANDARD, "old_standard")

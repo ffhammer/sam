@@ -271,9 +271,9 @@ def predict_file(CURVE_FITTING, TRANSFORM, generate_predictions, clean_path, fil
     for name, experiment in data.additional_stress.items():
         predictions = generate_predictions(experiment.name, experiment.concentration, data.main_series.survival_rate, experiment.survival_rate, transform_name=TRANSFORM)
                     
-        dir = "migration/python"
+        dir = "migration/python_marco"
         os.makedirs(dir, exist_ok=True)
-        path = f"{dir}/{clean_path(file)}_{experiment.name}_{TRANSFORM}_{CURVE_FITTING}.csv"
+        path = f"{dir}/{clean_path(file)}_{experiment.name}.csv"
         predictions.to_csv(path)
 
 if __name__ == "__main__":
@@ -281,18 +281,16 @@ if __name__ == "__main__":
     import glob
     import os
     import sys
+    print(os.getcwd())
     sys.path.append("./")
     from data_formats import read_data, ExperimentData
     
     clean_path = lambda x: os.path.basename(x).split(".")[0]
-    for CURVE_FITTING in  ['scipy', "lmcurve"]:
-        for TRANSFORM in ['williams_and_linear_interpolation', 'williams', 'linear_interpolation', 'none']:
-            
-            for file in glob.glob("data/*.xlsx"):
-                
-                try:
-                    predict_file(CURVE_FITTING, TRANSFORM, generate_predictions, clean_path, file)
-                except Exception as e:
-                    print(f"Error in {file}: {e}")
-                    continue    
     
+    for file in glob.glob("data/*.xlsx"):
+        
+        try:
+            predict_file("lmcurve", "williams_and_linear_interpolation", generate_predictions, clean_path, file)
+        except Exception as e:
+            print(f"Error in {file}: {e}")
+            continue    
