@@ -20,6 +20,7 @@ from data_formats import (
 from stress_survival_conversion import stress_to_survival, survival_to_stress
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
+from helpers import Predicted_LCs
 
 def compute_additional_stress(stressor_series: DoseResponseSeries, survival_max : float):
 
@@ -33,6 +34,13 @@ class SAM_Setting:
     param_d_norm : bool = False
     transform : Transforms = Transforms.williams_and_linear_interpolation
     stress_form : str = "only_stress" # "only_stress" or "div" "substract"
+    stress_intercept_in_survival : float = 1
+    max_control_survival : float = 1
+
+
+NEW_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=False, stress_form= "stress_sub", stress_intercept_in_survival=0.9995, max_control_survival=0.995)
+OLD_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=True, stress_form= "div", stress_intercept_in_survival=1, max_control_survival=1)
+
 
 def sam_prediction(
     main_series: DoseResponseSeries,
@@ -49,6 +57,10 @@ def sam_prediction(
     stressor_fit = dose_response_fit(
         stressor_series, cfg=dose_cfg
     )
+    
+    sur2stress = lambda x : survival_to_stress(x, p=settings.beta_p, q=settings.beta_q)
+    stress2sur = lambda x : stress_to_survival(x, p=settings.beta_p, q=settings.beta_q)
+    
 
     if settings.stress_form == "div":
         additional_stress = stressor_fit.optim_param["d"] / main_fit.optim_param["d"]
@@ -56,36 +68,33 @@ def sam_prediction(
         additional_stress = 1 - (main_fit.optim_param["d"]  - stressor_fit.optim_param["d"])
     elif settings.stress_form == "only_stress":
         additional_stress = 1 - stressor_fit.optim_param["d"] 
-    elif settings.stress_form == "stress_add":
+    elif settings.stress_form == "stress_sub":
         
-        a = survival_to_stress(stressor_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q)
-        b = survival_to_stress(main_fit.optim_param["d"], p=settings.beta_p, q=settings.beta_q)
-        # print(a, b, a -b ) 
+        a = sur2stress(stressor_fit.optim_param["d"])
         
-        additional_stress = stress_to_survival(a -b, p=settings.beta_p, q=settings.beta_q)
+        control_survival = min(main_fit.optim_param["d"], settings.max_control_survival)
+        
+        b = sur2stress(control_survival)
+        
+        additional_stress = stress2sur(a -b)
         
     else:
         raise ValueError(f"Unknown stress form '{settings.stress_form}'")
         
-    additional_stress = survival_to_stress(additional_stress, p=settings.beta_p, q=settings.beta_q)
+    additional_stress = sur2stress(additional_stress) + sur2stress(settings.stress_intercept_in_survival)
         
     predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
     
         
     if settings.param_d_norm:
-        predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * main_fit.optim_param["d"] * meta.max_survival
+        predicted_survival_curve = stress2sur(predicted_stress_curve) * main_fit.optim_param["d"] * meta.max_survival
     else:
-        predicted_survival_curve = stress_to_survival(predicted_stress_curve, p=settings.beta_p, q=settings.beta_q) * meta.max_survival
+        predicted_survival_curve = stress2sur(predicted_stress_curve) * meta.max_survival
 
 
-    return main_fit, stressor_fit, predicted_survival_curve, predicted_stress_curve
+    return main_fit, stressor_fit, predicted_survival_curve, predicted_stress_curve, additional_stress
 
-@dataclass
-class Predicted_LCs:
-    stress_lc10 : float
-    stress_lc50 : float
-    sam_lc10 : float
-    sam_lc50 : float
+
     
     
     

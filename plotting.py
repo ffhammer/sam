@@ -4,6 +4,8 @@ from dose_reponse_fit import ModelPredictions
 from data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
+from helpers import Predicted_LCs
+from seaborn import color_palette
 
 
 def darken_color(color, amount=0.5):
@@ -178,7 +180,7 @@ def plot_survival(
             orig_series.survival_rate,
             label=label,
             zorder=5,
-            c=color,
+            color=color,
         )
 
 
@@ -193,12 +195,17 @@ def plot_sam_prediction(
     stressor_fit: ModelPredictions,
     predicted_survival_curve,
     predicted_stress_curve,
+    lcs : Optional[Predicted_LCs] = None,
+    survival_max : float = 100,
     title = None
 ):
+    colors = color_palette("tab10", 3)
 
     stress_label = "Toxicant + " + stressor_fit.inputs.name
     tox_label = "Toxicant"
     sam_label = "SAM"
+    
+    to_color = {tox_label : colors[0], stress_label : colors[1], sam_label : colors[2]}
 
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
@@ -214,7 +221,7 @@ def plot_sam_prediction(
             ylab="Survival",
             title="Survival",
             label=label,
-            color=None,
+            color=to_color[label],
         )
 
     def second_plot(x, y, label):
@@ -224,10 +231,10 @@ def plot_sam_prediction(
             ax=axs[0, 1],
             xscale="linear",
             show_legend=False,
-            xlab=None,
+            xlab=to_color[label],
             ylab="Stress",
             title="Stress",
-            color=None,
+            color=to_color[label],
             label=label,
         )
 
@@ -243,7 +250,7 @@ def plot_sam_prediction(
             ylab="Survival",
             title="Survival",
             label=label,
-            color=None,
+            color=to_color[label],
         )
 
     def fourth_plot(x, y, label):
@@ -260,10 +267,18 @@ def plot_sam_prediction(
             label=label,
         )
 
+    def plt_lcs(ax, level : float, surv, label : str):
+        level = max(level, main_fit.concentration_curve[0])
+        ax.plot([level,level],[0, surv * survival_max],linestyle="-", label =label, c = to_color[label], alpha = 0.7)
+        
+        
     # Plotting in the correct order
     first_plot(main_fit.concentration_curve, main_fit.survival_curve, main_fit.inputs, label=tox_label)
     first_plot(stressor_fit.concentration_curve, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
     first_plot(stressor_fit.concentration_curve, predicted_survival_curve, None, label=sam_label)
+    
+    
+        
 
     second_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
     second_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
@@ -276,6 +291,12 @@ def plot_sam_prediction(
     fourth_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
     fourth_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
     fourth_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
+    
+    if lcs is not None:
+        plt_lcs(axs[1,0], lcs.stress_lc10, 0.9, stress_label)
+        plt_lcs(axs[1,0], lcs.stress_lc50, 0.5, stress_label)
+        plt_lcs(axs[1,0], lcs.sam_lc10, 0.9, sam_label)
+        plt_lcs(axs[1,0], lcs.sam_lc50, 0.5, sam_label)
 
     if title is not None:
         plt.suptitle(title)

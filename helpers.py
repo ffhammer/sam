@@ -1,6 +1,6 @@
 from scipy.optimize import brentq
 import numpy as np
-
+from dataclasses import dataclass
 
 def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarray, llc : float, survival_max : float):
     
@@ -11,6 +11,13 @@ def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarra
     
     return float(concentrations[arg])
 
+
+@dataclass
+class Predicted_LCs:
+    stress_lc10 : float
+    stress_lc50 : float
+    sam_lc10 : float
+    sam_lc50 : float
 
 def find_lc_99_max(func) -> float:
     """

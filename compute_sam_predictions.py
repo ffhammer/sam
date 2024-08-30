@@ -1,5 +1,11 @@
 import glob
-from stress_addition_model import sam_prediction, Predicted_LCs, get_sam_lcs, SAM_Setting
+from stress_addition_model import (
+    sam_prediction,
+    Predicted_LCs,
+    get_sam_lcs,
+    SAM_Setting,
+    NEW_STANDARD,
+)
 from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
 from plotting import plot_sam_prediction
 from data_formats import ExperimentData, read_data
@@ -7,7 +13,6 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-sam_settings = SAM_Setting(beta_q=3.17, beta_p=2.83, param_d_norm=True, stress_form="substract")
 
 PLOT = True
 
@@ -19,8 +24,11 @@ for path in glob.glob("data/*.xlsx"):
 
     for name, val in data.additional_stress.items():
 
-        main_fit, stress_fit, sam_sur, sam_stress = sam_prediction(
-            data.main_series, val, data.meta, settings=sam_settings,
+        main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
+            data.main_series,
+            val,
+            data.meta,
+            settings=NEW_STANDARD,
         )
 
         lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
@@ -30,7 +38,13 @@ for path in glob.glob("data/*.xlsx"):
             # title = f"Fitted LC10: {lcs.stress_lc10 :.2f} LC50: {lcs.stress_lc50 :.2f} - SAM Predictions LC10: {lcs.sam_lc10 :.2f} LC50: {lcs.sam_lc50 :.2f}"
             title = None
             fig = plot_sam_prediction(
-                main_fit, stress_fit, sam_sur, sam_stress, title=title
+                main_fit,
+                stress_fit,
+                sam_sur,
+                sam_stress,
+                survival_max=data.meta.max_survival,
+                lcs=lcs,
+                title=title,
             )
             name = os.path.split(path)[1].replace(".xlsx", f"_{name}.png")
             save_path = f"sam_plots/{name}"
@@ -45,10 +59,10 @@ for path in glob.glob("data/*.xlsx"):
             "stress_lc50": lcs.stress_lc50,
             "sam_lc10": lcs.sam_lc10,
             "sam_lc50": lcs.sam_lc50,
-            "survival_max" : data.meta.max_survival
+            "survival_max": data.meta.max_survival,
         }
-        
+
         rows.append(row)
-        
+
 df = pd.DataFrame(rows)
 df.to_csv("sam_predictions.csv")
