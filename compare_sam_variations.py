@@ -21,14 +21,22 @@ PLOT = True
 SETTINGS = {
     "new": NEW_STANDARD,
     "old": OLD_STANDARD,
-    "new_wo_max": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
+    "optim": SAM_Setting(
+        beta_p=1.96,
+        beta_q=1.257,
         param_d_norm=False,
         stress_form="stress_sub",
-        stress_intercept_in_survival=0.9995,
-        max_control_survival=1,
+        stress_intercept_in_survival=0.994,
+        max_control_survival=0.994,
     ),
+    # "new_wo_max": SAM_Setting(
+    #     beta_p=3.2,
+    #     beta_q=3.2,
+    #     param_d_norm=False,
+    #     stress_form="stress_sub",
+    #     stress_intercept_in_survival=0.9995,
+    #     max_control_survival=1,
+    # ),
     # "new_wo_add": SAM_Setting(
     #     beta_p=3.2,
     #     beta_q=3.2,
@@ -37,15 +45,14 @@ SETTINGS = {
     #     stress_intercept_in_survival=1,
     #     max_control_survival=0.995,
     # ),
-    "new_norm": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
-        param_d_norm=True,
-        stress_form="stress_sub",
-        stress_intercept_in_survival=0.9995,
-        max_control_survival=1,
-    ),
-    
+    # "new_norm": SAM_Setting(
+    #     beta_p=3.2,
+    #     beta_q=3.2,
+    #     param_d_norm=True,
+    #     stress_form="stress_sub",
+    #     stress_intercept_in_survival=0.9995,
+    #     max_control_survival=1,
+    # ),
 }
 
 
@@ -63,7 +70,7 @@ def compute_variations(main_series, stress_series, meta):
         main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
             main_series, stress_series, meta, settings=setting
         )
-        
+
         lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
 
         results[name] = sam_sur, lcs
@@ -89,8 +96,8 @@ for path in glob.glob("data/*.xlsx"):
 
             plt.plot(x, target.survival_curve, label="Stressor")
 
-            for name, (sam_sur, lcs) in results.items():
-                plt.plot(x, sam_sur, label=name)
+            for res_name, (sam_sur, lcs) in results.items():
+                plt.plot(x, sam_sur, label=res_name)
 
             plt.legend()
 
