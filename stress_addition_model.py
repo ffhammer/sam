@@ -22,9 +22,7 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from helpers import Predicted_LCs
 
-def compute_additional_stress(stressor_series: DoseResponseSeries, survival_max : float):
 
-    return survival_to_stress(stressor_series.survival_rate[0] / survival_max)
 
 
 @dataclass
@@ -36,6 +34,8 @@ class SAM_Setting:
     stress_form : str = "only_stress" # "only_stress" or "div" "substract"
     stress_intercept_in_survival : float = 1
     max_control_survival : float = 1
+    exponent : float = 1 
+    sub : float = None
 
 
 NEW_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=False, stress_form= "stress_sub", stress_intercept_in_survival=0.9995, max_control_survival=0.995)
@@ -82,6 +82,14 @@ def sam_prediction(
         raise ValueError(f"Unknown stress form '{settings.stress_form}'")
         
     additional_stress = sur2stress(additional_stress) + sur2stress(settings.stress_intercept_in_survival)
+    
+    
+    if settings.sub is None:
+        additional_stress = additional_stress ** settings.exponent
+    else:
+        exp = (settings.sub - additional_stress ) * settings.exponent
+        additional_stress = additional_stress ** exp
+        
         
     predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
     
