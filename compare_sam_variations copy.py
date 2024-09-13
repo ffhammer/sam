@@ -18,7 +18,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from tqdm import tqdm
 
 
-PLOT = True
+PLOT = False
 
 SETTINGS = {
     "new": NEW_STANDARD,
@@ -110,13 +110,44 @@ for path in tqdm(glob.glob("data/*.xlsx")):
         row = {
             "path": path,
             "stressor": name,
-            "metric" : "mse"
+            "metric" : "r2"
         }
 
         for name, (sam_sur, lcs) in results.items():
             row[name] = r2_score(target.survival_curve, sam_sur)
 
         rows.append(row)
+        
+        
+        row = {
+            "path": path,
+            "stressor": name,
+            "metric" : "r2_50"
+        }
+
+        for name, (sam_sur, lcs) in results.items():
+            l = int(len(target.survival_curve) * 0.50)
+            row[name] = r2_score(target.survival_curve[:l], sam_sur[:l])
+
+
+        rows.append(row)
+
+
+        row = {
+            "path": path,
+            "stressor": name,
+            "metric" : "r2_50r"
+        }
+
+        for name, (sam_sur, lcs) in results.items():
+            l = int(len(target.survival_curve) * 0.5)
+            row[name] = r2_score(target.survival_curve[l:], sam_sur[l:])
+
+
+        rows.append(row)
+
+        
+        
 
         row = {
             "path": path,

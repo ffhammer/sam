@@ -36,7 +36,7 @@ class StandardSettings:
     beta_q: float = 3.2
     beta_p: float = 3.2
     survival_max: float = 100
-    len_curves = 10_000
+    len_curves : int = 10_000
     transform : Transforms = Transforms.williams_and_linear_interpolation
     param_d_norm : bool = False
 
