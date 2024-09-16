@@ -16,62 +16,136 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 from tqdm import tqdm
+import numpy as np
+from scipy.optimize import brentq
+
+
+def surv_to_stress_new(x0):
+    x0 = np.clip(x0, 0, 1 - 1e-9)
+
+    x0 = 1 - x0  # Adjusting the input
+    term1 = 0.000995
+    numerator = np.log(0.907 * x0)
+    denominator = x0 - (1.09 / x0)
+    x = term1 + numerator / denominator
+    
+    x = np.clip(x, 0, 1)
+    
+    
+    return x
+
+MIN_VAL = surv_to_stress_new(1 - 1e-9)
+
+@np.vectorize
+def stress_to_surv_new(y):
+    y = np.maximum(y, MIN_VAL)
+
+
+    def equation(x0):
+        return surv_to_stress_new(x0) - y
+
+    # Use brentq to find the root of the equation in the interval [0, 1]
+    try:
+        x0_inverse = brentq(
+            equation, 0, 1 - 1e-9
+        )  # Start from a small positive value to avoid division by zero
+        return x0_inverse
+    except ValueError as e:
+        raise ValueError(
+            f"Cannot find a root in the interval [0, 1] for y = {y}. Error: {e}"
+        )
+
+
+
+def surv_to_stress_new2(x0):
+    x0 = np.clip(x0, 0,1-1e-7)   
+    x0 = 1-x0
+    pred = 0.000995 + np.log(0.907 * x0) / (x0 - (1.09 / x0))
+    
+    return np.clip(pred, 0, 1)
+    
+
+MIN_VAL = surv_to_stress_new2(1 - 1e-9)
+
+@np.vectorize
+def stress_to_surv_new2(y):
+    
+    y = np.clip(y, MIN_VAL, 1)
+
+
+    def equation(x0):
+        return surv_to_stress_new2(x0) - y
+
+    # Use brentq to find the root of the equation in the interval [0, 1]
+    try:
+        x0_inverse = brentq(
+            equation, 0, 1 - 1e-9
+        )  # Start from a small positive value to avoid division by zero
+        return x0_inverse
+    except ValueError as e:
+        raise ValueError(
+            f"Cannot find a root in the interval [0, 1] for y = {y}. Error: {e}"
+        )
 
 
 PLOT = True
 
 SETTINGS = {
-    "new": NEW_STANDARD,
-    "old": OLD_STANDARD,
-    "marco_ohne_div": SAM_Setting(
+    # "new": NEW_STANDARD,
+    "marco": OLD_STANDARD,
+    "learned": SAM_Setting(
         beta_p=3.2,
         beta_q=3.2,
         param_d_norm=True,
-        stress_form="stress_sub",
-        stress_intercept_in_survival=1,
-        max_control_survival=1,
-    ),
-    "marco_ohne_temp": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
-        param_d_norm=False,
         stress_form="div",
         stress_intercept_in_survival=1,
         max_control_survival=1,
+        stress_to_survival=stress_to_surv_new,
+        survival_to_stress=surv_to_stress_new,
     ),
-    # "optim": SAM_Setting(
-    #     beta_p=1.96,
-    #     beta_q=1.257,
-    #     param_d_norm=False,
-    #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=0.994,
-    #     max_control_survival=0.994,
-    # ),
-    "just_sub": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
-        param_d_norm=False,
-        stress_form="stress_sub",
-        stress_intercept_in_survival=1,
-        max_control_survival=1,
-    ),
-    "no_intercepts": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
-        param_d_norm=False,
-        stress_form="stress_sub",
-        stress_intercept_in_survival=1,
-        max_control_survival=0.995,
-    ),
-    # "new_wo_max": SAM_Setting(
+    # "learned_sub": SAM_Setting(
     #     beta_p=3.2,
     #     beta_q=3.2,
     #     param_d_norm=False,
     #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=0.9995,
+    #     stress_intercept_in_survival=1,
+    #     max_control_survival=1,
+    #     stress_to_survival=stress_to_surv_new2,
+    #     survival_to_stress=surv_to_stress_new2,
+    # ),
+    # "marco_ohne_div": SAM_Setting(
+    #     beta_p=3.2,
+    #     beta_q=3.2,
+    #     param_d_norm=True,
+    #     stress_form="stress_sub",
+    #     stress_intercept_in_survival=1,
     #     max_control_survival=1,
     # ),
-    # "new_wo_add": SAM_Setting(
+    # "marco_ohne_temp": SAM_Setting(
+    #     beta_p=3.2,
+    #     beta_q=3.2,
+    #     param_d_norm=False,
+    #     stress_form="div",
+    #     stress_intercept_in_survival=1,
+    #     max_control_survival=1,
+    # ),
+    # # "optim": SAM_Setting(
+    # #     beta_p=1.96,
+    # #     beta_q=1.257,
+    # #     param_d_norm=False,
+    # #     stress_form="stress_sub",
+    # #     stress_intercept_in_survival=0.994,
+    # #     max_control_survival=0.994,
+    # # ),
+    # "just_sub": SAM_Setting(
+    #     beta_p=3.2,
+    #     beta_q=3.2,
+    #     param_d_norm=False,
+    #     stress_form="stress_sub",
+    #     stress_intercept_in_survival=1,
+    #     max_control_survival=1,
+    # ),
+    # "no_intercepts": SAM_Setting(
     #     beta_p=3.2,
     #     beta_q=3.2,
     #     param_d_norm=False,
@@ -79,14 +153,30 @@ SETTINGS = {
     #     stress_intercept_in_survival=1,
     #     max_control_survival=0.995,
     # ),
-    # "new_norm": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
-    #     param_d_norm=True,
-    #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=0.9995,
-    #     max_control_survival=1,
-    # ),
+    # # "new_wo_max": SAM_Setting(
+    # #     beta_p=3.2,
+    # #     beta_q=3.2,
+    # #     param_d_norm=False,
+    # #     stress_form="stress_sub",
+    # #     stress_intercept_in_survival=0.9995,
+    # #     max_control_survival=1,
+    # # ),
+    # # "new_wo_add": SAM_Setting(
+    # #     beta_p=3.2,
+    # #     beta_q=3.2,
+    # #     param_d_norm=False,
+    # #     stress_form="stress_sub",
+    # #     stress_intercept_in_survival=1,
+    # #     max_control_survival=0.995,
+    # # ),
+    # # "new_norm": SAM_Setting(
+    # #     beta_p=3.2,
+    # #     beta_q=3.2,
+    # #     param_d_norm=True,
+    # #     stress_form="stress_sub",
+    # #     stress_intercept_in_survival=0.9995,
+    # #     max_control_survival=1,
+    # # ),
 }
 
 
@@ -140,7 +230,8 @@ for path in tqdm(glob.glob("data/*.xlsx")):
 
             name = os.path.split(path)[1].replace(".xlsx", f"_{name}.png")
             save_path = f"migration/variations/{name}"
-
+            plt.xscale("log")
+            plt.tight_layout()
             fig.savefig(save_path)
             plt.close()
 
