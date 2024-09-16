@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from dose_reponse_fit import ModelPredictions
-from data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
+from .dose_reponse_fit import ModelPredictions
+from .data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
-from helpers import Predicted_LCs
+from .helpers import Predicted_LCs
 from seaborn import color_palette
 
 

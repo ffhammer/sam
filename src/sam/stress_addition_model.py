@@ -1,26 +1,26 @@
 import os
-from dose_reponse_fit import (
+from .dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
     StandardSettings,
     survival_to_stress,
     Transforms
 )
-from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
-from plotting import plot_fit_prediction
+from .helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
+from .plotting import plot_fit_prediction
 import pandas as pd
 import numpy as np
 import glob
-from data_formats import (
+from .data_formats import (
     ExperimentData,
     ExperimentMetaData,
     DoseResponseSeries,
     read_data,
 )
-from stress_survival_conversion import stress_to_survival, survival_to_stress
+from .stress_survival_conversion import stress_to_survival, survival_to_stress
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from helpers import Predicted_LCs
+from .helpers import Predicted_LCs
 
 @dataclass
 class SAM_Setting:

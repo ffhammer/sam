@@ -4,9 +4,9 @@ from scipy.optimize import curve_fit
 from dataclasses import dataclass
 from typing import Optional, Tuple, Callable
 import warnings
-from data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
-from stress_survival_conversion import survival_to_stress
-from helpers import find_lc_99_max, compute_lc
+from .data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
+from .stress_survival_conversion import survival_to_stress
+from .helpers import find_lc_99_max, compute_lc
 from scipy.interpolate import interp1d
 from enum import Enum
 
