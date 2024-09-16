@@ -22,9 +22,6 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from helpers import Predicted_LCs
 
-
-
-
 @dataclass
 class SAM_Setting:
     beta_q : float = 3.2
@@ -36,6 +33,8 @@ class SAM_Setting:
     max_control_survival : float = 1
     exponent : float = 1 
     sub : float = None
+    stress_to_survival : int = lambda x: stress_to_survival(x, 3.2, 3.2)
+    survival_to_stress : int = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 
 NEW_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=False, stress_form= "stress_sub", stress_intercept_in_survival=0.9995, max_control_survival=0.995)
@@ -58,8 +57,8 @@ def sam_prediction(
         stressor_series, cfg=dose_cfg
     )
     
-    sur2stress = lambda x : survival_to_stress(x, p=settings.beta_p, q=settings.beta_q)
-    stress2sur = lambda x : stress_to_survival(x, p=settings.beta_p, q=settings.beta_q)
+    sur2stress = lambda x : settings.survival_to_stress(x)
+    stress2sur = lambda x : settings.stress_to_survival(x)
     
 
     if settings.stress_form == "div":
@@ -90,8 +89,14 @@ def sam_prediction(
         exp = (settings.sub - additional_stress ) * settings.exponent
         additional_stress = additional_stress ** exp
         
+    curve = main_fit.survival_curve / meta.max_survival 
+    if settings.param_d_norm:
+        curve /= main_fit.optim_param["d"]
         
-    predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
+    surv_stress = sur2stress(curve)
+        
+        
+    predicted_stress_curve = np.minimum(surv_stress + additional_stress, 1)
     
         
     if settings.param_d_norm:
