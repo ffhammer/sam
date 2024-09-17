@@ -5,7 +5,7 @@ from typing import Tuple, Callable
 import warnings
 from .data_formats import DoseResponseSeries
 from .stress_survival_conversion import survival_to_stress, stress_to_survival
-from .helpers import find_lc_99_max, compute_lc
+from .helpers import compute_lc, ll5, ll5_inv
 from .transforms import *
 
 # Constants
@@ -141,11 +141,9 @@ def compute_predictions(
     Returns:
         ModelPredictions: The model predictions.
     """
-    min_val = 1e-9
-    max_val = find_lc_99_max(model)
 
-    lc1 = compute_lc(model=model, lc=1, max_val=max_val, min_val=min_val)
-    lc99 = compute_lc(model=model, lc=99, max_val=max_val, min_val=min_val)
+    lc1 = compute_lc(optim_param=optim_param, lc = 1)
+    lc99 = compute_lc(optim_param=optim_param, lc = 99)
 
     padded_concentration = pad_c0(inputs.concentration)
 
@@ -218,9 +216,6 @@ def get_regression_data(
     return transform_func(orig_concentration, survival)
     
 
-
-def ll5(conc, b, c, d, e, f):
-    return c + (d - c) / (1 + (conc / e) ** b) ** f
 
 def fit_ll5(concentration: np.ndarray, survival: np.ndarray) -> Tuple[Callable, np.array]:
 

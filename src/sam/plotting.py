@@ -293,10 +293,10 @@ def plot_sam_prediction(
     fourth_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
     
     if lcs is not None:
-        plt_lcs(axs[1,0], lcs.stress_lc10, 0.9, stress_label)
-        plt_lcs(axs[1,0], lcs.stress_lc50, 0.5, stress_label)
-        plt_lcs(axs[1,0], lcs.sam_lc10, 0.9, sam_label)
-        plt_lcs(axs[1,0], lcs.sam_lc50, 0.5, sam_label)
+        plt_lcs(axs[1,0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label)
+        plt_lcs(axs[1,0], lcs.stress_lc50, 0.5 * stressor_fit.optim_param["d"], stress_label)
+        plt_lcs(axs[1,0], lcs.sam_lc10, 0.9 * stressor_fit.optim_param["d"], sam_label)
+        plt_lcs(axs[1,0], lcs.sam_lc50, 0.5 * stressor_fit.optim_param["d"], sam_label)
 
     if title is not None:
         plt.suptitle(title)

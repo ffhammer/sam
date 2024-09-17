@@ -1,4 +1,4 @@
-import os
+from scipy.optimize import brentq
 from .dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
@@ -6,21 +6,14 @@ from .dose_reponse_fit import (
     survival_to_stress,
     Transforms
 )
-from .helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
-from .plotting import plot_fit_prediction
-import pandas as pd
+from .helpers import compute_lc, Predicted_LCs, compute_lc_from_curve
 import numpy as np
-import glob
 from .data_formats import (
-    ExperimentData,
     ExperimentMetaData,
     DoseResponseSeries,
-    read_data,
 )
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
-import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from .helpers import Predicted_LCs
 
 @dataclass
 class SAM_Setting:
@@ -92,21 +85,21 @@ def sam_prediction(
     return main_fit, stressor_fit, predicted_survival_curve, predicted_stress_curve, additional_stress
 
 
+
     
     
     
 def get_sam_lcs(
-        stress_fit : ModelPredictions,
+       stress_fit : ModelPredictions,
         sam_sur : np.ndarray,
     meta: ExperimentMetaData,
 ):
 
-    max_val = find_lc_99_max(stress_fit.model)
 
-    stress_lc10 = compute_lc(stress_fit.model, 10, 1e-7, max_val)
-    stress_lc50 = compute_lc(stress_fit.model, 50, 1e-7, max_val)
+    stress_lc10 = compute_lc(optim_param=stress_fit.optim_param, lc = 10)
+    stress_lc50 = compute_lc(optim_param=stress_fit.optim_param, lc = 50)
 
-    sam_lc10 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, llc=10, survival_max=meta.max_survival)
-    sam_lc50 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, llc=50, survival_max=meta.max_survival)
+    sam_lc10 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, lc=10, survival_max=meta.max_survival, c0 = stress_fit.optim_param["d"])
+    sam_lc50 = compute_lc_from_curve(stress_fit.concentration_curve, sam_sur, lc=50, survival_max=meta.max_survival, c0 = stress_fit.optim_param["d"])
     
     return Predicted_LCs(stress_lc10=stress_lc10, stress_lc50=stress_lc50, sam_lc10=sam_lc10, sam_lc50=sam_lc50)

@@ -1,19 +1,22 @@
-from scipy.optimize import brentq
 import numpy as np
 from dataclasses import dataclass
 
-def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarray, llc : float, survival_max : float):
+    
+def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarray, lc : float, survival_max : float, c0 : float):
     
     
-    normed = 1 - survival_curve / survival_max
+    normed = survival_curve / survival_max
     
-    arg = np.argmax(normed > (llc / 100))
+    val = 1 - (lc / 100)
+    val *= c0
+    
+    arg = np.argmax(normed < val)
     
     if arg == 0: 
         return np.nan
     
     return float(concentrations[arg])
-
+    
 
 @dataclass
 class Predicted_LCs:
@@ -22,25 +25,15 @@ class Predicted_LCs:
     sam_lc10 : float
     sam_lc50 : float
 
-def find_lc_99_max(func) -> float:
-    """
-    Finds the maximum concentration value for which the survival is less than 1%.
+def ll5(conc, b, c, d, e, f):
+    return c + (d - c) / (1 + (conc / e) ** b) ** f
 
-    Args:
-        func (Callable): The fitted Weibull function.
-
-    Returns:
-        float: The maximum concentration value.
-    """
-    x = 10.0
-
-    while not func(x) < 0.01:
-        x *= 2
-
-    return x
+def ll5_inv(surv, b, c, d, e, f):
+    return e * (((d - c) / (surv - c)) ** (1 / f) - 1) ** (1 / b)
 
 
-def compute_lc(model, lc: int, min_val: float, max_val: float) -> float:
+
+def compute_lc(optim_param : dict[str, float], lc: int) -> float:
     """
     Computes the lethal concentration for a given percentage of the population.
 
@@ -53,12 +46,14 @@ def compute_lc(model, lc: int, min_val: float, max_val: float) -> float:
     Returns:
         float: The computed lethal concentration.
     """
-    val = 1 - lc / 100
-
-    def func(x):
-        return model(x) - val
-
-    if func(min_val) < 0:
-        return np.nan
-
-    return float(brentq(func, min_val, max_val))
+    
+    c0 = optim_param["d"]
+    
+    if c0 < 0 or c0 > 1:
+        raise ValueError("c0 must be between 0 and 1")
+    
+    frac = 1 - lc / 100
+    
+    val = frac * c0
+    
+    return ll5_inv(val, **optim_param)
