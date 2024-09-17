@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import glob
 import pytest
-from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, StandardSettings
+from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, FitSettings
 from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data
 from sam import REPO_PATH
@@ -27,7 +27,7 @@ def test_dose_response_fit_and_plot(path, setup_save_dir):
 
     # Perform the model fitting
     res: ModelPredictions = dose_response_fit(
-        data.main_series, StandardSettings(survival_max=data.meta.max_survival)
+        data.main_series, FitSettings(survival_max=data.meta.max_survival)
     )
 
     # Create the plot

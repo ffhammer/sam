@@ -4,7 +4,8 @@ from sam.stress_addition_model import (
     Predicted_LCs,
     get_sam_lcs,
     SAM_Setting,
-    NEW_STANDARD,
+    OLD_STANDARD,
+    Transforms
 )
 from sam.helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
 from sam.plotting import plot_sam_prediction
@@ -16,6 +17,7 @@ import argparse
 from tqdm import tqdm
 
 PLOT_PATH = "control_imgs/sam_prediction"
+SETTINGS = OLD_STANDARD
 
 def compute_all(plot : bool):
     
@@ -27,7 +29,7 @@ def compute_all(plot : bool):
             data.main_series,
             val,
             data.meta,
-            settings=NEW_STANDARD,
+            settings=SETTINGS,
         )
 
         lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)

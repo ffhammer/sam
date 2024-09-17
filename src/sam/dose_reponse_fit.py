@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple, Callable
 import warnings
 from .data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
-from .stress_survival_conversion import survival_to_stress
+from .stress_survival_conversion import survival_to_stress, stress_to_survival
 from .helpers import find_lc_99_max, compute_lc
 from scipy.interpolate import interp1d
 from enum import Enum
@@ -23,22 +23,20 @@ class Transforms(Enum):
     williams_and_linear_interpolation = 'williams_and_linear_interpolation'
     
 @dataclass
-class StandardSettings:
+class FitSettings:
     """
     Contains default settings for the model.
 
     Attributes:
-        beta_q (float): Beta distribution shape parameter for stress computation.
-        beta_p (float): Beta distribution shape parameter for stress computation.
         survival_max (float): Maximum observed survival.
         len_curves (int): Length of the survival curve.
     """
-    beta_q: float = 3.2
-    beta_p: float = 3.2
     survival_max: float = 100
     len_curves : int = 10_000
     transform : Transforms = Transforms.williams_and_linear_interpolation
     param_d_norm : bool = False
+    stress_to_survival : int = lambda x: stress_to_survival(x, 3.2, 3.2)
+    survival_to_stress : int = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 @dataclass
 class ModelPredictions:
@@ -66,11 +64,11 @@ class ModelPredictions:
     lc1: float
     lc99: float
     inputs : DoseResponseSeries
-    cfg : StandardSettings
+    cfg : FitSettings
 
 def dose_response_fit(
     dose_response_data : DoseResponseSeries,
-    cfg: StandardSettings = StandardSettings(),
+    cfg: FitSettings = FitSettings(),
 ) -> ModelPredictions:
     """
     Fits a Weibull curve to the dose-response data and computes the stress curve using the SAM model.
@@ -134,7 +132,7 @@ def compute_predictions(
     model,
     optim_param: np.array,
     inputs : DoseResponseSeries,
-    cfg: StandardSettings,
+    cfg: FitSettings,
 ) -> ModelPredictions:
     """
     Computes the survival and stress predictions based on the fitted model.
@@ -163,12 +161,11 @@ def compute_predictions(
     survival_curve = cfg.survival_max * pred_survival
     
     if cfg.param_d_norm:
-        stress_curve = survival_to_stress(pred_survival / optim_param["d"], p=cfg.beta_p, q=cfg.beta_q)
+        stress_curve = cfg.survival_to_stress(pred_survival / optim_param["d"])
     else:
-        stress_curve = survival_to_stress(pred_survival, p=cfg.beta_p, q=cfg.beta_q)
+        stress_curve = cfg.survival_to_stress(pred_survival)
 
     predicted_survival = model(padded_concentration)
-
     return ModelPredictions(
         concentration_curve=concentration_curve,
         survival_curve=survival_curve,
@@ -251,7 +248,7 @@ def transform_williams_and_linear_interpolation(conc, surv):
 def get_regression_data(
     orig_concentration: np.ndarray,
     orig_survival_observerd: np.ndarray,
-    cfg: StandardSettings = StandardSettings(),
+    cfg: FitSettings = FitSettings(),
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Prepares the data for regression analysis, handling hormesis concentration if provided.

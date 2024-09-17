@@ -2,7 +2,7 @@ import os
 from .dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
-    StandardSettings,
+    FitSettings,
     survival_to_stress,
     Transforms
 )
@@ -24,21 +24,17 @@ from .helpers import Predicted_LCs
 
 @dataclass
 class SAM_Setting:
-    beta_q : float = 3.2
-    beta_p : float = 3.2
     param_d_norm : bool = False
     transform : Transforms = Transforms.williams_and_linear_interpolation
-    stress_form : str = "only_stress" # "only_stress" or "div" "substract"
+    stress_form : str = "div" # "only_stress" or "div" "substract"
     stress_intercept_in_survival : float = 1
     max_control_survival : float = 1
-    exponent : float = 1 
-    sub : float = None
     stress_to_survival : int = lambda x: stress_to_survival(x, 3.2, 3.2)
     survival_to_stress : int = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 
-NEW_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=False, stress_form= "stress_sub", stress_intercept_in_survival=0.9995, max_control_survival=0.995)
-OLD_STANDARD = SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=True, stress_form= "div", stress_intercept_in_survival=1, max_control_survival=1)
+NEW_STANDARD = SAM_Setting(param_d_norm=False, stress_form= "stress_sub", stress_intercept_in_survival=0.9995, max_control_survival=0.995)
+OLD_STANDARD = SAM_Setting(param_d_norm=True, stress_form= "div", stress_intercept_in_survival=1, max_control_survival=1)
 
 
 def sam_prediction(
@@ -48,7 +44,8 @@ def sam_prediction(
     settings: SAM_Setting = SAM_Setting(),
 ):
     
-    dose_cfg = StandardSettings(survival_max=meta.max_survival, beta_q=settings.beta_q, beta_p=settings.beta_p, param_d_norm=settings.param_d_norm)
+    dose_cfg = FitSettings(survival_max=meta.max_survival,  param_d_norm=settings.param_d_norm, 
+                           stress_to_survival=settings.stress_to_survival, survival_to_stress=settings.survival_to_stress)
 
     main_fit = dose_response_fit(
         main_series, cfg=dose_cfg
@@ -83,20 +80,7 @@ def sam_prediction(
     additional_stress = sur2stress(additional_stress) + sur2stress(settings.stress_intercept_in_survival)
     
     
-    if settings.sub is None:
-        additional_stress = additional_stress ** settings.exponent
-    else:
-        exp = (settings.sub - additional_stress ) * settings.exponent
-        additional_stress = additional_stress ** exp
-        
-    curve = main_fit.survival_curve / meta.max_survival 
-    if settings.param_d_norm:
-        curve /= main_fit.optim_param["d"]
-        
-    surv_stress = sur2stress(curve)
-        
-        
-    predicted_stress_curve = np.minimum(surv_stress + additional_stress, 1)
+    predicted_stress_curve = np.minimum(main_fit.stress_curve + additional_stress, 1)
     
         
     if settings.param_d_norm:
