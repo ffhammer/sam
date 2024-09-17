@@ -118,7 +118,7 @@ def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
     paths = glob.glob(os.path.join(REPO_PATH,  "data/*.xlsx"))
 
     if filter is not None:
-        paths = [i for i in paths if not filter(paths)]
+        paths = [i for i in paths if filter(i)]
 
     return [(path, read_data(path)) for path in paths]
 

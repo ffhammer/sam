@@ -1,26 +1,21 @@
 import numpy as np
-import pandas as pd
 from scipy.optimize import curve_fit
 from dataclasses import dataclass
-from typing import Optional, Tuple, Callable
+from typing import Tuple, Callable
 import warnings
-from .data_formats import DoseResponseSeries, ExperimentMetaData, ExperimentData
+from .data_formats import DoseResponseSeries
 from .stress_survival_conversion import survival_to_stress, stress_to_survival
 from .helpers import find_lc_99_max, compute_lc
-from scipy.interpolate import interp1d
-from enum import Enum
+from .transforms import *
 
 # Constants
 CONC0_MAX_DY = 5.0 / 100
 CONC0_MIN_EXP = -100
-LINEAR_INTER_STEPS = 10
 
 
-class Transforms(Enum):
-    none = 'none'
-    linear_interpolation = 'linear_interpolation'
-    williams = 'williams'
-    williams_and_linear_interpolation = 'williams_and_linear_interpolation'
+
+    
+    
     
 @dataclass
 class FitSettings:
@@ -197,52 +192,6 @@ def pad_c0(orig_concentration: np.array) -> np.array:
 
 
 
-def transform_none(conc, surv):
-    return conc, surv
-
-def transform_linear_interpolation(conc, surv):
-    c0 = conc[1] / 2
-    e0 = surv[1]
-    points = np.linspace(np.log10(c0), np.log10(conc[-1]), LINEAR_INTER_STEPS)
-    
-    conc[0] = c0
-    
-    interp_func = interp1d(np.log10(conc), surv)
-    return 10 ** points, interp_func(points)
-
-
-def transform_williams(conc, surv):
-    vec = np.array(surv)
-    count = np.ones_like(vec)
-    steps = vec[:-1] - vec[1:]
-    outlier = np.where(steps < 0)[0]
-
-    while outlier.size > 0:
-        
-        index = outlier[0]
-        
-        if index + 1 >= len(vec):
-            break
-        
-        # Averaging over the current and the next value
-        weighted_avg = np.average([vec[index], vec[index + 1]], weights=[count[index], count[index + 1]])
-        vec[index] = weighted_avg
-        count[index] += count[index + 1]
-    
-        # Removing the next value after the current index
-        vec = np.delete(vec, index + 1)
-        count = np.delete(count, index + 1)
-        
-        steps = vec[:-1] - vec[1:]
-        outlier = np.where(steps < 0)[0]
-
-    # Replicating values based on their counts
-    vec_f = np.repeat(vec, count.astype(int))
-    return conc, vec_f
-
-def transform_williams_and_linear_interpolation(conc, surv):
-    conc_t, surv_t = transform_williams(conc, surv)
-    return transform_linear_interpolation(conc_t, surv_t)
 
 
 def get_regression_data(
@@ -264,7 +213,7 @@ def get_regression_data(
 
     survival = orig_survival_observerd / cfg.survival_max
 
-    transform_func = globals()[f"transform_{cfg.transform.value}"]
+    transform_func = cfg.transform
 
     return transform_func(orig_concentration, survival)
     

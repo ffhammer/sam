@@ -1,16 +1,11 @@
-import glob
-from stress_addition_model import (
+from sam.stress_addition_model import (
     sam_prediction,
-    Predicted_LCs,
     get_sam_lcs,
     SAM_Setting,
-    StandardSettings,
     OLD_STANDARD,
     NEW_STANDARD,
 )
-from helpers import compute_lc, find_lc_99_max, compute_lc_from_curve
-from plotting import plot_sam_prediction
-from data_formats import ExperimentData, read_data
+from sam.data_formats import load_datapoints
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -88,26 +83,25 @@ def stress_to_surv_new2(y):
         )
 
 
-PLOT = False
+PLOT = True
 
 SETTINGS = {
-    # "new": NEW_STANDARD,
+    "new": NEW_STANDARD,
     "marco": OLD_STANDARD,
-    "learned": SAM_Setting(
-        beta_p=3.2,
-        beta_q=3.2,
-        param_d_norm=True,
-        stress_form="div",
-        stress_intercept_in_survival=1,
-        max_control_survival=1,
-        stress_to_survival=stress_to_surv_new,
-        survival_to_stress=surv_to_stress_new,
-    ),
-    "marco_nudge": SAM_Setting(beta_p=3.2, beta_q=3.2, param_d_norm=True, stress_form= "div", stress_intercept_in_survival=1, max_control_survival=0.995),
-    
+    # "marco_push": SAM_Setting(
+    #     param_d_norm=True,
+    #     stress_form="div",
+    #     max_control_survival=0.995,
+    # ),
+    # "learned": SAM_Setting(
+    #     param_d_norm=True,
+    #     stress_form="div",
+    #     stress_intercept_in_survival=1,
+    #     max_control_survival=1,
+    #     stress_to_survival=stress_to_surv_new,
+    #     survival_to_stress=surv_to_stress_new,
+    # ),
     # "learned_sub": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
     #     param_d_norm=False,
     #     stress_form="stress_sub",
     #     stress_intercept_in_survival=1,
@@ -115,80 +109,10 @@ SETTINGS = {
     #     stress_to_survival=stress_to_surv_new2,
     #     survival_to_stress=surv_to_stress_new2,
     # ),
-    # "marco_ohne_div": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
-    #     param_d_norm=True,
-    #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=1,
-    #     max_control_survival=1,
-    # ),
-    # "marco_ohne_temp": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
-    #     param_d_norm=False,
-    #     stress_form="div",
-    #     stress_intercept_in_survival=1,
-    #     max_control_survival=1,
-    # ),
-    # # "optim": SAM_Setting(
-    # #     beta_p=1.96,
-    # #     beta_q=1.257,
-    # #     param_d_norm=False,
-    # #     stress_form="stress_sub",
-    # #     stress_intercept_in_survival=0.994,
-    # #     max_control_survival=0.994,
-    # # ),
-    # "just_sub": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
-    #     param_d_norm=False,
-    #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=1,
-    #     max_control_survival=1,
-    # ),
-    # "no_intercepts": SAM_Setting(
-    #     beta_p=3.2,
-    #     beta_q=3.2,
-    #     param_d_norm=False,
-    #     stress_form="stress_sub",
-    #     stress_intercept_in_survival=1,
-    #     max_control_survival=0.995,
-    # ),
-    # # "new_wo_max": SAM_Setting(
-    # #     beta_p=3.2,
-    # #     beta_q=3.2,
-    # #     param_d_norm=False,
-    # #     stress_form="stress_sub",
-    # #     stress_intercept_in_survival=0.9995,
-    # #     max_control_survival=1,
-    # # ),
-    # # "new_wo_add": SAM_Setting(
-    # #     beta_p=3.2,
-    # #     beta_q=3.2,
-    # #     param_d_norm=False,
-    # #     stress_form="stress_sub",
-    # #     stress_intercept_in_survival=1,
-    # #     max_control_survival=0.995,
-    # # ),
-    # # "new_norm": SAM_Setting(
-    # #     beta_p=3.2,
-    # #     beta_q=3.2,
-    # #     param_d_norm=True,
-    # #     stress_form="stress_sub",
-    # #     stress_intercept_in_survival=0.9995,
-    # #     max_control_survival=1,
-    # # ),
 }
 
 
 def compute_variations(main_series, stress_series, meta):
-    main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
-        main_series, stress_series, meta
-    )
-
-    target = stress_fit
-
     results = {}
 
     for name, setting in SETTINGS.items():
@@ -201,66 +125,63 @@ def compute_variations(main_series, stress_series, meta):
 
         results[name] = sam_sur, lcs
 
-    return target, results
+    return stress_fit, results
 
 
 rows = []
 
-for path in tqdm(glob.glob("data/*.xlsx")):
+for path, data, name, val in tqdm(load_datapoints()):
 
-    data: ExperimentData = read_data(path)
 
-    for name, val in data.additional_stress.items():
+    if data.main_series.survival_rate[0] < val.survival_rate[0]:
+        continue
 
-        if data.main_series.survival_rate[0] < val.survival_rate[0]:
-            continue
+    target, results = compute_variations(data.main_series, val, data.meta)
 
-        target, results = compute_variations(data.main_series, val, data.meta)
+    if PLOT:
 
-        if PLOT:
+        fig = plt.figure(figsize=(10, 4))
 
-            fig = plt.figure(figsize=(10, 4))
+        x = target.concentration_curve
 
-            x = target.concentration_curve
+        plt.plot(x, target.survival_curve, label="Stressor")
 
-            plt.plot(x, target.survival_curve, label="Stressor")
+        for res_name, (sam_sur, lcs) in results.items():
+            plt.plot(x, sam_sur, label=res_name)
 
-            for res_name, (sam_sur, lcs) in results.items():
-                plt.plot(x, sam_sur, label=res_name)
+        plt.legend()
 
-            plt.legend()
+        name = os.path.split(path)[1].replace(".xlsx", f"_{name}.png")
+        save_path = f"migration/variations/{name}"
+        plt.xscale("log")
+        plt.tight_layout()
+        fig.savefig(save_path)
+        plt.close()
 
-            name = os.path.split(path)[1].replace(".xlsx", f"_{name}.png")
-            save_path = f"migration/variations/{name}"
-            plt.xscale("log")
-            plt.tight_layout()
-            fig.savefig(save_path)
-            plt.close()
+    row = {
+        "path": path,
+        "stressor": name,
+        "metric": "mse",
+    }
 
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric": "mse",
-        }
+    for name, (sam_sur, lcs) in results.items():
+        row[name] = mean_squared_error(
+            target.survival_curve / data.meta.max_survival,
+            sam_sur / data.meta.max_survival,
+        )
 
-        for name, (sam_sur, lcs) in results.items():
-            row[name] = mean_squared_error(
-                target.survival_curve / data.meta.max_survival,
-                sam_sur / data.meta.max_survival,
-            )
+    rows.append(row)
 
-        rows.append(row)
+    row = {
+        "path": path,
+        "stressor": name,
+        "metric": "r2",
+    }
 
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric": "r2",
-        }
+    for name, (sam_sur, lcs) in results.items():
+        row[name] = r2_score(target.survival_curve, sam_sur)
 
-        for name, (sam_sur, lcs) in results.items():
-            row[name] = r2_score(target.survival_curve, sam_sur)
-
-        rows.append(row)
+    rows.append(row)
 
 
 df = pd.DataFrame(rows)
