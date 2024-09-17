@@ -9,6 +9,9 @@ def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarra
     
     arg = np.argmax(normed > (llc / 100))
     
+    if arg == 0: 
+        return np.nan
+    
     return float(concentrations[arg])
 
 
@@ -56,6 +59,6 @@ def compute_lc(model, lc: int, min_val: float, max_val: float) -> float:
         return model(x) - val
 
     if func(min_val) < 0:
-        return min_val
+        return np.nan
 
     return float(brentq(func, min_val, max_val))

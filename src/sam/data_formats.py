@@ -1,3 +1,5 @@
+import os
+from sam import REPO_PATH
 from tqdm import tqdm
 import glob
 from dataclasses import dataclass
@@ -113,7 +115,7 @@ def read_data(path: str) -> ExperimentData:
 
 
 def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
-    paths = glob.glob("data/*.xlsx")
+    paths = glob.glob(os.path.join(REPO_PATH,  "data/*.xlsx"))
 
     if filter is not None:
         paths = [i for i in paths if not filter(paths)]

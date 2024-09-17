@@ -4,7 +4,7 @@ import glob
 import pytest
 from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, FitSettings
 from sam.plotting import plot_fit_prediction
-from sam.data_formats import ExperimentData, read_data
+from sam.data_formats import ExperimentData, read_data, load_files
 from sam import REPO_PATH
 
 @pytest.fixture(scope="module", autouse=True)
@@ -18,11 +18,11 @@ def setup_save_dir():
     os.makedirs(save_dir, exist_ok=True)
     return save_dir
 
-@pytest.mark.parametrize("path", glob.glob("data/*.xlsx"))
-def test_dose_response_fit_and_plot(path, setup_save_dir):
+@pytest.mark.parametrize("file", load_files())
+def test_dose_response_fit_and_plot(file, setup_save_dir):
+    path, data = file
+    
     save_dir = setup_save_dir
-
-    # Read data
     data: ExperimentData = read_data(path)
 
     # Perform the model fitting
