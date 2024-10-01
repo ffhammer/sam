@@ -138,7 +138,8 @@ def plot_survival(
     ylab="Survival",
     label = None,
     title=None,
-    color = "deepskyblue"
+    color = "deepskyblue",
+    hormesis_index : Optional[int] = None,
 ):
     """
     Plots the survival curve and observed survival data points.
@@ -168,13 +169,6 @@ def plot_survival(
     
     if orig_series is not None:
 
-        # if orig_series.hormesis_concentration is not None:
-        #     colors = np.where(
-        #         orig_series.concentration == orig_series.hormesis_concentration, "red", color
-        #     )
-        # else:
-        #     colors = np.array([color for _ in range(len(orig_series.concentration))])
-
         ax.scatter(
             orig_series.concentration,
             orig_series.survival_rate,
@@ -182,6 +176,34 @@ def plot_survival(
             zorder=5,
             color=color,
         )
+        
+        if hormesis_index is not None:
+            
+            mask = np.arange(len(orig_series.concentration)) != hormesis_index
+            
+            ax.scatter(
+                orig_series.concentration[mask],
+                orig_series.survival_rate[mask],
+                label=label,
+                zorder=5,
+                color=color,
+            )
+
+            ax.scatter(
+                [orig_series.concentration[hormesis_index]],
+                [orig_series.survival_rate[hormesis_index]],
+                zorder=5,
+                color="red",
+            )
+
+        else:
+            ax.scatter(
+                orig_series.concentration,
+                orig_series.survival_rate,
+                label=label,
+                zorder=5,
+                color=color,
+            )
 
 
     if show_legend:

@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
-
+from typing import Optional
     
 def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarray, lc : float, survival_max : float, c0 : float):
     
@@ -30,6 +30,42 @@ def ll5(conc, b, c, d, e, f):
 
 def ll5_inv(surv, b, c, d, e, f):
     return e * (((d - c) / (surv - c)) ** (1 / f) - 1) ** (1 / b)
+
+
+def detect_hormesis_index(survival_series) -> Optional[int]:
+    diff = survival_series[:-1] - survival_series[1:] 
+    
+    if not (diff < 0).any(): 
+        return None
+
+    index = np.argmin(diff) + 1 
+    
+    if index == len(survival_series) - 1:
+        return None
+    
+    val = index
+    
+    for i in range(index + 1, len(survival_series) - 1):
+        if survival_series[i] > survival_series[index - 1]:
+            val = i
+            
+    return val
+
+
+def pad_c0(orig_concentration: np.array) -> np.array:
+    """
+    Pads the control concentration value.
+
+    Args:
+        orig_concentration (np.array): Original concentration values.
+
+    Returns:
+        np.array: Padded concentration values.
+    """
+    concentration = orig_concentration.copy()
+    min_conc = 10 ** np.floor(np.log10(concentration[1]) - 2)
+    concentration[0] = min_conc
+    return concentration
 
 
 
