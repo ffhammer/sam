@@ -14,7 +14,7 @@ class ExperimentMetaData:
     chemical: str
     max_survival: float
     path: str
-    hormesis_concentration: Optional[float] = None
+    hormesis_concentration: Optional[int] = None
     pub: Optional[str] = None
 
 
@@ -44,27 +44,6 @@ class DoseResponseSeries:
             raise ValueError("concentration must be none NaN")
         if np.isnan(self.survival_rate).any():
             raise ValueError("survival_observerd must be none NaN")
-
-    @property
-    def hormesis_concentration(self) -> Optional[float]:
-
-        idx = self.hormesis_index
-
-        if idx is None:
-            return None
-
-        return self.concentration[idx]
-
-    @property
-    def hormesis_index(self) -> Optional[int]:
-
-        arg_max = np.argmax(self.survival_rate[1:]) + 1
-
-        if arg_max > 1 and arg_max + 1 < len(self.survival_rate):
-            return arg_max
-
-        return None
-
 
 @dataclass
 class ExperimentData:

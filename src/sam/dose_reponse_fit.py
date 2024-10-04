@@ -85,7 +85,6 @@ def dose_response_fit(
 
     concentration = dose_response_data.concentration
     survival_observerd = dose_response_data.survival_rate
-    hormesis_concentration = dose_response_data.hormesis_concentration
 
     if cfg.survival_max <= 0:
         raise ValueError("survival_max must be >= 0")
