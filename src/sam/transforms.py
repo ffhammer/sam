@@ -12,6 +12,9 @@ def transform_none(conc, surv):
 
 
 def transform_linear_interpolation(conc, surv):
+    conc = conc.copy()
+    surv = surv.copy()
+    
     c0 = conc[1] / 2
     e0 = surv[1]
     points = np.linspace(np.log10(c0), np.log10(conc[-1]), LINEAR_INTER_STEPS)

@@ -6,6 +6,7 @@ from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, FitSetting
 from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data, load_files
 from sam import REPO_PATH
+from copy import deepcopy
 
 @pytest.fixture(scope="module", autouse=True)
 def change_to_repo_dir():
@@ -25,10 +26,15 @@ def test_dose_response_fit_and_plot(file, setup_save_dir):
     save_dir = setup_save_dir
     data: ExperimentData = read_data(path)
 
+    frozen_inputs = deepcopy(data.main_series)
+
     # Perform the model fitting
     res: ModelPredictions = dose_response_fit(
         data.main_series, FitSettings(survival_max=data.meta.max_survival)
     )
+
+
+    assert res.inputs == frozen_inputs, "Mutated Data"
 
     # Create the plot
     title = f"{data.meta.chemical} - {data.meta.organism}"

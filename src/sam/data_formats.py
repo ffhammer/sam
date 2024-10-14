@@ -18,7 +18,7 @@ class ExperimentMetaData:
     pub: Optional[str] = None
 
 
-@dataclass
+@dataclass()
 class DoseResponseSeries:
     concentration: np.ndarray
     survival_rate: np.ndarray
@@ -27,6 +27,9 @@ class DoseResponseSeries:
     def __post_init__(self):
         self.concentration = self.concentration.astype(np.float64)
         self.survival_rate = self.survival_rate.astype(np.float64)
+        
+        self.concentration.setflags(write=False)
+        self.survival_rate.setflags(write=False)
 
         if len(self.concentration) != len(self.survival_rate):
             raise ValueError(
@@ -44,6 +47,15 @@ class DoseResponseSeries:
             raise ValueError("concentration must be none NaN")
         if np.isnan(self.survival_rate).any():
             raise ValueError("survival_observerd must be none NaN")
+        
+    def __eq__(self, other):
+        if not isinstance(other, DoseResponseSeries):
+            return False
+        return (
+            self.name == other.name and
+            np.all(self.concentration == other.concentration) and
+            np.all(self.survival_rate == other.survival_rate)
+        )
 
 @dataclass
 class ExperimentData:
