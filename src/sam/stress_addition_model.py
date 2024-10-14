@@ -20,7 +20,7 @@ from .data_formats import (
 from .system_stress import calc_system_stress
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
 from dataclasses import dataclass
-
+from warnings import warn 
 
 @dataclass
 class SAM_Setting:
@@ -104,7 +104,7 @@ def sam_prediction(
         if hasattr(meta, "hormesis_index") and meta.hormesis_index is not None:
             hormesis_index = meta.hormesis_index
         else:
-            print("could not find hormesis index, detecting it")
+            warn("could not find hormesis index, detecting it")
             hormesis_index = detect_hormesis_index(main_series.survival_rate)
             if hormesis_index is None:
                 raise ValueError("Cant detect hormesis!")

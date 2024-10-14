@@ -6,6 +6,7 @@ from .dose_reponse_fit import FitSettings, ModelPredictions
 from .helpers import pad_c0
 from sklearn.linear_model import LinearRegression
 from scipy.interpolate import interp1d
+from warnings import warn
 
 def weibull_2param(x, b, e):
     return np.exp(-np.exp(b * (np.log(x) - np.log(e))))
@@ -30,17 +31,12 @@ def fit_weibull_2param(x_data, y_data):
         )
         return lambda x: weibull_2param(x, *popt)
     except Exception as e:
-        import matplotlib.pyplot as plt
-        plt.scatter(x_data, y_data)
-        plt.title("fehler 2")
-        plt.xscale("log")
-        plt.show()        
-        print("Weibull 2-param fit failed, defaulting to linear regression")
+        warn(f"Weibull 2-param fit failed wiht {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
 
 def fit_weibull_3param(x_data, y_data):
     initial_guess = [1, 1, 1]  # Initial guesses for b, d, e
-    param_bounds = ([-20, 1e-8, 1e-8], [20, 1e5, 1e5])
+    param_bounds = ([0.05, 1e-8, 1e-8], [3, 1e5, 1e5])
 
     try:
         # Try to fit Weibull model
@@ -49,12 +45,7 @@ def fit_weibull_3param(x_data, y_data):
         )
         return lambda x: weibull_3param(x, *popt)
     except Exception as e:
-        import matplotlib.pyplot as plt
-        plt.scatter(x_data, y_data)
-        plt.title("fehler 3")
-        plt.xscale("log")
-        plt.show()       
-        print("Weibull 3-param fit failed, defaulting to linear regression")
+        warn(f"Weibull 3-param fit with {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
 
 
