@@ -9,16 +9,6 @@ from seaborn import color_palette
 
 
 def darken_color(color, amount=0.5):
-    """
-    Darkens the given color by multiplying (1-amount) to its RGB values.
-    
-    Args:
-        color (str or tuple): The color to darken.
-        amount (float): The amount to darken the color by (0 to 1).
-        
-    Returns:
-        str: The darkened color as a hex string.
-    """
     try:
         c = to_rgb(color)
         c = [max(0, min(1, 1 - (1 - channel) * (1 - amount))) for channel in c]
@@ -29,13 +19,6 @@ def darken_color(color, amount=0.5):
 def plot_fit_prediction(model: ModelPredictions, title=None):
     """
     Plots the complete set of survival and stress curves on both linear and logarithmic scales.
-
-    Args:
-        model (ModelPredictions): The model predictions containing the data to be plotted.
-        title (str, optional): Title for the entire figure. Defaults to None.
-
-    Returns:
-        matplotlib.figure.Figure: The figure object containing the plots.
     """
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 

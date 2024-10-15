@@ -2,6 +2,22 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Optional
     
+    
+
+def ll5(conc, b, c, d, e, f):
+    return c + (d - c) / (1 + (conc / e) ** b) ** f
+
+def ll5_inv(surv, b, c, d, e, f):
+    return e * (((d - c) / (surv - c)) ** (1 / f) - 1) ** (1 / b)
+
+def weibull_2param(x, b, e):
+    return np.exp(-np.exp(b * (np.log(x) - np.log(e))))
+
+
+def weibull_3param(x, b, d, e):
+    return d * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
+    
+    
 def compute_lc_from_curve(concentrations : np.ndarray, survival_curve: np.ndarray, lc : float, survival_max : float, c0 : float):
     
     
@@ -24,12 +40,6 @@ class Predicted_LCs:
     stress_lc50 : float
     sam_lc10 : float
     sam_lc50 : float
-
-def ll5(conc, b, c, d, e, f):
-    return c + (d - c) / (1 + (conc / e) ** b) ** f
-
-def ll5_inv(surv, b, c, d, e, f):
-    return e * (((d - c) / (surv - c)) ** (1 / f) - 1) ** (1 / b)
 
 
 def detect_hormesis_index(survival_series) -> Optional[int]:
@@ -93,3 +103,5 @@ def compute_lc(optim_param : dict[str, float], lc: int) -> float:
     val = frac * c0
     
     return ll5_inv(val, **optim_param)
+
+

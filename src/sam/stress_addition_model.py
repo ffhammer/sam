@@ -1,4 +1,3 @@
-from scipy.optimize import brentq
 from .dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,

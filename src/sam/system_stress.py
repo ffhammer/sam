@@ -5,15 +5,9 @@ from .transforms import *
 from .dose_reponse_fit import FitSettings, ModelPredictions
 from .helpers import pad_c0
 from sklearn.linear_model import LinearRegression
-from scipy.interpolate import interp1d
 from warnings import warn
+from .helpers import weibull_2param, weibull_3param
 
-def weibull_2param(x, b, e):
-    return np.exp(-np.exp(b * (np.log(x) - np.log(e))))
-
-
-def weibull_3param(x, b, d, e):
-    return d * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
 
 def fallback_linear_regression(x_data, y_data):
     reg = LinearRegression()
@@ -47,8 +41,6 @@ def fit_weibull_3param(x_data, y_data):
     except Exception as e:
         warn(f"Weibull 3-param fit with {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
-
-
 
 
 def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index):
