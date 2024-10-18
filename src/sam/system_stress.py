@@ -23,7 +23,7 @@ def fit_weibull_2param(x_data, y_data):
         popt, pcov = curve_fit(
             weibull_2param, x_data, y_data, p0=initial_guess, bounds=param_bounds
         )
-        return lambda x: weibull_2param(x, *popt)
+        return lambda x: weibull_2param(x, *popt), popt
     except Exception as e:
         warn(f"Weibull 2-param fit failed wiht {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
@@ -48,10 +48,10 @@ def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index)
 
     concentration_cleaned = np.concatenate((concentration[:1], concentration[hormesis_index:]))
     
-    fitted_func = fit_weibull_2param(x_data=concentration_cleaned, y_data=survival_cleaned)
+    fitted_func, popt = fit_weibull_2param(x_data=concentration_cleaned, y_data=survival_cleaned)
     survival_cleaned = fitted_func(x=concentration)
 
-    return fitted_func, survival_cleaned
+    return fitted_func, survival_cleaned, popt
 
 
 
@@ -71,7 +71,7 @@ def calc_system_stress(
     survival_tox_observerd = only_tox_series.survival_rate / cfg.survival_max
 
     # Remove hormesis and get cleaned survival
-    cleaned_func, survival_tox_cleaned = pred_surv_without_hormesis(
+    cleaned_func, survival_tox_cleaned, popt = pred_surv_without_hormesis(
         concentration=concentration,
         surv_withhormesis=survival_tox_observerd,
         hormesis_index=hormesis_index,

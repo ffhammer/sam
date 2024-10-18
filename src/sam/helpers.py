@@ -13,6 +13,8 @@ def ll5_inv(surv, b, c, d, e, f):
 def weibull_2param(x, b, e):
     return np.exp(-np.exp(b * (np.log(x) - np.log(e))))
 
+def weibull_2param_inverse(y, b, e):
+    return np.exp((np.log(-np.log(y)) / b) + np.log(e))
 
 def weibull_3param(x, b, d, e):
     return d * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
