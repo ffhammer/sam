@@ -5,14 +5,9 @@ from .transforms import *
 from .dose_reponse_fit import FitSettings, ModelPredictions
 from .helpers import pad_c0
 from sklearn.linear_model import LinearRegression
-from scipy.interpolate import interp1d
+from warnings import warn
+from .helpers import weibull_2param, weibull_3param
 
-def weibull_2param(x, b, e):
-    return np.exp(-np.exp(b * (np.log(x) - np.log(e))))
-
-
-def weibull_3param(x, b, d, e):
-    return d * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
 
 def fallback_linear_regression(x_data, y_data):
     reg = LinearRegression()
@@ -28,19 +23,14 @@ def fit_weibull_2param(x_data, y_data):
         popt, pcov = curve_fit(
             weibull_2param, x_data, y_data, p0=initial_guess, bounds=param_bounds
         )
-        return lambda x: weibull_2param(x, *popt)
+        return lambda x: weibull_2param(x, *popt), popt
     except Exception as e:
-        import matplotlib.pyplot as plt
-        plt.scatter(x_data, y_data)
-        plt.title("fehler 2")
-        plt.xscale("log")
-        plt.show()        
-        print("Weibull 2-param fit failed, defaulting to linear regression")
+        warn(f"Weibull 2-param fit failed wiht {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
 
 def fit_weibull_3param(x_data, y_data):
     initial_guess = [1, 1, 1]  # Initial guesses for b, d, e
-    param_bounds = ([-20, 1e-8, 1e-8], [20, 1e5, 1e5])
+    param_bounds = ([0.05, 1e-8, 1e-8], [3, 1e5, 1e5])
 
     try:
         # Try to fit Weibull model
@@ -49,15 +39,8 @@ def fit_weibull_3param(x_data, y_data):
         )
         return lambda x: weibull_3param(x, *popt)
     except Exception as e:
-        import matplotlib.pyplot as plt
-        plt.scatter(x_data, y_data)
-        plt.title("fehler 3")
-        plt.xscale("log")
-        plt.show()       
-        print("Weibull 3-param fit failed, defaulting to linear regression")
+        warn(f"Weibull 3-param fit with {e}, defaulting to linear regression")
         return fallback_linear_regression(x_data, y_data)
-
-
 
 
 def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index):
@@ -65,10 +48,10 @@ def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index)
 
     concentration_cleaned = np.concatenate((concentration[:1], concentration[hormesis_index:]))
     
-    fitted_func = fit_weibull_2param(x_data=concentration_cleaned, y_data=survival_cleaned)
+    fitted_func, popt = fit_weibull_2param(x_data=concentration_cleaned, y_data=survival_cleaned)
     survival_cleaned = fitted_func(x=concentration)
 
-    return fitted_func, survival_cleaned
+    return fitted_func, survival_cleaned, popt
 
 
 
@@ -88,7 +71,7 @@ def calc_system_stress(
     survival_tox_observerd = only_tox_series.survival_rate / cfg.survival_max
 
     # Remove hormesis and get cleaned survival
-    cleaned_func, survival_tox_cleaned = pred_surv_without_hormesis(
+    cleaned_func, survival_tox_cleaned, popt = pred_surv_without_hormesis(
         concentration=concentration,
         surv_withhormesis=survival_tox_observerd,
         hormesis_index=hormesis_index,

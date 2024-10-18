@@ -17,10 +17,6 @@ CONC0_MIN_EXP = -100
 class FitSettings:
     """
     Contains default settings for the model.
-
-    Attributes:
-        survival_max (float): Maximum observed survival.
-        len_curves (int): Length of the survival curve.
     """
 
     survival_max: float = 100

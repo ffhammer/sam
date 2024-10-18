@@ -12,8 +12,10 @@ def transform_none(conc, surv):
 
 
 def transform_linear_interpolation(conc, surv):
+    conc = conc.copy()
+    surv = surv.copy()
+    
     c0 = conc[1] / 2
-    e0 = surv[1]
     points = np.linspace(np.log10(c0), np.log10(conc[-1]), LINEAR_INTER_STEPS)
     
     conc[0] = c0
@@ -51,15 +53,10 @@ def transform_williams(conc, surv):
     vec_f = np.repeat(vec, count.astype(int))
     return conc, vec_f
 
+
 def transform_williams_and_linear_interpolation(conc, surv):
     conc_t, surv_t = transform_williams(conc, surv)
     return transform_linear_interpolation(conc_t, surv_t)
-
-
-
-
-
-
 
 
 class Transforms(Enum):
