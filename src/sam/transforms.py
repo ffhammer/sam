@@ -11,7 +11,7 @@ def transform_none(conc, surv):
     return conc, surv
 
 
-def transform_linear_interpolation(conc, surv):
+def transform_linear_interpolation_old(conc, surv):
     conc = conc.copy()
     surv = surv.copy()
     
@@ -22,6 +22,33 @@ def transform_linear_interpolation(conc, surv):
     
     interp_func = interp1d(np.log10(conc), surv)
     return 10 ** points, interp_func(points)
+
+
+def transform_linear_interpolation(conc, surv):
+    conc = conc.copy()
+    surv = surv.copy()
+    
+    # change first conc value
+    c0 = conc[1] / 2
+    conc_inter = conc.copy()
+    conc_inter[0] = c0
+    
+    #change first_surv
+    surv_inter = surv.copy()
+    surv_inter[0] = surv_inter[1]
+    
+    
+    points = np.linspace(np.log10(c0), np.log10(conc[-1]), LINEAR_INTER_STEPS)
+    
+    interp_func = interp1d(np.log10(conc_inter), surv_inter)
+    
+    interpolated_concentration = 10 ** points
+    interpolated_survival = interp_func(points)
+    
+    conc = np.concatenate((conc[:1], interpolated_concentration))
+    surv = np.concatenate((surv[:1], interpolated_survival))
+    
+    return conc, surv
 
 
 def transform_williams(conc, surv):

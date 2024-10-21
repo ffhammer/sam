@@ -55,6 +55,8 @@ class ModelPredictions:
     lc99: float
     inputs: DoseResponseSeries
     cfg: FitSettings
+    regress_conc : np.ndarray
+    regress_surv : np.ndarray
 
 
 def dose_response_fit(
@@ -114,6 +116,8 @@ def dose_response_fit(
         optim_param=optim_param,
         inputs=dose_response_data,
         cfg=cfg,
+        regress_conc = regress_conc,
+        regress_surv = regress_surv,
     )
 
 
@@ -123,6 +127,8 @@ def compute_predictions(
     optim_param: np.array,
     inputs: DoseResponseSeries,
     cfg: FitSettings,
+    regress_conc : np.ndarray,
+    regress_surv : np.ndarray,
 ) -> ModelPredictions:
     """
     Computes the survival and stress predictions based on the fitted model.
@@ -167,6 +173,8 @@ def compute_predictions(
         lc99=lc99,
         inputs=inputs,
         cfg=cfg,
+        regress_conc = regress_conc,
+        regress_surv = regress_surv,
     )
 
 
