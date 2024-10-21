@@ -85,9 +85,14 @@ def transform_williams_and_linear_interpolation(conc, surv):
     conc_t, surv_t = transform_williams(conc, surv)
     return transform_linear_interpolation(conc_t, surv_t)
 
+def transform_williams_and_linear_interpolation_old(conc, surv):
+    conc_t, surv_t = transform_williams(conc, surv)
+    return transform_linear_interpolation_old(conc_t, surv_t)
+
 
 class Transforms(Enum):
     none = transform_none
     linear_interpolation = transform_linear_interpolation
     williams = transform_williams
     williams_and_linear_interpolation = transform_williams_and_linear_interpolation
+    williams_and_linear_interpolation_old = transform_williams_and_linear_interpolation_old

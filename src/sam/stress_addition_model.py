@@ -103,8 +103,8 @@ def sam_prediction(
         if hasattr(meta, "hormesis_index") and meta.hormesis_index is not None:
             hormesis_index = meta.hormesis_index
         else:
-            warn("could not find hormesis index, detecting it")
             hormesis_index = detect_hormesis_index(main_series.survival_rate)
+            warn(f"could not find hormesis index, detecting it to be {hormesis_index}")
             if hormesis_index is None:
                 raise ValueError("Cant detect hormesis!")
 
