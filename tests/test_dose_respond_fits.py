@@ -7,6 +7,7 @@ from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data, load_files
 from sam import REPO_PATH
 from copy import deepcopy
+import matplotlib.pyplot as plt
 
 @pytest.fixture(scope="module", autouse=True)
 def change_to_repo_dir():
@@ -43,6 +44,6 @@ def test_dose_response_fit_and_plot(file, setup_save_dir):
     # Save the plot
     save_path = os.path.join(save_dir, f"{os.path.split(path.replace('xlsx', 'png'))[1]}")
     fig.savefig(save_path)
-
+    plt.close()
     # Check if the plot was saved
     assert os.path.exists(save_path), f"Plot was not saved for {path}"
