@@ -1,0 +1,4 @@
+organism: "Daphnia magna"
+chemical: "Copper"
+max_survival: 100
+days: 21

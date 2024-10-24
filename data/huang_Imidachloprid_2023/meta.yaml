@@ -1,0 +1,4 @@
+organism: "Gammarus pulex"
+chemical: "Imidachloprid"
+max_survival: 11
+days: 28

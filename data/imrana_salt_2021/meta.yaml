@@ -1,0 +1,4 @@
+organism: "Daphnia magna"
+chemical: "Salt (NaCl)"
+max_survival: 100
+days: 21

@@ -1,0 +1,5 @@
+organism: "Gammarus pulex"
+chemical: "Clothianidin"
+max_survival: 100
+pub: "Predicting the Combined Effects of Multiple Stressors and Stress Adaptation in Gammarus pulex, 10.1021/acs.est.4c02014"
+days: 2
