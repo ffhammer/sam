@@ -1,5 +1,5 @@
-max_survival:	100
-pub: 	"Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.est.1c02669"
-organism:	"Gammarus pulex"
-chemical:	"Chlrorantraniliprole"
+max_survival:    100
+pub:     "Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.est.1c02669"
+organism:    "Gammarus pulex"
+chemical:    "Chlrorantraniliprole"
 days: 2
