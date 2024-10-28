@@ -42,7 +42,7 @@ def compute_all(plot : bool):
                 lcs=lcs,
                 title=title,
             )
-            name = os.path.split(path)[1].replace(".xlsx", f"_{name}.png")
+            name = f"{data.meta.title}_{name}.png"
             save_path = os.path.join(PLOT_PATH, name)
 
             fig.savefig(save_path)
@@ -67,7 +67,7 @@ def compute_all(plot : bool):
 def main():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("--plot", type=bool, default=False)
+    parser.add_argument("--plot", type=bool, default=True)
     
     args = parser.parse_args()
     
