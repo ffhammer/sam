@@ -24,7 +24,7 @@ jobs:
           pip install pytest  # Ensures pytest is installed
       - name: Run Tests
         run: |
-          pytest tests/
+          pytest tests/ --exitfirst
 
 
 
