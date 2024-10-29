@@ -32,6 +32,6 @@ hormesis_concentration: '0.3'
 ```
 
 
-### Temp 15 SAM Prediction
+### Temp 15 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2023_Huang_Neon_Imidachloprid_Temp_15.png)
+![SAM Prediction](../imgs/sam_predictions/2023_Huang_Neon_Imidachloprid_Temp_15.png)

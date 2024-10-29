@@ -34,15 +34,15 @@ hormesis_concentration: '1.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Food_1%.png)
-### Esfenvalerate 0.01 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Food_1%.png)
+### Esfenvalerate 0.01 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Esfenvalerate_0.01.png)
-### Esfenvalerate + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Esfenvalerate_0.01.png)
+### Esfenvalerate + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Esfenvalerate_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_7_days_Esfenvalerate_+_Food_1%.png)
 
 
 ## 2024 BPS, Esf, food_14_days
@@ -69,15 +69,15 @@ hormesis_concentration: '0.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Food_1%.png)
-### Esfenvalerate 0.01 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Food_1%.png)
+### Esfenvalerate 0.01 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Esfenvalerate_0.01.png)
-### Esfenvalerate + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Esfenvalerate_0.01.png)
+### Esfenvalerate + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Esfenvalerate_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_14_days_Esfenvalerate_+_Food_1%.png)
 
 
 ## 2024 BPS, Esf, food_21_days
@@ -104,12 +104,12 @@ hormesis_concentration: '1.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Food_1%.png)
-### Esfenvalerate 0.01 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Food_1%.png)
+### Esfenvalerate 0.01 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Esfenvalerate_0.01.png)
-### Esfenvalerate + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Esfenvalerate_0.01.png)
+### Esfenvalerate + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Esfenvalerate_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_BPS,_Esf,_food_21_days_Esfenvalerate_+_Food_1%.png)

@@ -34,27 +34,27 @@ days: '7.0'
 ```
 
 
-### Prochloraz 1 SAM Prediction
+### Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_1.png)
-### Prochloraz 32 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_1.png)
+### Prochloraz 32 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_32.png)
-### Prochloraz 100 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_32.png)
+### Prochloraz 100 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_100.png)
-### Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Prochloraz_100.png)
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%.png)
-### Food 1% + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%.png)
+### Food 1% + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_1.png)
-### Food 1% + Prochloraz 32 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_1.png)
+### Food 1% + Prochloraz 32 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_32.png)
-### Food 1% + Prochloraz 100 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_32.png)
+### Food 1% + Prochloraz 100 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_100.png)
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_7_days_Food_1%_+_Prochloraz_100.png)
 
 
 ## 2019 Naeem-Esf, Pro, food_21_days
@@ -79,24 +79,24 @@ days: '21.0'
 ```
 
 
-### Prochloraz 1 SAM Prediction
+### Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_1.png)
-### Prochloraz 32 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_1.png)
+### Prochloraz 32 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_32.png)
-### Prochloraz 100 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_32.png)
+### Prochloraz 100 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_100.png)
-### Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Prochloraz_100.png)
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%.png)
-### Food 1% + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%.png)
+### Food 1% + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_1.png)
-### Food 1% + Prochloraz 32 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_1.png)
+### Food 1% + Prochloraz 32 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_32.png)
-### Food 1% + Prochloraz 100 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_32.png)
+### Food 1% + Prochloraz 100 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_100.png)
+![SAM Prediction](../imgs/sam_predictions/2019_Naeem-Esf,_Pro,_food_21_days_Food_1%_+_Prochloraz_100.png)

@@ -25,12 +25,12 @@ pub: Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.
 |  4 |            1000 |                  5.479  |     3.817 |     0     |
 |  5 |            3000 |                  0      |     0     |     0     |
 
-### Temp 20 SAM Prediction
+### Temp 20 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_Temp_20.png)
-### Temp 24 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_Temp_20.png)
+### Temp 24 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_Temp_24.png)
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_Temp_24.png)
 
 
 ## 2021 Ayesha-Cloth, °C, Adap_agricultural_pre-contamination
@@ -46,12 +46,12 @@ pub: Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.
 |  4 |            1000 |                  17.49  |     4.826 |     0     |
 |  5 |            3000 |                   0     |     0     |     0     |
 
-### Temp 20 SAM Prediction
+### Temp 20 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_pre-contamination_Temp_20.png)
-### Temp 24 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_pre-contamination_Temp_20.png)
+### Temp 24 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_pre-contamination_Temp_24.png)
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_pre-contamination_Temp_24.png)
 
 
 ## 2021 Ayesha-Cloth, °C, Adap_reference_pre-contamination
@@ -67,12 +67,12 @@ pub: Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.
 |  4 |            1000 |                  12.258 |     5.109 |   0       |
 |  5 |            3000 |                   0     |     0     |   0       |
 
-### Temp 20 SAM Prediction
+### Temp 20 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_pre-contamination_Temp_20.png)
-### Temp 24 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_pre-contamination_Temp_20.png)
+### Temp 24 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_pre-contamination_Temp_24.png)
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_reference_pre-contamination_Temp_24.png)
 
 
 ## 2021 Ayesha-Cloth, °C, Adap_agricultural
@@ -88,9 +88,9 @@ pub: Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.
 |  4 |            1000 |                  19.427 |     4.248 |     0.426 |
 |  5 |            3000 |                   0     |     0     |     0     |
 
-### Temp 20 SAM Prediction
+### Temp 20 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_Temp_20.png)
-### Temp 24 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_Temp_20.png)
+### Temp 24 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_Temp_24.png)
+![SAM Prediction](../imgs/sam_predictions/2021_Ayesha-Cloth,_°C,_Adap_agricultural_Temp_24.png)

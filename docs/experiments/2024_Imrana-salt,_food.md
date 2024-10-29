@@ -35,6 +35,6 @@ hormesis_concentration: '1.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Imrana-salt,_food_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Imrana-salt,_food_Food_1%.png)

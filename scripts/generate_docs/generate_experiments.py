@@ -18,7 +18,9 @@ for _, data in load_files():
 
 
 def create_page_for_data(name, exps: list[ExperimentData]):
-    exp_path = EXPERIMENTS_PATH / f"{name}.md".replace(" ", "_")
+    
+    
+    exp_path = EXPERIMENTS_PATH / f"{name}.md".replace(" ", "_").replace("°C", "C")
     meta_yaml_file = Path(exps[0].meta.path).parent / "meta.yaml"
     
     # Read YAML file content
@@ -39,11 +41,10 @@ def create_page_for_data(name, exps: list[ExperimentData]):
         
         for additional_stressor in exp.additional_stress:
             img_path = f"imgs/sam_predictions/{title}_{additional_stressor}.png".replace(" ","_")
-            
             nicer = additional_stressor.replace("_", " ")
             
             if (Path("docs") / img_path).exists():
-                text += f"### {nicer} SAM Prediction\n\n![SAM Prediction]({img_path})\n"
+                text += f"### {nicer} - SAM Prediction\n\n![SAM Prediction](../{img_path})\n"
             else:
                 print("Cant find:", img_path)
 

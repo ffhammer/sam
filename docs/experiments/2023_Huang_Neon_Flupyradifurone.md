@@ -25,6 +25,6 @@ organism: Gammarus pulex
 |  5 |            30   |                    3.83 |      2    |
 |  6 |           100   |                    0    |      0    |
 
-### Temp 15 SAM Prediction
+### Temp 15 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2023_Huang_Neon_Flupyradifurone_Temp_15.png)
+![SAM Prediction](../imgs/sam_predictions/2023_Huang_Neon_Flupyradifurone_Temp_15.png)

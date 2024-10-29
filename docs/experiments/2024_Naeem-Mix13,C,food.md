@@ -32,15 +32,15 @@ days: '7.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Food_1%.png)
-### Temp 25 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Food_1%.png)
+### Temp 25 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Temp_25.png)
-### Temp 25 + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Temp_25.png)
+### Temp 25 + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Temp_25_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_7_days_Temp_25_+_Food_1%.png)
 
 
 ## 2024 Naeem-Mix13,°C,food_14_days
@@ -65,15 +65,15 @@ days: '14.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Food_1%.png)
-### Temp 25 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Food_1%.png)
+### Temp 25 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Temp_25.png)
-### Temp 25 + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Temp_25.png)
+### Temp 25 + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Temp_25_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_14_days_Temp_25_+_Food_1%.png)
 
 
 ## 2024 Naeem-Mix13,°C,food_21_days
@@ -98,12 +98,12 @@ days: '21.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Food_1%.png)
-### Temp 25 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Food_1%.png)
+### Temp 25 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Temp_25.png)
-### Temp 25 + Food 1% SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Temp_25.png)
+### Temp 25 + Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Temp_25_+_Food_1%.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-Mix13,°C,food_21_days_Temp_25_+_Food_1%.png)

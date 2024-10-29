@@ -34,15 +34,15 @@ hormesis_concentration: '20.0'
 ```
 
 
-### Food 1% SAM Prediction
+### Food 1% - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_1%.png)
-### UV SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_1%.png)
+### UV - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2001_Liess-food,_UV_Cu_UV.png)
-### Food 1% + UV SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2001_Liess-food,_UV_Cu_UV.png)
+### Food 1% + UV - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_1%_+_UV.png)
-### Food Avg SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_1%_+_UV.png)
+### Food Avg - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_Avg.png)
+![SAM Prediction](../imgs/sam_predictions/2001_Liess-food,_UV_Cu_Food_Avg.png)

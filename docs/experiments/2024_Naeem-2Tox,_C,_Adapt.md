@@ -36,30 +36,30 @@ hormesis_concentration: '0.1'
 ```
 
 
-### Prochloraz 1 SAM Prediction
+### Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Prochloraz_1.png)
-### Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Prochloraz_1.png)
+### Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Prochloraz_10.png)
-### Temp 19 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Prochloraz_10.png)
+### Temp 19 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19.png)
-### Temp 19 + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19.png)
+### Temp 19 + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19_+_Prochloraz_1.png)
-### Temp 19 + Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19_+_Prochloraz_1.png)
+### Temp 19 + Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19_+_Prochloraz_10.png)
-### Temp 22 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_19_+_Prochloraz_10.png)
+### Temp 22 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22.png)
-### Temp 22 + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22.png)
+### Temp 22 + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22_+_Prochloraz_1.png)
-### Temp 22 + Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22_+_Prochloraz_1.png)
+### Temp 22 + Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22_+_Prochloraz_10.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_reference_Temp_22_+_Prochloraz_10.png)
 
 
 ## 2024 Naeem-2Tox, °C, Adapt_agriculture
@@ -85,27 +85,27 @@ hormesis_concentration: '0.1'
 ```
 
 
-### Prochloraz 1 SAM Prediction
+### Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Prochloraz_1.png)
-### Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Prochloraz_1.png)
+### Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Prochloraz_10.png)
-### Temp 19 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Prochloraz_10.png)
+### Temp 19 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19.png)
-### Temp 19 + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19.png)
+### Temp 19 + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19_+_Prochloraz_1.png)
-### Temp 19 + Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19_+_Prochloraz_1.png)
+### Temp 19 + Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19_+_Prochloraz_10.png)
-### Temp 22 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_19_+_Prochloraz_10.png)
+### Temp 22 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22.png)
-### Temp 22 + Prochloraz 1 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22.png)
+### Temp 22 + Prochloraz 1 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22_+_Prochloraz_1.png)
-### Temp 22 + Prochloraz 10 SAM Prediction
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22_+_Prochloraz_1.png)
+### Temp 22 + Prochloraz 10 - SAM Prediction
 
-![SAM Prediction](imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22_+_Prochloraz_10.png)
+![SAM Prediction](../imgs/sam_predictions/2024_Naeem-2Tox,_°C,_Adapt_agriculture_Temp_22_+_Prochloraz_10.png)
