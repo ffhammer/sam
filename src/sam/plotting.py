@@ -236,7 +236,7 @@ def plot_sam_prediction(
             ax=axs[0, 1],
             xscale="linear",
             show_legend=False,
-            xlab=to_color[label],
+            xlab=None,
             ylab="Stress",
             title="Stress",
             color=to_color[label],
