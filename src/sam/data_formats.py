@@ -19,6 +19,7 @@ class ExperimentMetaData:
     path: str
     path: str
     days: int
+    experiment_name : str
     title: str
     hormesis_concentration: Optional[int] = None
     pub: Optional[str] = None
@@ -65,25 +66,23 @@ class DoseResponseSeries:
         )
 
 
-@dataclass
-class ExperimentData:
-    main_series: DoseResponseSeries
-    additional_stress: Dict[str, DoseResponseSeries]
-    meta: ExperimentMetaData
+def read_meta_yaml(xlsx_path : Path) -> dict:
+    meta_path = xlsx_path.parent / "meta.yaml"
+
+    if not os.path.exists(meta_path):
+        raise ValueError(f"Cant find {meta_path}")
+
+    with open(meta_path, "r") as file:
+        return  yaml.safe_load(file)
+
 
 
 def read_metadata(path: str, df: pd.DataFrame) -> ExperimentMetaData:
 
     path: Path = Path(path)
 
-    par_dir = path.parent
-    meta_path = par_dir / "meta.yaml"
+    meta_dict = read_meta_yaml(path)
 
-    if not os.path.exists(meta_path):
-        raise ValueError(f"Cant find {meta_path}")
-
-    with open(meta_path, "r") as file:
-        meta_dict: dict = yaml.safe_load(file)
 
     expected_meta_columns = ["meta_category", "info"]
     if not (df.columns[-2:] == expected_meta_columns).all():
@@ -106,12 +105,48 @@ def read_metadata(path: str, df: pd.DataFrame) -> ExperimentMetaData:
     # create name
     child_name = path.name.replace(".xlsx", "")
 
-    title = par_dir.name
+    title = path.parent.name
 
     if child_name != "data":
         title += "_" + child_name
 
-    return ExperimentMetaData(**meta_dict, title=title, path=path)
+    return ExperimentMetaData(**meta_dict, title=title, path=path, experiment_name=Path(path).parent.name)
+
+@dataclass
+class ExperimentData:
+    main_series: DoseResponseSeries
+    additional_stress: Dict[str, DoseResponseSeries]
+    meta: ExperimentMetaData
+
+    def to_markdown_table(self):
+        
+        
+        cols = {"Concentration": self.main_series.concentration, 
+                "Control Survival Rate": self.main_series.survival_rate}
+        
+        for name, ser in self.additional_stress.items():
+            cols[name.replace("_"," ")] = ser.survival_rate
+            
+        df = pd.DataFrame.from_dict(cols, orient="columns")
+        markdown_text = df.to_markdown()
+        
+        # if there is meta data show below the table
+        yaml_meta = read_meta_yaml(self.meta.path)
+        cur_meta = vars(self.meta).copy()
+        del cur_meta["path"]
+        del cur_meta["experiment_name"]
+        del cur_meta["title"]
+        
+        non_dup_meta = {key:val for key,val in cur_meta.items() if key not in yaml_meta and val is not None}
+        
+        if len(non_dup_meta):
+            yaml_text = "\n".join([f"{key}: '{val}'" for key,val in non_dup_meta.items()])
+            yam_template ="```yaml\n{}\n```\n"
+            markdown_text += "\n\nSpecific Settings:\n\n" + yam_template.format(yaml_text)
+            
+        return markdown_text
+        
+        
 
 
 def read_data(path: str) -> ExperimentData:
