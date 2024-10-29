@@ -1,3 +1,5 @@
+from sam import chdir_to_repopath
+chdir_to_repopath()
 from sam.stress_addition_model import (
     sam_prediction,
     get_sam_lcs,
@@ -7,16 +9,14 @@ from sam.plotting import plot_sam_prediction
 from sam.data_formats import load_datapoints
 import os
 import matplotlib.pyplot as plt
-import pandas as pd
 import argparse
 from tqdm import tqdm
+import argparse
 
-PLOT_PATH = "control_imgs/sam_prediction"
 SETTINGS = OLD_STANDARD
 
-def compute_all(plot : bool):
+def compute_all(plot : bool, dir4imgs : str):
     
-    rows = []
     
     for path, data, name, val in tqdm(load_datapoints()):
     
@@ -43,35 +43,17 @@ def compute_all(plot : bool):
                 title=title,
             )
             name = f"{data.meta.title}_{name}.png"
-            save_path = os.path.join(PLOT_PATH, name)
+            save_path = os.path.join(dir4imgs, name)
 
             fig.savefig(save_path)
             plt.close()
 
-        row = {
-            "path": path,
-            "stressor": name,
-            "stress_lc10": lcs.stress_lc10,
-            "stress_lc50": lcs.stress_lc50,
-            "sam_lc10": lcs.sam_lc10,
-            "sam_lc50": lcs.sam_lc50,
-            "survival_max": data.meta.max_survival,
-        }
-
-        rows.append(row)
-
-    df = pd.DataFrame(rows)
-    # df.to_csv("sam_predictions.csv")
-
-
-def main():
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--plot", type=bool, default=True)
-    
-    args = parser.parse_args()
-    
-    compute_all(args.plot)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--plot", type=bool, default=True)
+    parser.add_argument("--dir4imgs", type=str, default="control_imgs/sam_prediction")
+    args = parser.parse_args()
+    os.makedirs(args.dir4imgs, exist_ok=True)
+    
+    compute_all(args.plot, args.dir4imgs)
