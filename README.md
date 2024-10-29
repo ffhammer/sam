@@ -3,7 +3,7 @@
 This is a Python reimplementation of the Stress Addition Model (SAM) from the research paper "Predicting the synergy of multiple stress effects" by Matthias Liess, Kaarina Foit, Saskia Knillmann, Ralf B. Schäfer, and Hans-Dieter Liess.
 
 ## Citation
-
+```bibtex
 @Manual{,
     title = {stressaddition: Modelling Tri-Phasic Concentration-Response Relationships},
     author = {Sebastian Henz and Matthias Liess},
@@ -11,7 +11,7 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
     note = {R package version 3.1.0},
     url = {https://CRAN.R-project.org/package=stressaddition},
 }
-
+```
 
 ## Copyright and License
 
@@ -29,7 +29,7 @@ Chairman of the Supervisory Board: MinDirig’in Oda Keppler
 Scientific Director: Prof. Dr. Georg Teutsch  
 Administrative Director: Dr. Sabine König
 
-stressaddition is free software: you can redistribute it and/or modify  
+SAM (Stress Addition Model) is free software: you can redistribute it and/or modify  
 it under the terms of the GNU General Public License as published by  
 the Free Software Foundation, either version 3 of the License, or  
 (at your option) any later version.
