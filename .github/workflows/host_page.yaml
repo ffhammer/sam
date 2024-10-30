@@ -12,21 +12,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Build
-        uses: actions/jekyll-build-pages@v1
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
       
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+      
       - name: Generate Docs
         run: |
           bash compute_docs.sh
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Build
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: "docs"
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
 
 
   deploy:
