@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('../../src'))
 
 
 import pandas as pd
@@ -30,13 +30,15 @@ release = '30.10.2024'
 
 html_theme = 'alabaster'             # You can change this to any other theme
 html_static_path = ['_static']
-
 extensions = [
     'myst_parser',
     'sphinx.ext.autodoc',           # Automatically document from docstrings
     'sphinx.ext.napoleon',           # Support for Google-style and NumPy-style docstrings
     'sphinx_autodoc_typehints',      # Include type hints in the docs (optional)
 ]
+
+master_doc = "home"
+root_doc = "home"
 
 templates_path = ['_templates']
 exclude_patterns = [
@@ -53,6 +55,6 @@ exclude_patterns = [
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "furo" 
+html_theme = 'sphinx_material' 
 html_static_path = ['_static']
 autodoc_member_order = 'bysource'

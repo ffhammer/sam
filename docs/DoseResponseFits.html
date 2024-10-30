@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="lang:clipboard.copy" content="Copy to clipboard">
+  <meta name="lang:clipboard.copied" content="Copied to clipboard">
+  <meta name="lang:search.language" content="en">
+  <meta name="lang:search.pipeline.stopwords" content="True">
+  <meta name="lang:search.pipeline.trimmer" content="True">
+  <meta name="lang:search.result.none" content="No matching documents">
+  <meta name="lang:search.result.one" content="1 matching document">
+  <meta name="lang:search.result.other" content="# matching documents">
+  <meta name="lang:search.tokenizer" content="[\s\-]+">
+
+  
+    <link href="https://fonts.gstatic.com/" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,700|Roboto:300,400,400i,700&display=fallback" rel="stylesheet">
+
+    <style>
+      body,
+      input {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif
+      }
+
+      code,
+      kbd,
+      pre {
+        font-family: "Roboto Mono", "Courier New", Courier, monospace
+      }
+    </style>
+  
+
+  <link rel="stylesheet" href="_static/stylesheets/application.css"/>
+  <link rel="stylesheet" href="_static/stylesheets/application-palette.css"/>
+  <link rel="stylesheet" href="_static/stylesheets/application-fixes.css"/>
+  
+  <link rel="stylesheet" href="_static/fonts/material-icons.css"/>
+  
+  <meta name="theme-color" content="#3f51b5">
+  <script src="_static/javascripts/modernizr.js"></script>
+  
+  
+  
+    <title>Dose-Response Fitting &#8212; SAM 30.10.2024 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=83e35b93" />
+    <link rel="stylesheet" type="text/css" href="_static/material.css?v=79c92029" />
+    <script src="_static/documentation_options.js?v=8ceb233d"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Stress Addition Model (SAM)" href="sam.html" />
+    <link rel="prev" title="Data Handling" href="DataHandling.html" />
+  
+   
+
+  </head>
+  <body dir=ltr
+        data-md-color-primary=blue-grey data-md-color-accent=blue>
+  
+  <svg class="md-svg">
+    <defs data-children-count="0">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="__github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+      
+    </defs>
+  </svg>
+  
+  <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer">
+  <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search">
+  <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+  <a href="#DoseResponseFits" tabindex="1" class="md-skip"> Skip to content </a>
+  <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex navheader">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="home.html" title="SAM 30.10.2024 documentation"
+           class="md-header-nav__button md-logo">
+          
+            &nbsp;
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          <span class="md-header-nav__topic">SAM 30.10.2024 documentation</span>
+          <span class="md-header-nav__topic"> Dose-Response Fitting </span>
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+        
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" action="search.html" method="get" name="search">
+      <input type="text" class="md-search__input" name="q" placeholder=""Search""
+             autocapitalize="off" autocomplete="off" spellcheck="false"
+             data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div>
+      
+      
+  
+  <script src="_static/javascripts/version_dropdown.js"></script>
+  <script>
+    var json_loc = ""versions.json"",
+        target_loc = "../",
+        text = "Versions";
+    $( document ).ready( add_version_dropdown(json_loc, target_loc, text));
+  </script>
+  
+
+    </div>
+  </nav>
+</header>
+
+  
+  <div class="md-container">
+    
+    
+    
+  <nav class="md-tabs" data-md-component="tabs">
+    <div class="md-tabs__inner md-grid">
+      <ul class="md-tabs__list">
+          <li class="md-tabs__item"><a href="home.html" class="md-tabs__link">SAM 30.10.2024 documentation</a></li>
+      </ul>
+    </div>
+  </nav>
+    <main class="md-main">
+      <div class="md-main__inner md-grid" data-md-component="container">
+        
+          <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="home.html" title="SAM 30.10.2024 documentation" class="md-nav__button md-logo">
+      
+        <img src="_static/" alt=" logo" width="48" height="48">
+      
+    </a>
+    <a href="home.html"
+       title="SAM 30.10.2024 documentation">SAM 30.10.2024 documentation</a>
+  </label>
+  
+
+</nav>
+              </div>
+            </div>
+          </div>
+          <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+            <div class="md-sidebar__scrollwrap">
+              <div class="md-sidebar__inner">
+                
+<nav class="md-nav md-nav--secondary">
+    <label class="md-nav__title" for="__toc">"Contents"</label>
+  <ul class="md-nav__list" data-md-scrollfix="">
+        <li class="md-nav__item"><a href="#doseresponsefits--page-root" class="md-nav__link">Dose-Response Fitting</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#steps" class="md-nav__link">Steps</a>
+        </li>
+        <li class="md-nav__item"><a href="#classes-and-functions" class="md-nav__link">Classes and Functions</a>
+        </li>
+        <li class="md-nav__item"><a href="#dose-response-fit-settings" class="md-nav__link">Dose Response Fit Settings</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#sam.DRF_Settings" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.max_survival" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.max_survival</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.len_curves" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.len_curves</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.transform" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.transform</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.param_d_norm" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.param_d_norm</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.stress_to_survival" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.stress_to_survival</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.DRF_Settings.survival_to_stress" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.survival_to_stress</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id0" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.max_survival</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id1" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.len_curves</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id2" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.transform()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id3" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.param_d_norm</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id4" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.stress_to_survival()</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id5" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">DRF_Settings.survival_to_stress()</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#model-predictions" class="md-nav__link">Model Predictions</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#sam.ModelPredictions" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions</span></code></a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.concentrations" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.concentrations</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.survival_curve" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.survival_curve</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.stress_curve" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.stress_curve</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.predicted_survival" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.predicted_survival</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.model" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.model</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.lc1" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.lc1</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.lc99" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.lc99</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.hormesis_index" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.hormesis_index</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.inputs" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.inputs</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.cfg" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.cfg</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.regress_conc" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.regress_conc</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.regress_surv" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.regress_surv</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id6" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.concentrations</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id7" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.survival_curve</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id8" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.stress_curve</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id9" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.predicted_survival</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#sam.ModelPredictions.optim_param" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.optim_param</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id10" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.model</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id11" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.lc1</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id12" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.lc99</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id13" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.inputs</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id14" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.cfg</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id15" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.regress_conc</span></code></a>
+        </li>
+        <li class="md-nav__item"><a href="#id16" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">ModelPredictions.regress_surv</span></code></a>
+        </li></ul>
+            </nav>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#dose-response-fit-function" class="md-nav__link">Dose Response Fit Function</a><nav class="md-nav">
+              <ul class="md-nav__list">
+        <li class="md-nav__item"><a href="#sam.dose_response_fit" class="md-nav__link"><code class="docutils literal notranslate"><span class="pre">dose_response_fit()</span></code></a>
+        </li></ul>
+            </nav>
+        </li>
+        <li class="md-nav__item"><a href="#example-usage" class="md-nav__link">Example Usage</a>
+        </li></ul>
+            </nav>
+        </li>
+    
+<li class="md-nav__item"><a class="md-nav__extra_link" href="_sources/DoseResponseFits.rst.txt">Show Source</a> </li>
+
+<li id="searchbox" class="md-nav__item"></li>
+
+  </ul>
+</nav>
+              </div>
+            </div>
+          </div>
+        
+        <div class="md-content">
+          <article class="md-content__inner md-typeset" role="main">
+            
+  <section id="dose-response-fitting">
+<h1 id="doseresponsefits--page-root">Dose-Response Fitting<a class="headerlink" href="#doseresponsefits--page-root" title="Link to this heading">¶</a></h1>
+<section id="steps">
+<h2 id="steps">Steps<a class="headerlink" href="#steps" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Prepare Dose-Response Data</strong>: Start with an instance of <cite>DoseResponseSeries</cite>, containing concentration and survival data for the main stressor.</p></li>
+<li><p><strong>Configure Settings</strong>: Customize the fit by specifying <cite>DRF_Settings</cite></p></li>
+<li><p><strong>Run the Fit</strong>: Call <cite>dose_response_fit</cite>. The function returns <cite>ModelPredictions</cite>, giving you survival and stress curves, predicted survival values, and lethal concentration metrics.</p></li>
+</ol>
+</section>
+<section id="classes-and-functions">
+<h2 id="classes-and-functions">Classes and Functions<a class="headerlink" href="#classes-and-functions" title="Link to this heading">¶</a></h2>
+<p>Below are the primary classes and functions used for dose-response fitting.</p>
+</section>
+<section id="dose-response-fit-settings">
+<h2 id="dose-response-fit-settings">Dose Response Fit Settings<a class="headerlink" href="#dose-response-fit-settings" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="sam.DRF_Settings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sam.</span></span><span class="sig-name descname"><span class="pre">DRF_Settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_survival=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len_curves=10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform=&lt;function</span> <span class="pre">transform_williams_and_linear_interpolation&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_d_norm=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_to_survival=&lt;function</span> <span class="pre">DRF_Settings.&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">survival_to_stress=&lt;function</span> <span class="pre">DRF_Settings.&lt;lambda&gt;&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sam.DRF_Settings" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration settings for dose-response fitting.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.max_survival">
+<span class="sig-name descname"><span class="pre">max_survival</span></span><a class="headerlink" href="#sam.DRF_Settings.max_survival" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum possible survival rate, representing the control condition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.len_curves">
+<span class="sig-name descname"><span class="pre">len_curves</span></span><a class="headerlink" href="#sam.DRF_Settings.len_curves" title="Link to this definition">¶</a></dt>
+<dd><p>Number of points in the generated curves for predictions (default is 10,000).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><a class="headerlink" href="#sam.DRF_Settings.transform" title="Link to this definition">¶</a></dt>
+<dd><p>Transformation function applied to regression data before fitting.
+Defaults to <cite>williams_and_linear_interpolation</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Transforms</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.param_d_norm">
+<span class="sig-name descname"><span class="pre">param_d_norm</span></span><a class="headerlink" href="#sam.DRF_Settings.param_d_norm" title="Link to this definition">¶</a></dt>
+<dd><p>Parameter normalization setting (explained in <cite>SAM_Settings</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.stress_to_survival">
+<span class="sig-name descname"><span class="pre">stress_to_survival</span></span><a class="headerlink" href="#sam.DRF_Settings.stress_to_survival" title="Link to this definition">¶</a></dt>
+<dd><p>Function that maps stress values to survival values, defaulting
+to <cite>stress_to_survival(x, 3.2, 3.2)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.DRF_Settings.survival_to_stress">
+<span class="sig-name descname"><span class="pre">survival_to_stress</span></span><a class="headerlink" href="#sam.DRF_Settings.survival_to_stress" title="Link to this definition">¶</a></dt>
+<dd><p>Function that maps survival values back to stress values,
+defaulting to <cite>survival_to_stress(x, 3.2, 3.2)</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+<p>These mappings between stress and survival allow control over how survival values are transformed
+in the fitting process.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">max_survival</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id0" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">len_curves</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10000</span></em><a class="headerlink" href="#id1" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surv</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id2" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">param_d_norm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#id3" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">stress_to_survival</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id4" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">survival_to_stress</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#id5" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+</dd></dl>
+</section>
+<section id="model-predictions">
+<h2 id="model-predictions">Model Predictions<a class="headerlink" href="#model-predictions" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="sam.ModelPredictions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sam.</span></span><span class="sig-name descname"><span class="pre">ModelPredictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concentrations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">survival_curve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_curve</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predicted_survival</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lc1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lc99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regress_conc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regress_surv</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sam.ModelPredictions" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Contains the results of model predictions for dose-response data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.concentrations">
+<span class="sig-name descname"><span class="pre">concentrations</span></span><a class="headerlink" href="#sam.ModelPredictions.concentrations" title="Link to this definition">¶</a></dt>
+<dd><p>Concentration values for the fitted curve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.survival_curve">
+<span class="sig-name descname"><span class="pre">survival_curve</span></span><a class="headerlink" href="#sam.ModelPredictions.survival_curve" title="Link to this definition">¶</a></dt>
+<dd><p>Array of predicted survival values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.stress_curve">
+<span class="sig-name descname"><span class="pre">stress_curve</span></span><a class="headerlink" href="#sam.ModelPredictions.stress_curve" title="Link to this definition">¶</a></dt>
+<dd><p>Array of computed stress values from survival data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.predicted_survival">
+<span class="sig-name descname"><span class="pre">predicted_survival</span></span><a class="headerlink" href="#sam.ModelPredictions.predicted_survival" title="Link to this definition">¶</a></dt>
+<dd><p>Array of predicted survival values for input concentrations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#sam.ModelPredictions.model" title="Link to this definition">¶</a></dt>
+<dd><p>Fitted Weibull model for predicting responses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.lc1">
+<span class="sig-name descname"><span class="pre">lc1</span></span><a class="headerlink" href="#sam.ModelPredictions.lc1" title="Link to this definition">¶</a></dt>
+<dd><p>Lethal concentration value for 1% of the population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.lc99">
+<span class="sig-name descname"><span class="pre">lc99</span></span><a class="headerlink" href="#sam.ModelPredictions.lc99" title="Link to this definition">¶</a></dt>
+<dd><p>Lethal concentration value for 99% of the population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.hormesis_index">
+<span class="sig-name descname"><span class="pre">hormesis_index</span></span><a class="headerlink" href="#sam.ModelPredictions.hormesis_index" title="Link to this definition">¶</a></dt>
+<dd><p>Index of the hormesis concentration, if applicable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><a class="headerlink" href="#sam.ModelPredictions.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>Input series of dose-response data provided to the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="DataHandling.html#sam.DoseResponseSeries" title="sam.DoseResponseSeries">DoseResponseSeries</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.cfg">
+<span class="sig-name descname"><span class="pre">cfg</span></span><a class="headerlink" href="#sam.ModelPredictions.cfg" title="Link to this definition">¶</a></dt>
+<dd><p>Settings used for the dose-response fitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#sam.DRF_Settings" title="sam.DRF_Settings">DRF_Settings</a></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.regress_conc">
+<span class="sig-name descname"><span class="pre">regress_conc</span></span><a class="headerlink" href="#sam.ModelPredictions.regress_conc" title="Link to this definition">¶</a></dt>
+<dd><p>Concentration values after applying transformations (before fitting).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.regress_surv">
+<span class="sig-name descname"><span class="pre">regress_surv</span></span><a class="headerlink" href="#sam.ModelPredictions.regress_surv" title="Link to this definition">¶</a></dt>
+<dd><p>Survival values corresponding to <cite>regress_conc</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+<p>This structure is used to store key components of the model output, allowing access to curves
+and lethal concentration metrics.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">concentrations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#id6" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">survival_curve</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code></em><a class="headerlink" href="#id7" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">stress_curve</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code></em><a class="headerlink" href="#id8" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">predicted_survival</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">array</span></code></em><a class="headerlink" href="#id9" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="sam.ModelPredictions.optim_param">
+<span class="sig-name descname"><span class="pre">optim_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></em><a class="headerlink" href="#sam.ModelPredictions.optim_param" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></em><a class="headerlink" href="#id10" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">lc1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id11" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">lc99</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></em><a class="headerlink" href="#id12" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">inputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="DataHandling.html#sam.DoseResponseSeries" title="sam.data_formats.DoseResponseSeries"><code class="xref py py-class docutils literal notranslate"><span class="pre">DoseResponseSeries</span></code></a></em><a class="headerlink" href="#id13" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">cfg</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#sam.DRF_Settings" title="sam.dose_reponse_fit.DRF_Settings"><code class="xref py py-class docutils literal notranslate"><span class="pre">DRF_Settings</span></code></a></em><a class="headerlink" href="#id14" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">regress_conc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#id15" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">regress_surv</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></em><a class="headerlink" href="#id16" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+</dd></dl>
+</section>
+<section id="dose-response-fit-function">
+<h2 id="dose-response-fit-function">Dose Response Fit Function<a class="headerlink" href="#dose-response-fit-function" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="sam.dose_response_fit">
+<span class="sig-prename descclassname"><span class="pre">sam.</span></span><span class="sig-name descname"><span class="pre">dose_response_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dose_response_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg=DRF_Settings(max_survival=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len_curves=10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform=&lt;function</span> <span class="pre">transform_williams_and_linear_interpolation&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_d_norm=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_to_survival=&lt;function</span> <span class="pre">DRF_Settings.&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">survival_to_stress=&lt;function</span> <span class="pre">DRF_Settings.&lt;lambda&gt;&gt;)</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#sam.dose_response_fit" title="Link to this definition">¶</a></dt>
+<dd><p>Fits a five-parameter log-logistic (LL5) model to dose-response data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dose_response_data</strong> (<a class="reference internal" href="DataHandling.html#sam.DoseResponseSeries" title="sam.DoseResponseSeries"><em>DoseResponseSeries</em></a>) – Series of concentration and survival data points.</p></li>
+<li><p><strong>cfg</strong> (<a class="reference internal" href="#sam.DRF_Settings" title="sam.DRF_Settings"><em>DRF_Settings</em></a><em>, </em><em>optional</em>) – Configuration settings for dose-response fitting.
+Defaults to <cite>STANDARD_DRF_SETTING</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Contains the fitted model’s predictions, survival curve, stress curve,
+and lethal concentration values (e.g., LC1, LC99).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#sam.ModelPredictions" title="sam.ModelPredictions">ModelPredictions</a></p>
+</dd>
+</dl>
+<p>This function takes dose-response data and fits an LL5 model to predict survival as a function
+of concentration, applying any specified transformations as needed.</p>
+</dd></dl>
+</section>
+<section id="example-usage">
+<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading">¶</a></h2>
+<p>Here’s how to use <cite>dose_response_fit</cite> with sample data and custom settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sam</span> <span class="kn">import</span> <span class="n">dose_response_fit</span><span class="p">,</span> <span class="n">DRF_Settings</span><span class="p">,</span> <span class="n">DoseResponseSeries</span>
+
+<span class="c1"># Sample dose-response data</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">DoseResponseSeries</span><span class="p">(</span><span class="n">concentration</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="n">survival_rate</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">75</span><span class="p">,</span> <span class="mi">20</span><span class="p">],</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">"example"</span><span class="p">)</span>
+
+<span class="c1"># Custom settings (optional)</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">DRF_Settings</span><span class="p">(</span><span class="n">max_survival</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Perform dose-response fit</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">dose_response_fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cfg</span><span class="p">)</span>
+
+<span class="c1"># Access the model predictions</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">predictions</span><span class="o">.</span><span class="n">survival_curve</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </article>
+        </div>
+      </div>
+    </main>
+  </div>
+  <footer class="md-footer">
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+          
+            <a href="DataHandling.html" title="Data Handling"
+               class="md-flex md-footer-nav__link md-footer-nav__link--prev"
+               rel="prev">
+              <div class="md-flex__cell md-flex__cell--shrink">
+                <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+              </div>
+              <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+                <span class="md-flex__ellipsis">
+                  <span
+                      class="md-footer-nav__direction"> "Previous" </span> Data Handling </span>
+              </div>
+            </a>
+          
+          
+            <a href="sam.html" title="Stress Addition Model (SAM)"
+               class="md-flex md-footer-nav__link md-footer-nav__link--next"
+               rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
+                class="md-flex__ellipsis"> <span
+                class="md-footer-nav__direction"> "Next" </span> Stress Addition Model (SAM) </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink"><i
+                class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          
+        </a>
+        
+      </nav>
+    </div>
+    <div class="md-footer-meta md-typeset">
+      <div class="md-footer-meta__inner md-grid">
+        <div class="md-footer-copyright">
+          <div class="md-footer-copyright__highlight">
+              &#169; Copyright 2024, Felix Hammer.
+              
+          </div>
+            Created using
+            <a href="http://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+             and
+            <a href="https://github.com/bashtage/sphinx-material/">Material for
+              Sphinx</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script src="_static/javascripts/application.js"></script>
+  <script>app.initialize({version: "1.0.4", url: {base: ".."}})</script>
+  </body>
+</html>

@@ -3,7 +3,7 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Esfenvalerate
+main_stressor: Esfenvalerate
 max_survival: 100
 organism: Daphnia magna
 

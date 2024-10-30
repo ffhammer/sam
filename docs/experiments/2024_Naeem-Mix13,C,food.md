@@ -3,7 +3,7 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Mix13
+main_stressor: Mix13
 max_survival: 100
 organism: Unknown
 

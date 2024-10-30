@@ -3,7 +3,7 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Food Deprevation
+main_stressor: Food Deprevation
 max_survival: 100
 organism: Daphnia magna
 

@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Imidachloprid
 days: 28
+main_stressor: Imidachloprid
 max_survival: 11
 organism: Gammarus pulex
 

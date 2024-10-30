@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Clothianidin
 days: 2
+main_stressor: Clothianidin
 max_survival: 100
 organism: Gammarus pulex
 pub: Predicting the Combined Effects of Multiple Stressors and Stress Adaptation in

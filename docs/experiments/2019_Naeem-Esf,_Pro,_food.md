@@ -3,7 +3,7 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Esfenvalerate
+main_stressor: Esfenvalerate
 max_survival: 1
 organism: Daphnia magna
 pub: "Environmental Stress Increases Synergistic E\uFB00ects of Pesticide Mixtures\

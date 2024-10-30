@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Flupyradifurone
 days: 28
+main_stressor: Flupyradifurone
 max_survival: 11
 organism: Gammarus pulex
 

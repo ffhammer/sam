@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Salt (NaCl)
 days: 21
+main_stressor: Salt (NaCl)
 max_survival: 100
 organism: Daphnia magna
 

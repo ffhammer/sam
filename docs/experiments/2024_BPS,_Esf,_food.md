@@ -3,7 +3,7 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: BPS
+main_stressor: BPS
 max_survival: 100
 organism: Daphnia magna
 

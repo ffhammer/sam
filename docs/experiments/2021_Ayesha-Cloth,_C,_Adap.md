@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Clothianidin
 days: 2
+main_stressor: Clothianidin
 max_survival: 100
 organism: Gammarus pulex
 pub: Multiple Stress Reduces the Advantage of Pesticide Adaptation, 10.1021/acs.est.1c02669

@@ -3,8 +3,8 @@
 ## Experiment Metadata
 
 ```yaml
-chemical: Copper
 days: 21
+main_stressor: Copper
 max_survival: 75
 organism: Amphipod
 pub: Combined effects of ultraviolett-B radiation and food shortage on the sensitivity
