@@ -1,6 +1,7 @@
 title: "SAM"
 description: "Stress Addition Model (SAM)"
 baseurl: "" 
+baseurl: "/sam" 
 markdown: kramdown
 
 destination: "../_site"  # Adjust if needed for GitHub Pages
