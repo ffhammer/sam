@@ -72,7 +72,7 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
         dfs.append(
             {
                 "title": os.path.split(path[:-5])[1],
-                "chemical": meta.chemical,
+                "chemical": meta.main_stressor,
                 "Organism": meta.organism,
                 "model": res,
                 "cleaned_func": cleaned_func,
