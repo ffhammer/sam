@@ -1,4 +1,4 @@
 organism: "Daphnia magna"
-chemical: "Copper"
+main_stressor: "Copper"
 max_survival: 100
 days: 21
