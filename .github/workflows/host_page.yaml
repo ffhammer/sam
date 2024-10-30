@@ -1,7 +1,7 @@
 name: Build Jekyll site
 on:
  push:
-   branches: ["generate_webpage_with_worfklow"]
+   branches: ["main"]
 permissions:
   contents: read
   pages: write
