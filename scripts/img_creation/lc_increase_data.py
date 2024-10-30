@@ -93,7 +93,7 @@ def gen_dose_response_frame(lc10,lc50)-> pd.DataFrame:
         df.append(
             {
                 "Name":meta.title,
-                "Chemical": meta.chemical,
+                "Chemical": meta.main_stressor,
                 "Organism": meta.organism,
                 "Experiment": data.meta.path.parent.name,
                 "Duration": int(meta.days),
