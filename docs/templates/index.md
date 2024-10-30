@@ -3,8 +3,6 @@
 
 This is a Python reimplementation of the Stress Addition Model (SAM) from the research paper "Predicting the synergy of multiple stress effects" by Matthias Liess, Kaarina Foit, Saskia Knillmann, Ralf B. Schäfer, and Hans-Dieter Liess.
 
-{% comment %} [Our Documentation](home.html) {% endcomment %}
-
 ## Impact of Additional Stress on Lethal Concentrations (LCs)
 
 This section demonstrates how lethal concentrations (LCs) increase with added stress across different dose-response curves. The following graphics illustrate various aspects of this impact:
