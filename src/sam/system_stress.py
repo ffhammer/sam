@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from .data_formats import DoseResponseSeries
 from .transforms import *
-from .dose_reponse_fit import FitSettings, ModelPredictions
+from .dose_reponse_fit import DRF_Settings, ModelPredictions
 from .helpers import pad_c0
 from sklearn.linear_model import LinearRegression
 from warnings import warn
@@ -59,7 +59,7 @@ def calc_system_stress(
     only_tox_series: DoseResponseSeries,
     dose_response_fit : ModelPredictions,
     hormesis_index: int,
-    cfg: FitSettings = FitSettings(),
+    cfg: DRF_Settings = DRF_Settings(),
     n_interp_points = 10,
 ):
     # Validate hormesis index
@@ -68,7 +68,7 @@ def calc_system_stress(
 
     # Normalize survival rates
     concentration = pad_c0(only_tox_series.concentration)
-    survival_tox_observerd = only_tox_series.survival_rate / cfg.survival_max
+    survival_tox_observerd = only_tox_series.survival_rate / cfg.max_survival
 
     # Remove hormesis and get cleaned survival
     cleaned_func, survival_tox_cleaned, popt = pred_surv_without_hormesis(

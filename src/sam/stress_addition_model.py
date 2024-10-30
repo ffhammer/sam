@@ -1,7 +1,7 @@
 from .dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
-    FitSettings,
+    DRF_Settings,
     survival_to_stress,
     Transforms,
 )
@@ -20,42 +20,111 @@ from .system_stress import calc_system_stress
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
 from dataclasses import dataclass
 from warnings import warn 
+from typing import Optional
 
 @dataclass
-class SAM_Setting:
+class SAM_Settings:
+    """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions.
+
+    Attributes:
+        param_d_norm (bool): If `True`, normalizes survival values based on environmental stress.
+            This can be useful when interpreting control curves with significant hormesis.
+        
+        stress_form (str): Defines the formula used to calculate environmental stress. Supported options:
+            - `"div"`: Divides stressor by control, resulting in `additional_stress = stressor / control`.
+            - `"subtract"`: Subtracts control stress from stressor, as in `additional_stress = 1 - (control - stressor)`.
+            - `"only_stress"`: Computes only the stressor as `additional_stress = 1 - stressor`.
+            - `"stress_sub"`: Subtracts transformed control stress from transformed stressor stress.
+            
+        stress_intercept_in_survival (float): Adds a constant factor to `additional_stress` for modifying 
+            survival predictions. Default is `1`, which assumes no added intercept.
+
+        max_control_survival (float): Upper bound on survival for control samples. Defaults to `1` (100% survival).
+            This limits control survival, which can be useful for dealing with steep dose-response curves
+            around 1 (100%) and 0 (0%).
+
+        cancel_system_stress (bool): If `True`, estimates system stress based on control curves and removes
+            it from the predictions. Helps handle hormetic (overly adaptive) control responses, improving model accuracy.
+
+        transform (Transforms): Transformation function applied to regression data prior to model fitting.
+            See `DRF_Settings` for additional details on transformations. Default is `williams_and_linear_interpolation`.
+
+        stress_to_survival (Callable): Mapping function from stress values to survival values. Defaults to
+            a lambda function applying `stress_to_survival(x, 3.2, 3.2)`.
+
+        survival_to_stress (Callable): Mapping function from survival values to stress values, defaulting to
+            a lambda function using `survival_to_stress(x, 3.2, 3.2)`
+    """
+    
+
     param_d_norm: bool = False
-    transform: Transforms = Transforms.williams_and_linear_interpolation
-    stress_form: str = "div"  # "only_stress" or "div" "substract"
+    stress_form: str = "div"
     stress_intercept_in_survival: float = 1
     max_control_survival: float = 1
+    cancel_system_stress: bool = False
+    transform: Transforms = Transforms.williams_and_linear_interpolation
     stress_to_survival: int = lambda x: stress_to_survival(x, 3.2, 3.2)
     survival_to_stress: int = lambda x: survival_to_stress(x, 3.2, 3.2)
-    cancel_system_stress: bool = False
 
 
-NEW_STANDARD = SAM_Setting(
+NEW_STANDARD = SAM_Settings(
     param_d_norm=False,
     stress_form="stress_sub",
     stress_intercept_in_survival=0.9995,
     max_control_survival=0.995,
 )
-OLD_STANDARD = SAM_Setting(
+STANDARD_SAM_SETTING = SAM_Settings(
     param_d_norm=True,
     stress_form="div",
     stress_intercept_in_survival=1,
     max_control_survival=1,
 )
 
-
 def sam_prediction(
     main_series: DoseResponseSeries,
     stressor_series: DoseResponseSeries,
-    meta: ExperimentMetaData,
-    settings: SAM_Setting = SAM_Setting(),
+    meta: Optional[ExperimentMetaData] = None,
+    max_survival: Optional[float] = None,
+    hormesis_index: Optional[int] = None,
+    settings: SAM_Settings = STANDARD_SAM_SETTING,
 ):
+    """Computes survival and stress predictions based on a main control series and a stressor series 
+    using the Stress Addition Model (SAM).
 
-    dose_cfg = FitSettings(
-        survival_max=meta.max_survival,
+    Parameters:
+        main_series (DoseResponseSeries): Dose-response data for the control group.
+        stressor_series (DoseResponseSeries): Dose-response data for the stressor condition.
+        meta (Optional[ExperimentMetaData]): Metadata, used to infer max survival if not provided.
+        max_survival (Optional[float]): Maximum survival rate. Overrides `meta.max_survival` if given.
+        hormesis_index (Optional[int]): Index indicating hormetic effect. If `cancel_system_stress` is 
+            enabled in settings, detects or uses this index to adjust predictions.
+        settings (SAM_Settings): Configuration settings for SAM. Controls stress computation formula,
+            normalization, and additional adjustments.
+
+    Returns:
+        Tuple: Contains:
+            - `main_fit` (ModelPredictions): Predictions for the control data.
+            - `stressor_fit` (ModelPredictions): Predictions for the stressor data.
+            - `predicted_survival_curve` (np.ndarray): Predicted survival curve.
+            - `predicted_stress_curve` (np.ndarray): Predicted stress curve.
+            - `additional_stress` (float): Computed environmental stress level.
+
+    Example:
+        ```python
+        prediction = sam_prediction(main_series, stressor_series, settings=SAM_Settings(stress_form="div"))
+        ```
+    """
+    
+    if max_survival is None and meta is None:
+        raise ValueError(
+            "Either `max_survival` or `meta` with a defined `max_survival` must be provided. "
+            "Specify `meta` or directly set `max_survival` to proceed."
+        )
+    max_survival = meta.max_survival if max_survival is None else max_survival 
+
+
+    dose_cfg = DRF_Settings(
+        max_survival=max_survival,
         param_d_norm=settings.param_d_norm,
         stress_to_survival=settings.stress_to_survival,
         survival_to_stress=settings.survival_to_stress,
@@ -99,8 +168,15 @@ def sam_prediction(
         )
 
     else:
-
-        if hasattr(meta, "hormesis_index") and meta.hormesis_index is not None:
+        valid_index_in_meta = hasattr(meta, "hormesis_index") and meta.hormesis_index is not None
+        
+        if hormesis_index is not None and  valid_index_in_meta:
+            warn(
+        f"The provided `hormesis_index` ({hormesis_index}) will override "
+        f"`meta.hormesis_index` ({meta.hormesis_index}). The value in `meta` will be ignored."
+    )
+        
+        elif valid_index_in_meta:
             hormesis_index = meta.hormesis_index
         else:
             hormesis_index = detect_hormesis_index(main_series.survival_rate)
@@ -115,7 +191,7 @@ def sam_prediction(
             cfg=dose_cfg,
         )
 
-        pred_system_stress = system_stress(main_fit.concentration_curve)
+        pred_system_stress = system_stress(main_fit.concentrations)
         main_fit.pred_system_stress = pred_system_stress
         pred_system_stress =  (pred_system_stress - pred_system_stress.max()) * -1
 
@@ -127,11 +203,11 @@ def sam_prediction(
         predicted_survival_curve = (
             stress2sur(predicted_stress_curve)
             * main_fit.optim_param["d"]
-            * meta.max_survival
+            * max_survival
         )
     else:
         predicted_survival_curve = (
-            stress2sur(predicted_stress_curve) * meta.max_survival
+            stress2sur(predicted_stress_curve) * max_survival
         )
 
     return (
@@ -142,25 +218,34 @@ def sam_prediction(
         additional_stress,
     )
 
-
 def get_sam_lcs(
     stress_fit: ModelPredictions,
     sam_sur: np.ndarray,
     meta: ExperimentMetaData,
-):
+)-> Predicted_LCs:
+    """
+    Calculates lethal concentrations (LC10 and LC50) for stress and SAM predictions.
 
+    Parameters:
+        stress_fit (ModelPredictions): Fitted model predictions for the stressor.
+        sam_sur (np.ndarray): Survival values from SAM predictions.
+        meta (ExperimentMetaData): Experiment metadata, providing max survival.
+
+    Returns:
+        Predicted_LCs: Lethal concentrations for both stress (LC10, LC50) and SAM predictions.
+    """
     stress_lc10 = compute_lc(optim_param=stress_fit.optim_param, lc=10)
     stress_lc50 = compute_lc(optim_param=stress_fit.optim_param, lc=50)
 
     sam_lc10 = compute_lc_from_curve(
-        stress_fit.concentration_curve,
+        stress_fit.concentrations,
         sam_sur,
         lc=10,
         survival_max=meta.max_survival,
         c0=stress_fit.optim_param["d"],
     )
     sam_lc50 = compute_lc_from_curve(
-        stress_fit.concentration_curve,
+        stress_fit.concentrations,
         sam_sur,
         lc=50,
         survival_max=meta.max_survival,

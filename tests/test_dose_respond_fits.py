@@ -1,6 +1,6 @@
 import os
 import pytest
-from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, FitSettings
+from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, DRF_Settings
 from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data, load_files
 from sam import REPO_PATH
@@ -23,14 +23,14 @@ def test_dose_response_fit_and_plot(file):
 
     # Perform the model fitting
     res: ModelPredictions = dose_response_fit(
-        data.main_series, FitSettings(survival_max=data.meta.max_survival)
+        data.main_series, DRF_Settings(max_survival=data.meta.max_survival)
     )
 
 
     assert res.inputs == frozen_inputs, "Mutated Data"
 
     # Create the plot
-    title = f"{data.meta.chemical} - {data.meta.organism}"
+    title = f"{data.meta.main_stressor} - {data.meta.organism}"
     fig = plot_fit_prediction(model=res, title=title)
 
     # Save the plot

@@ -1,40 +1,89 @@
 from glob import glob
 import os
-from sam import REPO_PATH
+from .helpers import REPO_PATH
 from tqdm import tqdm
 import glob
 from dataclasses import dataclass
 import pandas as pd
 import numpy as np
-from typing import Optional, Dict, Tuple, Callable
+from typing import Optional, Dict, Tuple, Callable, Type
 import yaml
 from pathlib import Path
 
 
 @dataclass
 class ExperimentMetaData:
-    organism: str
-    chemical: str
+    """
+    Attributes:
+        organism (str): The name of the organism used in the experiment.
+        main_stressor (str): The primary stressor applied in the control series.
+        max_survival (float): The maximum observed survival rate, representing the control condition.
+        days (int): Duration of the experiment in days.
+        hormesis_concentration (Optional[int]): The concentration corresponding to the hormesis effect 
+            in the control series, if applicable.
+        pub (Optional[str]): Optional name of the publication or journal where results are published, if applicable.
+        
+    Notes:
+        - The atributes such as `path`, `title`, and `experiment_name`, are automatically inferred 
+          when loading data. The `path` points to the `.xlsx` file location, while `title` is constructed 
+          from `experiment_name` and the Excel file name (`xlsx_name`). If `xlsx_name` is "data", 
+          only the `experiment_name` is used.
+    """
+    organism: str 
+    main_stressor: str
     max_survival: float
-    path: str
-    path: str
     days: int
     experiment_name : str
     title: str
+    path: str
     hormesis_concentration: Optional[int] = None
     pub: Optional[str] = None
 
 
-@dataclass()
+@dataclass
 class DoseResponseSeries:
+    """
+    Represents a dose-response data series for use in `sam.dose_response_fit`.
+
+    This class holds concentration and survival rate data for dose-response modeling, 
+    ensuring that input data meets specific requirements essential for accurate modeling.
+    The `concentration` values must be a sorted, unique, and non-negative sequence starting 
+    with a control value of 0, and both `concentration` and `survival_rate` arrays must be 
+    of the same length. The `name` attribute is used for labeling plots, and `meta` provides 
+    optional metadata for internal reference.
+
+    Attributes:
+        concentration (np.ndarray): A non-negative, sorted array of unique concentration values 
+            (first value must be the control, i.e., 0).
+        survival_rate (np.ndarray): Array of survival rates corresponding to each concentration value, 
+            with matching length to `concentration`.
+        name (str): Label for the dose-response series, used primarily in plotting.
+        meta (Optional[ExperimentMetaData]): Additional experimental metadata, used mainly for 
+            internal purposes.
+
+    Raises:
+        ValueError: If the `concentration` and `survival_rate` lengths do not match.
+        ValueError: If `concentration` values are not unique, sorted, non-negative, and starting with 0.
+        ValueError: If any `concentration` or `survival_rate` value is NaN.
+
+    Example:
+        Create a dose-response series for use in the SAM model:
+        
+        >>> series = DoseResponseSeries(
+        >>>     concentration=[0, 1.0, 2.5],
+        >>>     survival_rate=[100, 95, 85],
+        >>>     name="Example Data"
+        >>> )
+    """
+    
     concentration: np.ndarray
     survival_rate: np.ndarray
     name: str
-    meta: ExperimentMetaData
+    meta: Optional[ExperimentMetaData] = None
 
     def __post_init__(self):
-        self.concentration = self.concentration.astype(np.float64)
-        self.survival_rate = self.survival_rate.astype(np.float64)
+        self.concentration = np.array(self.concentration, dtype = np.float64)
+        self.survival_rate = np.array(self.survival_rate, dtype = np.float64)
 
         self.concentration.setflags(write=False)
         self.survival_rate.setflags(write=False)
@@ -114,6 +163,28 @@ def read_metadata(path: str, df: pd.DataFrame) -> ExperimentMetaData:
 
 @dataclass
 class ExperimentData:
+    """
+    Represents data from a stress addition experiment, including control and additional stressor series.
+
+    Attributes:
+        main_series (DoseResponseSeries): Dose-response data for the control series.
+        additional_stress (Dict[str, DoseResponseSeries]): Dictionary of additional stressor series, 
+            where keys are stressor names and values are their respective dose-response series.
+        meta (ExperimentMetaData): Metadata for the experiment, including organism, duration, and conditions.
+
+    Methods:
+        from_xlsx(path: str) -> ExperimentData: Class method to load data from an Excel file, constructing 
+            the main and additional stress series based on the expected data template.
+        to_markdown_table(): Converts data to a Markdown table format, including non-duplicate metadata.
+
+    Notes:
+        Meant to be created by calling from_xlsx like this:
+    Example:
+        >>> data = ExperimentData.from_xlsx("path/to/data_template.xlsx")
+        >>> print(data.main_series)  # Access the main control series
+        >>> print(data.to_markdown_table())  # Display data as a Markdown table
+    """
+    
     main_series: DoseResponseSeries
     additional_stress: Dict[str, DoseResponseSeries]
     meta: ExperimentMetaData
@@ -146,47 +217,48 @@ class ExperimentData:
             
         return markdown_text
         
-        
+    @classmethod
+    def from_xlsx(cls, path : str) -> 'ExperimentData':
+        df = pd.read_excel(path)
+        df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
 
-
-def read_data(path: str) -> ExperimentData:
-    df = pd.read_excel(path)
-    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
-
-    expected_columns = ["concentration", "survival"]
-    if not (df.columns[:2] == expected_columns).all():
-        raise ValueError(
-            f"Expected first two columns to be {expected_columns}, but got {df.columns[:2].tolist()}"
-        )
-    meta_data = read_metadata(path, df)
-    main_series = DoseResponseSeries(
-        df["concentration"].values,
-        df["survival"].values,
-        name="Toxicant",
-        meta=meta_data,
-    )
-
-    additional_stresses = [
-        col
-        for col in df.columns
-        if col not in ["concentration", "survival", "meta_category", "info"]
-    ]
-    additional_stress_dict = {
-        name: DoseResponseSeries(
+        expected_columns = ["concentration", "survival"]
+        if not (df.columns[:2] == expected_columns).all():
+            raise ValueError(
+                f"Expected first two columns to be {expected_columns}, but got {df.columns[:2].tolist()}"
+            )
+        meta_data = read_metadata(path, df)
+        main_series = DoseResponseSeries(
             df["concentration"].values,
-            df[name].values,
-            name=name,
+            df["survival"].values,
+            name="Toxicant",
             meta=meta_data,
         )
-        for name in additional_stresses
-    }
 
-    return ExperimentData(
-        main_series=main_series,
-        additional_stress=additional_stress_dict,
-        meta=meta_data,
-    )
+        additional_stresses = [
+            col
+            for col in df.columns
+            if col not in ["concentration", "survival", "meta_category", "info"]
+        ]
+        additional_stress_dict = {
+            name: DoseResponseSeries(
+                df["concentration"].values,
+                df[name].values,
+                name=name,
+                meta=meta_data,
+            )
+            for name in additional_stresses
+        }
 
+        return cls(
+            main_series=main_series,
+            additional_stress=additional_stress_dict,
+            meta=meta_data,
+        )
+        
+
+def read_data(path: str) -> ExperimentData:
+    return ExperimentData.from_xlsx(path)
 
 def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
     paths = glob.glob(os.path.join(REPO_PATH, "data/*/*.xlsx"))
@@ -195,7 +267,6 @@ def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
         paths = [i for i in paths if filter(i)]
 
     return [(path, read_data(path)) for path in paths]
-
 
 def load_datapoints(
     filter: Optional[Callable] = None,

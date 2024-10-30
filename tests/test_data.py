@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 import glob
 import pytest
-from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, FitSettings
+from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, DRF_Settings
 from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data, load_datapoints
 from sam import REPO_PATH

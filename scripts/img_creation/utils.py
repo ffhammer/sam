@@ -6,7 +6,7 @@ from sam.dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
     survival_to_stress,
-    FitSettings,
+    DRF_Settings,
 )
 import pandas as pd
 import numpy as np
@@ -56,7 +56,7 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
         meta = data.meta
         res: ModelPredictions = dose_response_fit(
             data.main_series,
-            FitSettings(param_d_norm=True, survival_max=meta.max_survival),
+            DRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
         cleaned_func, _, popt = predict_cleaned_curv(data)

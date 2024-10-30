@@ -1,8 +1,8 @@
 from sam.stress_addition_model import (
     sam_prediction,
     get_sam_lcs,
-    SAM_Setting,
-    OLD_STANDARD,
+    SAM_Settings,
+    STANDARD_SAM_SETTING,
     NEW_STANDARD,
 )
 from sam.data_formats import load_datapoints
@@ -87,7 +87,7 @@ PLOT = True
 
 SETTINGS = {
     "new": NEW_STANDARD,
-    "marco": OLD_STANDARD,
+    "marco": STANDARD_SAM_SETTING,
     # "marco_push": SAM_Setting(
     #     param_d_norm=True,
     #     stress_form="div",
@@ -142,7 +142,7 @@ for path, data, name, val in tqdm(load_datapoints()):
 
         fig = plt.figure(figsize=(10, 4))
 
-        x = target.concentration_curve
+        x = target.concentrations
 
         plt.plot(x, target.survival_curve, label="Stressor")
 

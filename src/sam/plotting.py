@@ -4,6 +4,7 @@ from .dose_reponse_fit import ModelPredictions
 from .data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
+from matplotlib.figure import Figure
 from .helpers import Predicted_LCs
 from seaborn import color_palette
 
@@ -23,7 +24,7 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
     plot_survival(
-        model.concentration_curve,
+        model.concentrations,
         model.survival_curve,
         ax=axs[0, 0],
         orig_series=model.inputs,
@@ -34,7 +35,7 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title="Survival",
     )
     plot_stress(
-        model.concentration_curve,
+        model.concentrations,
         model.stress_curve,
         ax=axs[0, 1],
         xscale="linear",
@@ -44,7 +45,7 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title="Stress",
     )
     plot_survival(
-        model.concentration_curve,
+        model.concentrations,
         model.survival_curve,
         ax=axs[1, 0],
         orig_series=model.inputs,
@@ -55,7 +56,7 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title=None,
     )
     plot_stress(
-        model.concentration_curve,
+        model.concentrations,
         model.stress_curve,
         ax=axs[1, 1],
         xscale="log",
@@ -203,7 +204,24 @@ def plot_sam_prediction(
     lcs : Optional[Predicted_LCs] = None,
     survival_max : float = 100,
     title = None
-):
+) -> Figure:
+    """
+    Plots survival and stress predictions for SAM (Stress Addition Model), including observed and predicted
+    curves on linear and log scales.
+
+    Parameters:
+        main_fit (ModelPredictions): Model predictions for the control (main) series.
+        stressor_fit (ModelPredictions): Model predictions for the stressor series.
+        predicted_survival_curve (np.ndarray): Predicted survival values from SAM.
+        predicted_stress_curve (np.ndarray): Predicted stress values from SAM.
+        lcs (Optional[Predicted_LCs]): Optional lethal concentration metrics (e.g., LC10, LC50).
+        survival_max (float): Maximum survival percentage, default is 100.
+        title (Optional[str]): Optional title for the plot.
+
+    Returns:
+        matplotlib.figure.Figure: The generated plot figure with survival and stress curves.
+    """
+    
     colors = color_palette("tab10", 3)
 
     stress_label = "Toxicant + " + stressor_fit.inputs.name
@@ -273,29 +291,29 @@ def plot_sam_prediction(
         )
 
     def plt_lcs(ax, level : float, surv, label : str):
-        level = max(level, main_fit.concentration_curve[0])
+        level = max(level, main_fit.concentrations[0])
         ax.plot([level,level],[0, surv * survival_max],linestyle="-", label =label, c = to_color[label], alpha = 0.7)
         
         
     # Plotting in the correct order
-    first_plot(main_fit.concentration_curve, main_fit.survival_curve, main_fit.inputs, label=tox_label)
-    first_plot(stressor_fit.concentration_curve, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
-    first_plot(stressor_fit.concentration_curve, predicted_survival_curve, None, label=sam_label)
+    first_plot(main_fit.concentrations, main_fit.survival_curve, main_fit.inputs, label=tox_label)
+    first_plot(stressor_fit.concentrations, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
+    first_plot(stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label)
     
     
         
 
-    second_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
-    second_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
-    second_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
+    second_plot(main_fit.concentrations, main_fit.stress_curve, label=tox_label)
+    second_plot(stressor_fit.concentrations, stressor_fit.stress_curve, label=stress_label)
+    second_plot(stressor_fit.concentrations, predicted_stress_curve, label=sam_label)
 
-    third_plot(main_fit.concentration_curve, main_fit.survival_curve, main_fit.inputs, label=tox_label)
-    third_plot(stressor_fit.concentration_curve, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
-    third_plot(stressor_fit.concentration_curve, predicted_survival_curve, None, label=sam_label)
+    third_plot(main_fit.concentrations, main_fit.survival_curve, main_fit.inputs, label=tox_label)
+    third_plot(stressor_fit.concentrations, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
+    third_plot(stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label)
 
-    fourth_plot(main_fit.concentration_curve, main_fit.stress_curve, label=tox_label)
-    fourth_plot(stressor_fit.concentration_curve, stressor_fit.stress_curve, label=stress_label)
-    fourth_plot(stressor_fit.concentration_curve, predicted_stress_curve, label=sam_label)
+    fourth_plot(main_fit.concentrations, main_fit.stress_curve, label=tox_label)
+    fourth_plot(stressor_fit.concentrations, stressor_fit.stress_curve, label=stress_label)
+    fourth_plot(stressor_fit.concentrations, predicted_stress_curve, label=sam_label)
     
     if lcs is not None:
         plt_lcs(axs[1,0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label)

@@ -14,12 +14,26 @@ CONC0_MIN_EXP = -100
 
 
 @dataclass
-class FitSettings:
+class DRF_Settings:
     """
-    Contains default settings for the model.
+    Configuration settings for dose-response fitting.
+
+    Attributes:
+        max_survival (float): Maximum possible survival rate, representing the control condition.
+        len_curves (int): Number of points in the generated curves for predictions (default is 10,000).
+        transform (Transforms): Transformation function applied to regression data before fitting.
+            Defaults to `williams_and_linear_interpolation`.
+        param_d_norm (bool): Parameter normalization setting (explained in `SAM_Settings`).
+        stress_to_survival (Callable): Function that maps stress values to survival values, defaulting
+            to `stress_to_survival(x, 3.2, 3.2)`.
+        survival_to_stress (Callable): Function that maps survival values back to stress values, 
+            defaulting to `survival_to_stress(x, 3.2, 3.2)`.
+
+    These mappings between stress and survival allow control over how survival values are transformed 
+    in the fitting process.
     """
 
-    survival_max: float = 100
+    max_survival: float = None
     len_curves: int = 10_000
     transform: Transforms = Transforms.williams_and_linear_interpolation
     param_d_norm: bool = False
@@ -27,25 +41,32 @@ class FitSettings:
     survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 
+STANDARD_DRF_SETTING = DRF_Settings()
+
 @dataclass
 class ModelPredictions:
     """
-    Stores the results of the model predictions.
+    Contains the results of model predictions for dose-response data.
 
     Attributes:
-        concentration_curve (np.ndarray): Concentration values for the fitted curve.
-        survival_curve (np.array): Predicted survival values.
-        stress_curve (np.array): Stress values computed from the survival data.
-        predicted_survival (np.array): Predicted survival values for the input concentrations.
-        model (Callable): The fitted Weibull model.
-        lc1 (float): Lethal concentration for 1% of the population.
-        lc99 (float): Lethal concentration for 99% of the population.
-        hormesis_index (int): Index of the hormesis concentration.
-        inputs (DoseResponseSeries): The inputs provided to the model.
-        cfg (StandardSettings): Settings used
+        concentrations (np.ndarray): Concentration values for the fitted curve.
+        survival_curve (np.array): Array of predicted survival values.
+        stress_curve (np.array): Array of computed stress values from survival data.
+        predicted_survival (np.array): Array of predicted survival values for input concentrations.
+        model (Callable): Fitted Weibull model for predicting responses.
+        lc1 (float): Lethal concentration value for 1% of the population.
+        lc99 (float): Lethal concentration value for 99% of the population.
+        hormesis_index (int): Index of the hormesis concentration, if applicable.
+        inputs (DoseResponseSeries): Input series of dose-response data provided to the model.
+        cfg (DRF_Settings): Settings used for the dose-response fitting.
+        regress_conc (np.ndarray): Concentration values after applying transformations (before fitting).
+        regress_surv (np.ndarray): Survival values corresponding to `regress_conc`.
+
+    This structure is used to store key components of the model output, allowing access to curves 
+    and lethal concentration metrics.
     """
 
-    concentration_curve: np.ndarray
+    concentrations: np.ndarray
     survival_curve: np.array
     stress_curve: np.array
     predicted_survival: np.array
@@ -54,37 +75,41 @@ class ModelPredictions:
     lc1: float
     lc99: float
     inputs: DoseResponseSeries
-    cfg: FitSettings
+    cfg: DRF_Settings
     regress_conc : np.ndarray
     regress_surv : np.ndarray
 
 
 def dose_response_fit(
     dose_response_data: DoseResponseSeries,
-    cfg: FitSettings = FitSettings(),
+    cfg: DRF_Settings = STANDARD_DRF_SETTING,
 ) -> ModelPredictions:
     """
-    Fits a Weibull curve to the dose-response data and computes the stress curve using the SAM model.
+    Fits a five-parameter log-logistic (LL5) model to dose-response data.
 
-    Important Assumptions:
-        - The control (survival_observed[0]) is set to survival_max.
-        - If hormesis is given, the data used for regression will be taken as
-          concentration[:2] + concentration[hormesis_index:] and survival_observed[:2] + survival_observed[hormesis_index:],
-          meaning the subhormesis range between the 2nd and hormesis_index data points is excluded.
-          Therefore, hormesis_index must be at least in the 3rd position
-          (e.g., regression_data = concentration[:2] + concentration[hormesis_index:] and survival[:2] + survival[hormesis_index:]).
-
-    Args:
-        cfg (StandardSettings, optional): Configuration settings. Defaults to StandardSettings().
+    Parameters:
+        dose_response_data (DoseResponseSeries): Series of concentration and survival data points.
+        cfg (DRF_Settings, optional): Configuration settings for dose-response fitting. 
+            Defaults to `STANDARD_DRF_SETTING`.
 
     Returns:
-        ModelPredictions: The fitted model predictions and related data.
+        ModelPredictions: Contains the fitted model's predictions, survival curve, stress curve, 
+        and lethal concentration values (e.g., LC1, LC99).
+
+    This function takes dose-response data and fits an LL5 model to predict survival as a function 
+    of concentration, applying any specified transformations as needed.
     """
+    
+    if cfg.max_survival is None:
+        
+        if dose_response_data.meta is None:
+            raise ValueError(f"Either cfg.max_survival or dose_response_data.meta must be none None to infere the maximum Survival!")
+        cfg.survival_max = dose_response_data.meta.max_survival
 
     concentration = dose_response_data.concentration
     survival_observerd = dose_response_data.survival_rate
 
-    if cfg.survival_max <= 0:
+    if cfg.max_survival <= 0:
         raise ValueError("survival_max must be >= 0")
 
     if not isinstance(concentration, np.ndarray) or concentration.dtype != np.float64:
@@ -98,7 +123,7 @@ def dose_response_fit(
         warnings.warn("Casting survival_observerd to np.float64 array")
         survival_observerd = np.array(survival_observerd, np.float64)
 
-    if any(survival_observerd > cfg.survival_max) or any(survival_observerd < 0):
+    if any(survival_observerd > cfg.max_survival) or any(survival_observerd < 0):
         raise ValueError("Observed survival must be between 0 and survival_max.")
 
     regress_conc, regress_surv = get_regression_data(
@@ -126,7 +151,7 @@ def compute_predictions(
     model,
     optim_param: np.array,
     inputs: DoseResponseSeries,
-    cfg: FitSettings,
+    cfg: DRF_Settings,
     regress_conc : np.ndarray,
     regress_surv : np.ndarray,
 ) -> ModelPredictions:
@@ -154,7 +179,7 @@ def compute_predictions(
         cfg.len_curves,
     )
     pred_survival = model(concentration_curve)
-    survival_curve = cfg.survival_max * pred_survival
+    survival_curve = cfg.max_survival * pred_survival
 
     if cfg.param_d_norm:
         stress_curve = cfg.survival_to_stress(pred_survival / optim_param["d"])
@@ -163,7 +188,7 @@ def compute_predictions(
 
     predicted_survival = model(padded_concentration)
     return ModelPredictions(
-        concentration_curve=concentration_curve,
+        concentrations=concentration_curve,
         survival_curve=survival_curve,
         stress_curve=stress_curve,
         predicted_survival=predicted_survival,
@@ -183,7 +208,7 @@ def compute_predictions(
 def get_regression_data(
     orig_concentration: np.ndarray,
     orig_survival_observerd: np.ndarray,
-    cfg: FitSettings = FitSettings(),
+    cfg: DRF_Settings = DRF_Settings(),
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Prepares the data for regression analysis, handling hormesis concentration if provided.
@@ -197,7 +222,7 @@ def get_regression_data(
         Tuple[np.ndarray, np.ndarray, int]: Prepared concentration and survival data, and hormesis index.
     """
 
-    survival = orig_survival_observerd / cfg.survival_max
+    survival = orig_survival_observerd / cfg.max_survival
 
     transform_func = cfg.transform
 

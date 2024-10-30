@@ -3,7 +3,7 @@ chdir_to_repopath()
 from sam.stress_addition_model import (
     sam_prediction,
     get_sam_lcs,
-    OLD_STANDARD
+    STANDARD_SAM_SETTING
 )
 from sam.plotting import plot_sam_prediction
 from sam.data_formats import load_datapoints
@@ -13,7 +13,7 @@ import argparse
 from tqdm import tqdm
 import argparse
 
-SETTINGS = OLD_STANDARD
+SETTINGS = STANDARD_SAM_SETTING
 
 def compute_all(plot : bool, dir4imgs : str):
     

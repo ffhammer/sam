@@ -1,13 +1,13 @@
 from sam.stress_addition_model import (
     sam_prediction,
-    OLD_STANDARD
+    STANDARD_SAM_SETTING
 )
 from sam.data_formats import load_datapoints
 from tqdm import tqdm
 import pytest
 from copy import deepcopy
 
-SETTINGS = OLD_STANDARD
+SETTINGS = STANDARD_SAM_SETTING
 
 
 @pytest.mark.parametrize("datapoint", load_datapoints())

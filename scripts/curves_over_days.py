@@ -41,7 +41,7 @@ def difference_plots(path):
             color_map[s.meta.days] = color  # Map the days to their assigned color
         
         fit: ModelPredictions = dose_response_fit(s)
-        plt.plot(fit.concentration_curve, fit.survival_curve, label=f'{s.meta.days} (fit)', color=color)
+        plt.plot(fit.concentrations, fit.survival_curve, label=f'{s.meta.days} (fit)', color=color)
     
     # Create custom legend elements using Line2D for each unique day with the respective colors
     legend_elements = [plt.Line2D([0], [0], marker='o', color='w', markerfacecolor=color_map[day], markersize=10, label=f'{day} days')

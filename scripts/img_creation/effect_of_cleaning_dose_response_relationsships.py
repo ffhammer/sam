@@ -4,7 +4,7 @@ chdir_to_repopath()
 from sam.dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,
-    FitSettings,
+    DRF_Settings,
 )
 import matplotlib.pyplot as plt
 from sam.data_formats import load_files
@@ -27,7 +27,7 @@ def cleaned_difference_plots():
         meta = data.meta
         res: ModelPredictions = dose_response_fit(
             data.main_series,
-            FitSettings(param_d_norm=True, survival_max=meta.max_survival),
+            DRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
         cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
@@ -54,10 +54,10 @@ def cleaned_difference_plots():
             label="orig",
             color=color,
         )
-        plt.plot(res.concentration_curve, res.survival_curve, label="Raw")
+        plt.plot(res.concentrations, res.survival_curve, label="Raw")
         plt.plot(
-            res.concentration_curve,
-            cleaned_func(res.concentration_curve) * meta.max_survival,
+            res.concentrations,
+            cleaned_func(res.concentrations) * meta.max_survival,
             label="Cleaned",
         )
         plt.axvline(lc1, 0, 1, color="red", ls="--")

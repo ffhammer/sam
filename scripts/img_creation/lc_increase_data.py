@@ -1,13 +1,13 @@
 from sam import chdir_to_repopath
 chdir_to_repopath()
-from sam.dose_reponse_fit import dose_response_fit, survival_to_stress, FitSettings
+from sam.dose_reponse_fit import dose_response_fit, survival_to_stress, DRF_Settings
 import pandas as pd
 import numpy as np
 from sam.data_formats import read_data, load_files, load_datapoints
 from sam.helpers import compute_lc
 from scipy.optimize import brentq
 import seaborn as sns
-from sam.stress_addition_model import OLD_STANDARD, sam_prediction, get_sam_lcs, stress_to_survival, survival_to_stress
+from sam.stress_addition_model import STANDARD_SAM_SETTING, sam_prediction, get_sam_lcs, stress_to_survival, survival_to_stress
 from tqdm import tqdm
 from scripts.img_creation.utils import predict_cleaned_curv
 
@@ -42,15 +42,15 @@ def compute_lc_trajectory(path: str):
 
     data = read_data(path)
 
-    cfg = FitSettings(
-        survival_max=data.meta.max_survival,
+    cfg = DRF_Settings(
+        max_survival=data.meta.max_survival,
         param_d_norm=True,
     )
 
     fit = dose_response_fit(data.main_series, cfg)
     cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
 
-    x = fit.concentration_curve
+    x = fit.concentrations
 
     lcs = []
 
@@ -117,7 +117,7 @@ def gen_experiment_res_frame(lc10,lc50):
             data.main_series,
             stress_series,
             data.meta,
-            settings=OLD_STANDARD,
+            settings=STANDARD_SAM_SETTING,
         )
 
         lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
@@ -129,7 +129,7 @@ def gen_experiment_res_frame(lc10,lc50):
             {
                 "title": path[:-4],
                 "days" : meta.days,
-                "chemical": meta.chemical,
+                "chemical": meta.main_stressor,
                 "organism": meta.organism,
                 "main_fit": main_fit,
                 "stress_fit": stress_fit,
