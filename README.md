@@ -10,6 +10,11 @@ https://mockawolke.github.io/sam/
 https://mockawolke.github.io/sam_documentation/
 
 
+## Install
+```bash
+pip install git+https://github.com/mockaWolke/sam.git
+```
+
 ## Citation
 ```bibtex
 @Manual{,

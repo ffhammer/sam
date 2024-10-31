@@ -3,5 +3,14 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "terminal.integrated.env.linux": {
+        "SAM_REPO_PATH": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.windows": {
+        "SAM_REPO_PATH": "${workspaceFolder}"
+    },
+    "terminal.integrated.env.osx": {
+        "SAM_REPO_PATH": "${workspaceFolder}"
+    }
 }
