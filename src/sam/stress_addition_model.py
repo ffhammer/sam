@@ -157,17 +157,8 @@ def sam_prediction(
         )
 
     else:
-        valid_index_in_meta = hasattr(meta, "hormesis_index") and meta.hormesis_index is not None
         
-        if hormesis_index is not None and  valid_index_in_meta:
-            warn(
-        f"The provided `hormesis_index` ({hormesis_index}) will override "
-        f"`meta.hormesis_index` ({meta.hormesis_index}). The value in `meta` will be ignored."
-    )
-        
-        elif valid_index_in_meta:
-            hormesis_index = meta.hormesis_index
-        else:
+        if hormesis_index is None:
             hormesis_index = detect_hormesis_index(main_series.survival_rate)
             warn(f"could not find hormesis index, detecting it to be {hormesis_index}")
             if hormesis_index is None:

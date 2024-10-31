@@ -48,6 +48,7 @@ class ExperimentMetaData:
     
     #: Optional name of the publication or journal where results are published, if applicable.
     pub: Optional[str] = None
+    
 
 
 @dataclass
@@ -197,7 +198,20 @@ class ExperimentData:
     #: Metadata for the experiment, including organism, duration, and conditions.
     meta: ExperimentMetaData
 
-
+    @property
+    def hormesis_index(self):
+        
+        if self.meta.hormesis_concentration is None:
+            return None
+        
+        
+        args = np.argwhere(self.main_series.concentration == self.meta.hormesis_concentration)[0]
+        if len(args) != 1:
+            raise ValueError(f"Can't find a single match for hormesis_concentratio {self.meta.hormesis_concentratio} in concentrations {self.main_series.concentration}")
+            
+        return args[0]
+        
+        
     def to_markdown_table(self):
         
         
