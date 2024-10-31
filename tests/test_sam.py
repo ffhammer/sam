@@ -3,7 +3,6 @@ from sam.stress_addition_model import (
     STANDARD_SAM_SETTING
 )
 from sam.data_formats import load_datapoints
-from tqdm import tqdm
 import pytest
 from copy import deepcopy
 
