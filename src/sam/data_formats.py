@@ -270,8 +270,17 @@ class ExperimentData:
 def read_data(path: str) -> ExperimentData:
     return ExperimentData.from_xlsx(path)
 
-def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
-    paths = glob.glob(os.path.join(REPO_PATH, "data/*/*.xlsx"))
+
+
+def load_files(filter: Optional[Callable] = None, data_dir : Optional[str] = None) -> Tuple[str, ExperimentData]:
+    if data_dir is None:
+        data_dir = os.path.abspath("data")
+        
+    glob_path = str(Path(data_dir) / "*/*.xlsx")
+    paths = glob.glob(str(glob_path))
+
+    if len(paths) == 0:
+        raise ValueError(f"Cand find any experiments at {data_dir}. You can control this via the data_dir argument. ")
 
     if filter is not None:
         paths = [i for i in paths if filter(i)]
@@ -279,10 +288,10 @@ def load_files(filter: Optional[Callable] = None) -> Tuple[str, ExperimentData]:
     return [(path, read_data(path)) for path in paths]
 
 def load_datapoints(
-    filter: Optional[Callable] = None,
+    filter: Optional[Callable] = None,  data_dir : Optional[str] = None,
 ) -> list[Tuple[str, ExperimentData, str, DoseResponseSeries]]:
 
-    files = load_files(filter=filter)
+    files = load_files(filter=filter, data_dir=data_dir)
 
     return [
         (path, data, stress_name, stress_series)
