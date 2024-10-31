@@ -20,51 +20,40 @@ from .system_stress import calc_system_stress
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
 from dataclasses import dataclass
 from warnings import warn 
-from typing import Optional
+from typing import Optional, Callable
 
 @dataclass
 class SAM_Settings:
     """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions.
-
-    Attributes:
-        param_d_norm (bool): If `True`, normalizes survival values based on environmental stress.
-            This can be useful when interpreting control curves with significant hormesis.
-        
-        stress_form (str): Defines the formula used to calculate environmental stress. Supported options:
-            - `"div"`: Divides stressor by control, resulting in `additional_stress = stressor / control`.
-            - `"subtract"`: Subtracts control stress from stressor, as in `additional_stress = 1 - (control - stressor)`.
-            - `"only_stress"`: Computes only the stressor as `additional_stress = 1 - stressor`.
-            - `"stress_sub"`: Subtracts transformed control stress from transformed stressor stress.
-            
-        stress_intercept_in_survival (float): Adds a constant factor to `additional_stress` for modifying 
-            survival predictions. Default is `1`, which assumes no added intercept.
-
-        max_control_survival (float): Upper bound on survival for control samples. Defaults to `1` (100% survival).
-            This limits control survival, which can be useful for dealing with steep dose-response curves
-            around 1 (100%) and 0 (0%).
-
-        cancel_system_stress (bool): If `True`, estimates system stress based on control curves and removes
-            it from the predictions. Helps handle hormetic (overly adaptive) control responses, improving model accuracy.
-
-        transform (Transforms): Transformation function applied to regression data prior to model fitting.
-            See `DRF_Settings` for additional details on transformations. Default is `williams_and_linear_interpolation`.
-
-        stress_to_survival (Callable): Mapping function from stress values to survival values. Defaults to
-            a lambda function applying `stress_to_survival(x, 3.2, 3.2)`.
-
-        survival_to_stress (Callable): Mapping function from survival values to stress values, defaulting to
-            a lambda function using `survival_to_stress(x, 3.2, 3.2)`
     """
     
-
+    #: If `True`, normalizes survival values based on environmental stress.
     param_d_norm: bool = False
+    
+    #: Defines the formula used to calculate environmental stress. Supported options:
+    #: - `"div"`: `additional_stress = stressor / control`
+    #: - `"subtract"`: `additional_stress = 1 - (control - stressor)`
+    #: - `"only_stress"`: `additional_stress = 1 - stressor`
+    #: - `"stress_sub"`: Subtracts transformed control stress from transformed stressor stress.
     stress_form: str = "div"
+    
+    #: Adds a constant factor to `additional_stress` for modifying survival predictions (default is `1`).
     stress_intercept_in_survival: float = 1
+    
+    #: Upper bound on survival for control samples, useful for steep dose-response curves (default is `1`).
     max_control_survival: float = 1
+    
+    #: If `True`, estimates system stress based on control curves and removes it from predictions.
     cancel_system_stress: bool = False
-    transform: Transforms = Transforms.williams_and_linear_interpolation
-    stress_to_survival: int = lambda x: stress_to_survival(x, 3.2, 3.2)
-    survival_to_stress: int = lambda x: survival_to_stress(x, 3.2, 3.2)
+    
+    #: Transformation function applied to regression data prior to model fitting.
+    transform: 'Transforms' = Transforms.williams_and_linear_interpolation
+    
+    #: Mapping function from stress values to survival values, defaulting to `stress_to_survival(x, 3.2, 3.2)`.
+    stress_to_survival: Callable = lambda x: stress_to_survival(x, 3.2, 3.2)
+    
+    #: Mapping function from survival values to stress values, defaulting to `survival_to_stress(x, 3.2, 3.2)`.
+    survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 
 NEW_STANDARD = SAM_Settings(

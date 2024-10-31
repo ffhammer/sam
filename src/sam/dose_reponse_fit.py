@@ -18,26 +18,26 @@ class DRF_Settings:
     """
     Configuration settings for dose-response fitting.
 
-    Attributes:
-        max_survival (float): Maximum possible survival rate, representing the control condition.
-        len_curves (int): Number of points in the generated curves for predictions (default is 10,000).
-        transform (Transforms): Transformation function applied to regression data before fitting.
-            Defaults to `williams_and_linear_interpolation`.
-        param_d_norm (bool): Parameter normalization setting (explained in `SAM_Settings`).
-        stress_to_survival (Callable): Function that maps stress values to survival values, defaulting
-            to `stress_to_survival(x, 3.2, 3.2)`.
-        survival_to_stress (Callable): Function that maps survival values back to stress values, 
-            defaulting to `survival_to_stress(x, 3.2, 3.2)`.
-
     These mappings between stress and survival allow control over how survival values are transformed 
     in the fitting process.
     """
-
+    
+    #: Maximum possible survival rate, representing the control condition.
     max_survival: float = None
+    
+    #: Number of points in the generated curves for predictions (default is 10,000).
     len_curves: int = 10_000
-    transform: Transforms = Transforms.williams_and_linear_interpolation
+    
+    #: Transformation function applied to regression data before fitting.
+    transform: 'Transforms' = Transforms.williams_and_linear_interpolation
+    
+    #: Parameter normalization setting (explained in `SAM_Settings`).
     param_d_norm: bool = False
+    
+    #: Function that maps stress values to survival values, defaulting to `stress_to_survival(x, 3.2, 3.2)`.
     stress_to_survival: Callable = lambda x: stress_to_survival(x, 3.2, 3.2)
+    
+    #: Function that maps survival values back to stress values, defaulting to `survival_to_stress(x, 3.2, 3.2)`.
     survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
 
 
@@ -48,36 +48,46 @@ class ModelPredictions:
     """
     Contains the results of model predictions for dose-response data.
 
-    Attributes:
-        concentrations (np.ndarray): Concentration values for the fitted curve.
-        survival_curve (np.array): Array of predicted survival values.
-        stress_curve (np.array): Array of computed stress values from survival data.
-        predicted_survival (np.array): Array of predicted survival values for input concentrations.
-        model (Callable): Fitted Weibull model for predicting responses.
-        lc1 (float): Lethal concentration value for 1% of the population.
-        lc99 (float): Lethal concentration value for 99% of the population.
-        hormesis_index (int): Index of the hormesis concentration, if applicable.
-        inputs (DoseResponseSeries): Input series of dose-response data provided to the model.
-        cfg (DRF_Settings): Settings used for the dose-response fitting.
-        regress_conc (np.ndarray): Concentration values after applying transformations (before fitting).
-        regress_surv (np.ndarray): Survival values corresponding to `regress_conc`.
-
     This structure is used to store key components of the model output, allowing access to curves 
     and lethal concentration metrics.
     """
-
+    
+    #: Concentration values for the fitted curve.
     concentrations: np.ndarray
+    
+    #: Array of predicted survival values.
     survival_curve: np.array
+    
+    #: Array of computed stress values from survival data.
     stress_curve: np.array
+    
+    #: Array of predicted survival values for input concentrations.
     predicted_survival: np.array
+    
+    #: Dictionary of optimized parameters from the model.
     optim_param: dict
+    
+    #: Fitted Weibull model for predicting responses.
     model: Callable
+    
+    #: Lethal concentration value for 1% of the population.
     lc1: float
+    
+    #: Lethal concentration value for 99% of the population.
     lc99: float
-    inputs: DoseResponseSeries
+    
+    #: Input series of dose-response data provided to the model.
+    inputs: 'DoseResponseSeries'
+    
+    #: Settings used for the dose-response fitting.
     cfg: DRF_Settings
-    regress_conc : np.ndarray
-    regress_surv : np.ndarray
+    
+    #: Concentration values after applying transformations (before fitting).
+    regress_conc: np.ndarray
+    
+    #: Survival values corresponding to `regress_conc`.
+    regress_surv: np.ndarray
+
 
 
 def dose_response_fit(

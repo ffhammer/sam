@@ -14,29 +14,40 @@ from pathlib import Path
 @dataclass
 class ExperimentMetaData:
     """
-    Attributes:
-        organism (str): The name of the organism used in the experiment.
-        main_stressor (str): The primary stressor applied in the control series.
-        max_survival (float): The maximum observed survival rate, representing the control condition.
-        days (int): Duration of the experiment in days.
-        hormesis_concentration (Optional[int]): The concentration corresponding to the hormesis effect 
-            in the control series, if applicable.
-        pub (Optional[str]): Optional name of the publication or journal where results are published, if applicable.
-        
+    Metadata for the experiment, including essential information such as organism, duration, and conditions.
+
     Notes:
-        - The atributes such as `path`, `title`, and `experiment_name`, are automatically inferred 
+        - Attributes such as `path`, `title`, and `experiment_name` are automatically inferred 
           when loading data. The `path` points to the `.xlsx` file location, while `title` is constructed 
           from `experiment_name` and the Excel file name (`xlsx_name`). If `xlsx_name` is "data", 
           only the `experiment_name` is used.
     """
+    
+    #: The name of the organism used in the experiment.
     organism: str 
+    
+    #: The primary stressor applied in the control series.
     main_stressor: str
+    
+    #: The maximum observed survival rate, representing the control condition.
     max_survival: float
+    
+    #: Duration of the experiment in days.
     days: int
-    experiment_name : str
+    
+    #: Name of the experiment for record-keeping purposes.
+    experiment_name: str
+    
+    #: Constructed title from experiment name and Excel file name.
     title: str
+    
+    #: Path to the source `.xlsx` file.
     path: str
+    
+    #: Concentration corresponding to the hormesis effect in the control series, if applicable.
     hormesis_concentration: Optional[int] = None
+    
+    #: Optional name of the publication or journal where results are published, if applicable.
     pub: Optional[str] = None
 
 
@@ -51,15 +62,6 @@ class DoseResponseSeries:
     with a control value of 0, and both `concentration` and `survival_rate` arrays must be 
     of the same length. The `name` attribute is used for labeling plots, and `meta` provides 
     optional metadata for internal reference.
-
-    Attributes:
-        concentration (np.ndarray): A non-negative, sorted array of unique concentration values 
-            (first value must be the control, i.e., 0).
-        survival_rate (np.ndarray): Array of survival rates corresponding to each concentration value, 
-            with matching length to `concentration`.
-        name (str): Label for the dose-response series, used primarily in plotting.
-        meta (Optional[ExperimentMetaData]): Additional experimental metadata, used mainly for 
-            internal purposes.
 
     Raises:
         ValueError: If the `concentration` and `survival_rate` lengths do not match.
@@ -76,10 +78,17 @@ class DoseResponseSeries:
         >>> )
     """
     
+    #: A non-negative, sorted array of unique concentration values (first value must be the control, i.e., 0).
     concentration: np.ndarray
+    
+    #: Array of survival rates corresponding to each concentration value, with matching length to `concentration`.
     survival_rate: np.ndarray
+    
+    #: Label for the dose-response series, used primarily in plotting.
     name: str
-    meta: Optional[ExperimentMetaData] = None
+    
+    #: Additional experimental metadata, used mainly for internal purposes.
+    meta: Optional['ExperimentMetaData'] = None
 
     def __post_init__(self):
         self.concentration = np.array(self.concentration, dtype = np.float64)
@@ -166,12 +175,6 @@ class ExperimentData:
     """
     Represents data from a stress addition experiment, including control and additional stressor series.
 
-    Attributes:
-        main_series (DoseResponseSeries): Dose-response data for the control series.
-        additional_stress (Dict[str, DoseResponseSeries]): Dictionary of additional stressor series, 
-            where keys are stressor names and values are their respective dose-response series.
-        meta (ExperimentMetaData): Metadata for the experiment, including organism, duration, and conditions.
-
     Methods:
         from_xlsx(path: str) -> ExperimentData: Class method to load data from an Excel file, constructing 
             the main and additional stress series based on the expected data template.
@@ -179,15 +182,22 @@ class ExperimentData:
 
     Notes:
         Meant to be created by calling from_xlsx like this:
+        
     Example:
         >>> data = ExperimentData.from_xlsx("path/to/data_template.xlsx")
         >>> print(data.main_series)  # Access the main control series
         >>> print(data.to_markdown_table())  # Display data as a Markdown table
     """
     
+    #: Dose-response data for the control series.
     main_series: DoseResponseSeries
+    
+    #: Dictionary of additional stressor series, with stressor names as keys.
     additional_stress: Dict[str, DoseResponseSeries]
+    
+    #: Metadata for the experiment, including organism, duration, and conditions.
     meta: ExperimentMetaData
+
 
     def to_markdown_table(self):
         

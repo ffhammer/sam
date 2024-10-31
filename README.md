@@ -2,6 +2,14 @@
 
 This is a Python reimplementation of the Stress Addition Model (SAM) from the research paper "Predicting the synergy of multiple stress effects" by Matthias Liess, Kaarina Foit, Saskia Knillmann, Ralf B. Schäfer, and Hans-Dieter Liess.
 
+
+## Website and Documentation
+
+https://mockawolke.github.io/sam/
+
+https://mockawolke.github.io/sam_documentation/
+
+
 ## Citation
 ```bibtex
 @Manual{,
