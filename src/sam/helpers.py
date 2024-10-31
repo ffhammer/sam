@@ -4,11 +4,6 @@ from typing import Optional
 import os
 from pathlib import Path
 
-REPO_PATH = Path(__file__).parent.parent.parent
-
-def chdir_to_repopath():
-    os.chdir(REPO_PATH)
-    
 
 def ll5(conc, b, c, d, e, f):
     return c + (d - c) / (1 + (conc / e) ** b) ** f

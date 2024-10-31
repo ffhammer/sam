@@ -1,7 +1,7 @@
 import os
-from sam import chdir_to_repopath
+import os
 
-chdir_to_repopath()
+os.chdir(os.environ["SAM_REPO_PATH"])
 from sam.dose_reponse_fit import (
     dose_response_fit,
     ModelPredictions,

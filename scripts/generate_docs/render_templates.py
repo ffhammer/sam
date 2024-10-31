@@ -1,9 +1,9 @@
-from sam import chdir_to_repopath
+import os
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 import os
 
-chdir_to_repopath()
+os.chdir(os.environ["SAM_REPO_PATH"])
 print(os.getcwd())
 
 DOCS_PATH = Path("docs")

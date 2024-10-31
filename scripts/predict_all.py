@@ -1,5 +1,5 @@
-from sam import chdir_to_repopath
-chdir_to_repopath()
+import os
+os.chdir(os.environ["SAM_REPO_PATH"])
 from sam.stress_addition_model import (
     sam_prediction,
     get_sam_lcs,

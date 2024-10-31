@@ -1,6 +1,6 @@
-from sam import chdir_to_repopath
+import os
 
-chdir_to_repopath()
+os.chdir(os.environ["SAM_REPO_PATH"])
 from sam.dose_reponse_fit import survival_to_stress
 import pandas as pd
 import numpy as np

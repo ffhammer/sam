@@ -1,6 +1,6 @@
-from sam import chdir_to_repopath
+import os
 
-chdir_to_repopath()
+os.chdir(os.environ["SAM_REPO_PATH"])
 import numpy as np
 import seaborn as sns
 import seaborn as sns

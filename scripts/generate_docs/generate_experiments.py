@@ -1,10 +1,10 @@
-from sam import chdir_to_repopath
+import os
 from sam.data_formats import load_files, ExperimentData
 from collections import defaultdict
 from pathlib import Path
 import yaml
 
-chdir_to_repopath()
+os.chdir(os.environ["SAM_REPO_PATH"])
 
 EXPERIMENTS_PATH = Path("docs/experiments")
 EXPERIMENTS_PATH.mkdir(exist_ok=True)
