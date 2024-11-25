@@ -230,42 +230,14 @@ def plot_sam_prediction(
     
     to_color = {tox_label : colors[0], stress_label : colors[1], sam_label : colors[2]}
 
-    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+    fig, axs = plt.subplots(1, 2, figsize=(10, 3))
 
-    def first_plot(conc, surv, orig_series, label):
-        plot_survival(
-            conc,
-            surv,
-            ax=axs[0, 0],
-            orig_series=orig_series,
-            xscale="linear",
-            show_legend=False,
-            xlab=None,
-            ylab="Survival",
-            title="Survival",
-            label=label,
-            color=to_color[label],
-        )
-
-    def second_plot(x, y, label):
-        plot_stress(
-            x,
-            y,
-            ax=axs[0, 1],
-            xscale="linear",
-            show_legend=False,
-            xlab=None,
-            ylab="Stress",
-            title="Stress",
-            color=to_color[label],
-            label=label,
-        )
 
     def third_plot(conc, surv, orig_series, label):
         plot_survival(
             conc,
             surv,
-            ax=axs[1, 0],
+            ax=axs[0],
             orig_series=orig_series,
             xscale="log",
             show_legend=False,
@@ -280,7 +252,7 @@ def plot_sam_prediction(
         plot_stress(
             x,
             y,
-            ax=axs[1, 1],
+            ax=axs[1],
             xscale="log",
             show_legend=True,
             xlab="Concentration",
@@ -295,18 +267,6 @@ def plot_sam_prediction(
         ax.plot([level,level],[0, surv * survival_max],linestyle="-", label =label, c = to_color[label], alpha = 0.7)
         
         
-    # Plotting in the correct order
-    first_plot(main_fit.concentrations, main_fit.survival_curve, main_fit.inputs, label=tox_label)
-    first_plot(stressor_fit.concentrations, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
-    first_plot(stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label)
-    
-    
-        
-
-    second_plot(main_fit.concentrations, main_fit.stress_curve, label=tox_label)
-    second_plot(stressor_fit.concentrations, stressor_fit.stress_curve, label=stress_label)
-    second_plot(stressor_fit.concentrations, predicted_stress_curve, label=sam_label)
-
     third_plot(main_fit.concentrations, main_fit.survival_curve, main_fit.inputs, label=tox_label)
     third_plot(stressor_fit.concentrations, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
     third_plot(stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label)
@@ -316,10 +276,10 @@ def plot_sam_prediction(
     fourth_plot(stressor_fit.concentrations, predicted_stress_curve, label=sam_label)
     
     if lcs is not None:
-        plt_lcs(axs[1,0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label)
-        plt_lcs(axs[1,0], lcs.stress_lc50, 0.5 * stressor_fit.optim_param["d"], stress_label)
-        plt_lcs(axs[1,0], lcs.sam_lc10, 0.9 * stressor_fit.optim_param["d"], sam_label)
-        plt_lcs(axs[1,0], lcs.sam_lc50, 0.5 * stressor_fit.optim_param["d"], sam_label)
+        plt_lcs(axs[0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label)
+        plt_lcs(axs[0], lcs.stress_lc50, 0.5 * stressor_fit.optim_param["d"], stress_label)
+        plt_lcs(axs[0], lcs.sam_lc10, 0.9 * stressor_fit.optim_param["d"], sam_label)
+        plt_lcs(axs[0], lcs.sam_lc50, 0.5 * stressor_fit.optim_param["d"], sam_label)
 
     if title is not None:
         plt.suptitle(title)
