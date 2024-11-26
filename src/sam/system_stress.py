@@ -77,20 +77,15 @@ def calc_system_stress(
         hormesis_index=hormesis_index,
     )
 
-
-    interpolate_points = 10 ** np.linspace(
-        np.log10(concentration[0]),
-        np.log10(concentration.max()),
-        n_interp_points,
-    )
     
-    orig_stress_tox = cfg.survival_to_stress(dose_response_fit.model(interpolate_points))
-    stress_tox_cleaned = cfg.survival_to_stress(cleaned_func(interpolate_points))
+    # this needs to be done to ignore the param d norm thing
+    orig_stress_tox = cfg.survival_to_stress(dose_response_fit.survival_curve / cfg.max_survival)
+    stress_tox_cleaned = cfg.survival_to_stress(cleaned_func(dose_response_fit.concentrations))
 
-    system_stress = np.clip(orig_stress_tox - stress_tox_cleaned, 0, 1)
+    system_stress = orig_stress_tox - stress_tox_cleaned
     
-    system_stress = np.where(interpolate_points < concentration[hormesis_index], system_stress, 0)
-
-    fitted_func = fit_weibull_3param(x_data=interpolate_points, y_data=system_stress)
+    system_stress = np.where(dose_response_fit.concentrations < concentration[hormesis_index], system_stress, 0)
+    
+    fitted_func = fit_weibull_3param(x_data=dose_response_fit.concentrations, y_data=system_stress)
     
     return cleaned_func, fitted_func

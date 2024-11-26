@@ -122,8 +122,8 @@ def sam_prediction(
     main_fit = dose_response_fit(main_series, cfg=dose_cfg)
     stressor_fit = dose_response_fit(stressor_series, cfg=dose_cfg)
 
-    sur2stress = lambda x: settings.survival_to_stress(x)
-    stress2sur = lambda x: settings.stress_to_survival(x)
+    sur2stress = settings.survival_to_stress
+    stress2sur = settings.stress_to_survival
 
     if settings.stress_form == "div":
         additional_stress = stressor_fit.optim_param["d"] / main_fit.optim_param["d"]
@@ -171,13 +171,19 @@ def sam_prediction(
             cfg=dose_cfg,
         )
 
-        pred_system_stress = system_stress(main_fit.concentrations)
-        main_fit.pred_system_stress = pred_system_stress
-        pred_system_stress =  (pred_system_stress - pred_system_stress.max()) * -1
+        cleaned_stress = sur2stress(without_horm(main_fit.concentrations))
+        
+        settings.max_system_stress = 0.2
+        
+        main_fit.pred_system_stress = system_stress(main_fit.concentrations)
+        main_fit.pred_system_stress = np.minimum(main_fit.pred_system_stress, settings.max_system_stress)
+
+        main_fit.modified_control_stress = np.clip(cleaned_stress - main_fit.pred_system_stress, 0, 1)
+        main_fit.modified_control_surv = stress2sur(main_fit.modified_control_stress) * max_survival
 
         predicted_stress_curve = np.clip(
-            main_fit.stress_curve + additional_stress + pred_system_stress, 0, 1
-        )
+            main_fit.modified_control_stress + additional_stress, 0, 1
+        )       
 
     if settings.param_d_norm:
         predicted_survival_curve = (
