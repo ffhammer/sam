@@ -43,9 +43,6 @@ class SAM_Settings:
     #: Upper bound on survival for control samples, useful for steep dose-response curves (default is `1`).
     max_control_survival: float = 1
     
-    #: If `True`, estimates system stress based on control curves and removes it from predictions.
-    cancel_system_stress: bool = False
-    
     #: Transformation function applied to regression data prior to model fitting.
     transform: 'Transforms' = Transforms.williams_and_linear_interpolation
     
@@ -55,6 +52,12 @@ class SAM_Settings:
     #: Mapping function from survival values to stress values, defaulting to `survival_to_stress(x, 3.2, 3.2)`.
     survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
 
+    
+    #: If `True`, estimates system stress removes it from predictions.
+    cancel_system_stress: bool = False
+    
+    #: Maximum Value of removed system stress if `cancel_system_stress = True`
+    max_system_stress : float = 0.1
 
 NEW_STANDARD = SAM_Settings(
     param_d_norm=False,
@@ -157,7 +160,6 @@ def sam_prediction(
         )
 
     else:
-        
         if hormesis_index is None:
             hormesis_index = detect_hormesis_index(main_series.survival_rate)
             warn(f"could not find hormesis index, detecting it to be {hormesis_index}")
@@ -171,14 +173,16 @@ def sam_prediction(
             cfg=dose_cfg,
         )
 
-        cleaned_stress = sur2stress(without_horm(main_fit.concentrations))
+        main_fit.cleaned_survival = without_horm(main_fit.concentrations) * max_survival
+        main_fit.cleaned_stress = sur2stress(main_fit.cleaned_survival / max_survival)
         
-        settings.max_system_stress = 0.2
         
         main_fit.pred_system_stress = system_stress(main_fit.concentrations)
-        main_fit.pred_system_stress = np.minimum(main_fit.pred_system_stress, settings.max_system_stress)
-
-        main_fit.modified_control_stress = np.clip(cleaned_stress - main_fit.pred_system_stress, 0, 1)
+        
+        sys_stress_to_add = min(main_fit.pred_system_stress.max(), settings.max_system_stress)
+        print(main_fit.pred_system_stress.max(), settings.max_system_stress, sys_stress_to_add)
+        
+        main_fit.modified_control_stress = np.clip(main_fit.cleaned_stress + sys_stress_to_add, 0, 1)
         main_fit.modified_control_surv = stress2sur(main_fit.modified_control_stress) * max_survival
 
         predicted_stress_curve = np.clip(

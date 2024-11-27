@@ -60,7 +60,6 @@ def calc_system_stress(
     dose_response_fit : ModelPredictions,
     hormesis_index: int,
     cfg: DRF_Settings = DRF_Settings(),
-    n_interp_points = 10,
 ):
     # Validate hormesis index
     if hormesis_index < 1 or hormesis_index >= len(only_tox_series.concentration):
@@ -78,14 +77,11 @@ def calc_system_stress(
     )
 
     
-    # this needs to be done to ignore the param d norm thing
+    # this needs to be cause param_d_norm artificially lowers stress
     orig_stress_tox = cfg.survival_to_stress(dose_response_fit.survival_curve / cfg.max_survival)
     stress_tox_cleaned = cfg.survival_to_stress(cleaned_func(dose_response_fit.concentrations))
-
     system_stress = orig_stress_tox - stress_tox_cleaned
-    
     system_stress = np.where(dose_response_fit.concentrations < concentration[hormesis_index], system_stress, 0)
-    
     fitted_func = fit_weibull_3param(x_data=dose_response_fit.concentrations, y_data=system_stress)
     
     return cleaned_func, fitted_func

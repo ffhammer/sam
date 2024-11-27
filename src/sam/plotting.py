@@ -151,6 +151,8 @@ def plot_survival(
         label=label,
     )
     
+    SCATTER_SIZE = 20
+    
     if orig_series is not None:
 
         ax.scatter(
@@ -158,6 +160,7 @@ def plot_survival(
             orig_series.survival_rate,
             label=label,
             zorder=5,
+            s = SCATTER_SIZE,
             color=color,
         )
         
@@ -170,6 +173,7 @@ def plot_survival(
                 orig_series.survival_rate[mask],
                 label=label,
                 zorder=5,
+                s = SCATTER_SIZE,
                 color=color,
             )
 
@@ -178,6 +182,7 @@ def plot_survival(
                 [orig_series.survival_rate[hormesis_index]],
                 zorder=5,
                 color="red",
+                s = SCATTER_SIZE,
             )
 
         else:
@@ -187,6 +192,7 @@ def plot_survival(
                 label=label,
                 zorder=5,
                 color=color,
+                s = SCATTER_SIZE,
             )
 
 
@@ -224,8 +230,8 @@ def plot_sam_prediction(
     
     colors = color_palette("tab10", 3)
 
-    stress_label = "Toxicant + " + stressor_fit.inputs.name
-    tox_label = "Toxicant"
+    stress_label = "Tox + Env"
+    tox_label = "Tox"
     sam_label = "SAM"
     
     to_color = {tox_label : colors[0], stress_label : colors[1], sam_label : colors[2]}
