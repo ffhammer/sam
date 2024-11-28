@@ -172,7 +172,8 @@ def sam_prediction(
             hormesis_index=hormesis_index,
             cfg=dose_cfg,
         )
-
+        
+        main_fit.without_horm = without_horm
         main_fit.cleaned_survival = without_horm(main_fit.concentrations) * max_survival
         main_fit.cleaned_stress = sur2stress(main_fit.cleaned_survival / max_survival)
         
