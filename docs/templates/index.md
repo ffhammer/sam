@@ -33,9 +33,8 @@ This section visualizes dose-response fits across all experiments. Each curve is
 The following is a list of individual experiments conducted, each with detailed data and SAM model predictions:
 
 {% for experiment in experiments %}
-- [{{ experiment }}](experiments/{{ experiment }})
+- [{{ experiment.nicer_name }}](experiments/{{ experiment.experiment_link }})
 {% endfor %}
-
 
 ## Citation
 ```bibtex

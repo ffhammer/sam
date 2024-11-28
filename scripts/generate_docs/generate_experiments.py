@@ -33,10 +33,10 @@ def create_page_for_data(name, exps: list[ExperimentData]):
     # Write to Markdown
     text = f"""# {name}\n\n## Experiment Metadata\n\n```yaml\n{yaml_text}\n```\n"""
 
-    for exp in exps:
+    for exp in sorted(exps, key=lambda x: x.meta.title):
         table = exp.to_markdown_table()
-        title = exp.meta.title
-        text += f"\n\n## {title}\n\n### Data Table\n\n{table}\n\n"
+        title = exp.meta.title.replace(" ","_")
+        text += f"\n\n## {title}\n\n### Data\n\n{table}\n\n### SAM Predictions"
         
         
         for additional_stressor in exp.additional_stress:
@@ -44,7 +44,7 @@ def create_page_for_data(name, exps: list[ExperimentData]):
             nicer = additional_stressor.replace("_", " ")
             
             if (Path("docs") / img_path).exists():
-                text += f"### {nicer} - SAM Prediction\n\n![SAM Prediction](../{img_path})\n"
+                text += f"### {nicer}\n\n![SAM Prediction](../{img_path})\n"
             else:
                 print("Cant find:", img_path)
 

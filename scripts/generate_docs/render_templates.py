@@ -10,8 +10,15 @@ DOCS_PATH = Path("docs")
 TEMPLATE_PATH = DOCS_PATH / "templates"
 OUTPUT_PATH = DOCS_PATH / "index.md"
 
-# List all experiment files in the "experiments" directory
-experiments = os.listdir(DOCS_PATH / "experiments")
+experiments_paths = sorted(os.listdir(os.path.join(DOCS_PATH, "experiments")))
+
+experiments = []
+
+for path in experiments_paths:
+    experiments.append({
+        "nicer_name": path.replace("_", " ").replace(".md", "").replace(" C,", " °C,").title(),  
+        "experiment_link": path  
+    })
 
 # Load and configure Jinja2 environment
 env = Environment(loader=FileSystemLoader(TEMPLATE_PATH))
