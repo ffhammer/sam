@@ -36,7 +36,7 @@ def create_page_for_data(name, exps: list[ExperimentData]):
     for exp in sorted(exps, key=lambda x: x.meta.title):
         table = exp.to_markdown_table()
         title = exp.meta.title.replace(" ","_")
-        text += f"\n\n## {title}\n\n### Data\n\n{table}\n\n### SAM Predictions"
+        text += f"\n\n## {title}\n\n### Data\n\n{table}\n\n### SAM Predictions\n"
         
         
         for additional_stressor in exp.additional_stress:
