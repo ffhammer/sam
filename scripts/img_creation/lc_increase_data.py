@@ -120,7 +120,7 @@ def gen_experiment_res_frame(lc10,lc50):
             settings=STANDARD_SAM_SETTING,
         )
 
-        lcs = get_sam_lcs(stress_fit=res.stress_fit, sam_sur=res.sam_sur, meta=data.meta)
+        lcs = get_sam_lcs(stress_fit=res.stressor_fit, sam_sur=res.predicted_survival_curve, max_survival=data.meta.max_survival)
         
         main_lc10 = compute_lc(optim_param=res.main_fit.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.main_fit.optim_param, lc=50)
@@ -132,7 +132,7 @@ def gen_experiment_res_frame(lc10,lc50):
                 "chemical": meta.main_stressor,
                 "organism": meta.organism,
                 "main_fit": res.main_fit,
-                "stress_fit": res.stress_fit,
+                "stress_fit": res.stressor_fit,
                 "stress_name": stress_name,
                 "main_lc10":main_lc10,
                 "main_lc50":main_lc50,
