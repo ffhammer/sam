@@ -20,28 +20,18 @@ def compute_all(plot : bool, dir4imgs : str):
     
     for path, data, name, val in tqdm(load_datapoints()):
     
-        main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
+        res = sam_prediction(
             data.main_series,
             val,
             data.meta,
             settings=SETTINGS,
         )
 
-        lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
-
         if plot:
 
             # title = f"Fitted LC10: {lcs.stress_lc10 :.2f} LC50: {lcs.stress_lc50 :.2f} - SAM Predictions LC10: {lcs.sam_lc10 :.2f} LC50: {lcs.sam_lc50 :.2f}"
             title = None
-            fig = plot_sam_prediction(
-                main_fit,
-                stress_fit,
-                sam_sur,
-                sam_stress,
-                survival_max=data.meta.max_survival,
-                lcs=lcs,
-                title=title,
-            )
+            fig = res.plot(with_lcs=True, title=title)
             name = f"{data.meta.title}_{name}.png"
             save_path = os.path.join(dir4imgs, name)
 

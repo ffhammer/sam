@@ -113,17 +113,17 @@ def gen_experiment_res_frame(lc10,lc50):
     for path, data, stress_name, stress_series in load_datapoints():
         meta = data.meta
 
-        main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
+        res = sam_prediction(
             data.main_series,
             stress_series,
             data.meta,
             settings=STANDARD_SAM_SETTING,
         )
 
-        lcs = get_sam_lcs(stress_fit=stress_fit, sam_sur=sam_sur, meta=data.meta)
+        lcs = get_sam_lcs(stress_fit=res.stress_fit, sam_sur=res.sam_sur, meta=data.meta)
         
-        main_lc10 = compute_lc(optim_param=main_fit.optim_param, lc=10)
-        main_lc50 = compute_lc(optim_param=main_fit.optim_param, lc=50)
+        main_lc10 = compute_lc(optim_param=res.main_fit.optim_param, lc=10)
+        main_lc50 = compute_lc(optim_param=res.main_fit.optim_param, lc=50)
 
         dfs.append(
             {
@@ -131,8 +131,8 @@ def gen_experiment_res_frame(lc10,lc50):
                 "days" : meta.days,
                 "chemical": meta.main_stressor,
                 "organism": meta.organism,
-                "main_fit": main_fit,
-                "stress_fit": stress_fit,
+                "main_fit": res.main_fit,
+                "stress_fit": res.stress_fit,
                 "stress_name": stress_name,
                 "main_lc10":main_lc10,
                 "main_lc50":main_lc50,

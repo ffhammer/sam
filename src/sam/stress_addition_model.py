@@ -9,7 +9,6 @@ from .helpers import (
     compute_lc,
     Predicted_LCs,
     compute_lc_from_curve,
-    detect_hormesis_index,
 )
 import numpy as np
 from .data_formats import (
@@ -18,7 +17,9 @@ from .data_formats import (
 )
 from .system_stress import calc_system_stress
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
+from .plotting import plot_sam_prediction
 from dataclasses import dataclass
+from matplotlib.figure import Figure
 from warnings import warn 
 from typing import Optional, Callable
 
@@ -52,12 +53,20 @@ class SAM_Settings:
     #: Mapping function from survival values to stress values, defaulting to `survival_to_stress(x, 3.2, 3.2)`.
     survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
 
+
+@dataclass
+class SAM_Prediction:
+    main_fit : ModelPredictions
+    stressor_fit : ModelPredictions
+    predicted_survival_curve : np.ndarray
+    predicted_stress_curve : np.ndarray
+    additional_stress : float
+    max_survival : float 
     
-    #: If `True`, estimates system stress removes it from predictions.
-    cancel_system_stress: bool = False
+    def plot(self, with_lcs : bool = True, title : Optional[str] = None) -> Figure:
+        lcs = get_sam_lcs(stress_fit=self.stressor_fit, sam_sur=self.predicted_survival_curve, max_survival=self.max_survival) if with_lcs else None
+        return plot_sam_prediction(self, lcs=lcs, survival_max=self.max_survival, title=title)
     
-    #: Maximum Value of removed system stress if `cancel_system_stress = True`
-    max_system_stress : float = 0.1
 
 NEW_STANDARD = SAM_Settings(
     param_d_norm=False,
@@ -77,9 +86,8 @@ def sam_prediction(
     stressor_series: DoseResponseSeries,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
-    hormesis_index: Optional[int] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
-):
+) -> SAM_Prediction:
     """Computes survival and stress predictions based on a main control series and a stressor series 
     using the Stress Addition Model (SAM).
 
@@ -88,8 +96,6 @@ def sam_prediction(
         stressor_series (DoseResponseSeries): Dose-response data for the stressor condition.
         meta (Optional[ExperimentMetaData]): Metadata, used to infer max survival if not provided.
         max_survival (Optional[float]): Maximum survival rate. Overrides `meta.max_survival` if given.
-        hormesis_index (Optional[int]): Index indicating hormetic effect. If `cancel_system_stress` is 
-            enabled in settings, detects or uses this index to adjust predictions.
         settings (SAM_Settings): Configuration settings for SAM. Controls stress computation formula,
             normalization, and additional adjustments.
 
@@ -153,42 +159,9 @@ def sam_prediction(
         settings.stress_intercept_in_survival
     )
 
-    if not settings.cancel_system_stress:
-
-        predicted_stress_curve = np.clip(
-            main_fit.stress_curve + additional_stress, 0, 1
-        )
-
-    else:
-        if hormesis_index is None:
-            hormesis_index = detect_hormesis_index(main_series.survival_rate)
-            warn(f"could not find hormesis index, detecting it to be {hormesis_index}")
-            if hormesis_index is None:
-                raise ValueError("Cant detect hormesis!")
-
-        without_horm, system_stress = calc_system_stress(
-            only_tox_series=main_series,
-            dose_response_fit=main_fit,
-            hormesis_index=hormesis_index,
-            cfg=dose_cfg,
-        )
-        
-        main_fit.without_horm = without_horm
-        main_fit.cleaned_survival = without_horm(main_fit.concentrations) * max_survival
-        main_fit.cleaned_stress = sur2stress(main_fit.cleaned_survival / max_survival)
-        
-        
-        main_fit.pred_system_stress = system_stress(main_fit.concentrations)
-        
-        sys_stress_to_add = min(main_fit.pred_system_stress.max(), settings.max_system_stress)
-        print(main_fit.pred_system_stress.max(), settings.max_system_stress, sys_stress_to_add)
-        
-        main_fit.modified_control_stress = np.clip(main_fit.cleaned_stress + sys_stress_to_add, 0, 1)
-        main_fit.modified_control_surv = stress2sur(main_fit.modified_control_stress) * max_survival
-
-        predicted_stress_curve = np.clip(
-            main_fit.modified_control_stress + additional_stress, 0, 1
-        )       
+    predicted_stress_curve = np.clip(
+        main_fit.stress_curve + additional_stress, 0, 1
+    )
 
     if settings.param_d_norm:
         predicted_survival_curve = (
@@ -201,18 +174,19 @@ def sam_prediction(
             stress2sur(predicted_stress_curve) * max_survival
         )
 
-    return (
+    return SAM_Prediction(
         main_fit,
         stressor_fit,
         predicted_survival_curve,
         predicted_stress_curve,
         additional_stress,
+        max_survival,
     )
 
 def get_sam_lcs(
     stress_fit: ModelPredictions,
     sam_sur: np.ndarray,
-    meta: ExperimentMetaData,
+    max_survival: float,
 )-> Predicted_LCs:
     """
     Calculates lethal concentrations (LC10 and LC50) for stress and SAM predictions.
@@ -220,7 +194,6 @@ def get_sam_lcs(
     Parameters:
         stress_fit (ModelPredictions): Fitted model predictions for the stressor.
         sam_sur (np.ndarray): Survival values from SAM predictions.
-        meta (ExperimentMetaData): Experiment metadata, providing max survival.
 
     Returns:
         Predicted_LCs: Lethal concentrations for both stress (LC10, LC50) and SAM predictions.
@@ -232,14 +205,14 @@ def get_sam_lcs(
         stress_fit.concentrations,
         sam_sur,
         lc=10,
-        survival_max=meta.max_survival,
+        survival_max=max_survival,
         c0=stress_fit.optim_param["d"],
     )
     sam_lc50 = compute_lc_from_curve(
         stress_fit.concentrations,
         sam_sur,
         lc=50,
-        survival_max=meta.max_survival,
+        survival_max=max_survival,
         c0=stress_fit.optim_param["d"],
     )
 

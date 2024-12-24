@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .dose_reponse_fit import ModelPredictions
 from .data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
+from typing import TYPE_CHECKING
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
 from matplotlib.figure import Figure
@@ -203,14 +204,17 @@ def plot_survival(
 
 
 def plot_sam_prediction(
-    main_fit: ModelPredictions,
-    stressor_fit: ModelPredictions,
-    predicted_survival_curve,
-    predicted_stress_curve,
+    prediction,
     lcs : Optional[Predicted_LCs] = None,
     survival_max : float = 100,
     title = None
 ) -> Figure:
+    
+    main_fit  = prediction.main_fit
+    stressor_fit = prediction.stressor_fit
+    predicted_survival_curve = prediction.predicted_survival_curve
+    predicted_stress_curve = prediction.predicted_stress_curve
+    
     """
     Plots survival and stress predictions for SAM (Stress Addition Model), including observed and predicted
     curves on linear and log scales.
@@ -294,3 +298,5 @@ def plot_sam_prediction(
     
     
     return fig
+
+

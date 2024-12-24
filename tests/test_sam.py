@@ -16,13 +16,13 @@ def test_dose_response_fit_and_plot(datapoint):
     frozen_main_series = deepcopy(data.main_series)
     frozen_val_series = deepcopy(val)
 
-    main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
+    res  = sam_prediction(
         data.main_series,
         val,
         data.meta,
         settings=SETTINGS,
     )
 
-    assert frozen_main_series == main_fit.inputs, "Mutated Data"
-    assert frozen_val_series == stress_fit.inputs, "Mutated Data"
+    assert frozen_main_series == res.main_fit.inputs, "Mutated Data"
+    assert frozen_val_series == res.stressor_fit.inputs, "Mutated Data"
     
