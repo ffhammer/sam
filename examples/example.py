@@ -19,7 +19,6 @@ stressor_series = DoseResponseSeries(
 prediction = sam_prediction(
     main_series=control_series,
     stressor_series=stressor_series,
-    settings=STANDARD_SAM_SETTING,
     max_survival=100,
 )
 
