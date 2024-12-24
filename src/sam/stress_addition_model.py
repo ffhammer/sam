@@ -1,72 +1,117 @@
+from dataclasses import dataclass, field
+from typing import Callable, Optional
+import os 
+
+import numpy as np
+from dataclasses_json import config, dataclass_json
+from matplotlib.figure import Figure
+
+from .data_formats import (
+    DoseResponseSeries,
+    ExperimentMetaData,
+)
 from .dose_reponse_fit import (
-    dose_response_fit,
-    ModelPredictions,
     DRF_Settings,
-    survival_to_stress,
+    ModelPredictions,
     Transforms,
+    dose_response_fit,
 )
 from .helpers import (
-    compute_lc,
     Predicted_LCs,
+    compute_lc,
     compute_lc_from_curve,
 )
-import numpy as np
-from .data_formats import (
-    ExperimentMetaData,
-    DoseResponseSeries,
-)
-from .system_stress import calc_system_stress
-from .stress_survival_conversion import stress_to_survival, survival_to_stress
+from .io import make_np_config
 from .plotting import plot_sam_prediction
-from dataclasses import dataclass
-from matplotlib.figure import Figure
-from warnings import warn 
-from typing import Optional, Callable
+from .stress_survival_conversion import stress_to_survival, survival_to_stress
 
+
+@dataclass_json
 @dataclass
 class SAM_Settings:
-    """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions.
-    """
-    
+    """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions."""
+
     #: If `True`, normalizes survival values based on environmental stress.
     param_d_norm: bool = False
-    
+
     #: Defines the formula used to calculate environmental stress. Supported options:
     #: - `"div"`: `additional_stress = stressor / control`
     #: - `"subtract"`: `additional_stress = 1 - (control - stressor)`
     #: - `"only_stress"`: `additional_stress = 1 - stressor`
     #: - `"stress_sub"`: Subtracts transformed control stress from transformed stressor stress.
     stress_form: str = "div"
-    
+
     #: Adds a constant factor to `additional_stress` for modifying survival predictions (default is `1`).
     stress_intercept_in_survival: float = 1
-    
+
     #: Upper bound on survival for control samples, useful for steep dose-response curves (default is `1`).
     max_control_survival: float = 1
-    
+
     #: Transformation function applied to regression data prior to model fitting.
-    transform: 'Transforms' = Transforms.williams_and_linear_interpolation
+    transform: "Transforms" = field(
+        default=Transforms.williams_and_linear_interpolation,
+        metadata=config(
+            encoder=lambda t: t.__name__.replace("transform_", ""),
+            decoder=lambda t: getattr(Transforms, t),
+        ),
+    )
     
-    #: Mapping function from stress values to survival values, defaulting to `stress_to_survival(x, 3.2, 3.2)`.
-    stress_to_survival: Callable = lambda x: stress_to_survival(x, 3.2, 3.2)
-    
-    #: Mapping function from survival values to stress values, defaulting to `survival_to_stress(x, 3.2, 3.2)`.
-    survival_to_stress: Callable = lambda x: survival_to_stress(x, 3.2, 3.2)
+    #: q Parameter of beta distribution for survival to stress and vice versa conversions
+    beta_q: float = 3.2
+
+    #: p Parameter of beta distribution for survival to stress and vice versa conversions
+    beta_p: float = 3.2
+
+    def __post_init__(
+        self,
+    ):
+        self.stress_to_survival: Callable = lambda x: stress_to_survival(
+            x, p=self.beta_p, q=self.beta_q
+        )
+        self.survival_to_stress: Callable = lambda x: survival_to_stress(
+            x, p=self.beta_p, q=self.beta_q
+        )
 
 
+
+@dataclass_json
 @dataclass
-class SAM_Prediction:
-    main_fit : ModelPredictions
-    stressor_fit : ModelPredictions
-    predicted_survival_curve : np.ndarray
-    predicted_stress_curve : np.ndarray
-    additional_stress : float
-    max_survival : float 
+class SAMPrediction:
+    main_fit: ModelPredictions
+    stressor_fit: ModelPredictions
+    predicted_survival_curve: np.ndarray = make_np_config()
+    predicted_stress_curve: np.ndarray = make_np_config()
+    additional_stress: float
+    max_survival: float
     
-    def plot(self, with_lcs : bool = True, title : Optional[str] = None) -> Figure:
-        lcs = get_sam_lcs(stress_fit=self.stressor_fit, sam_sur=self.predicted_survival_curve, max_survival=self.max_survival) if with_lcs else None
-        return plot_sam_prediction(self, lcs=lcs, survival_max=self.max_survival, title=title)
+
+    def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
+        lcs = (
+            get_sam_lcs(
+                stress_fit=self.stressor_fit,
+                sam_sur=self.predicted_survival_curve,
+                max_survival=self.max_survival,
+            )
+            if with_lcs
+            else None
+        )
+        return plot_sam_prediction(
+            self, lcs=lcs, survival_max=self.max_survival, title=title
+        )
+
+    def save_to_file(self, file_path : str) -> None:
+        
+        with open(file_path, "w") as f:
+            f.write(self.to_json())
+
+    @classmethod
+    def load_from_file(cls, file_path : str) -> None:
+        
+        if not os.path.isfile(file_path):
+            raise ValueError(f"Can't find file at {file_path}")
     
+        with open(file_path, "r") as f:
+            return cls.from_json(f.read())
 
 NEW_STANDARD = SAM_Settings(
     param_d_norm=False,
@@ -81,14 +126,15 @@ STANDARD_SAM_SETTING = SAM_Settings(
     max_control_survival=1,
 )
 
+
 def sam_prediction(
     main_series: DoseResponseSeries,
     stressor_series: DoseResponseSeries,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
-) -> SAM_Prediction:
-    """Computes survival and stress predictions based on a main control series and a stressor series 
+) -> SAMPrediction:
+    """Computes survival and stress predictions based on a main control series and a stressor series
     using the Stress Addition Model (SAM).
 
     Parameters:
@@ -112,20 +158,19 @@ def sam_prediction(
         prediction = sam_prediction(main_series, stressor_series, settings=SAM_Settings(stress_form="div"))
         ```
     """
-    
+
     if max_survival is None and meta is None:
         raise ValueError(
             "Either `max_survival` or `meta` with a defined `max_survival` must be provided. "
             "Specify `meta` or directly set `max_survival` to proceed."
         )
-    max_survival = meta.max_survival if max_survival is None else max_survival 
-
+    max_survival = meta.max_survival if max_survival is None else max_survival
 
     dose_cfg = DRF_Settings(
         max_survival=max_survival,
         param_d_norm=settings.param_d_norm,
-        stress_to_survival=settings.stress_to_survival,
-        survival_to_stress=settings.survival_to_stress,
+        beta_q=settings.beta_q,
+        beta_p=settings.beta_p,
     )
 
     main_fit = dose_response_fit(main_series, cfg=dose_cfg)
@@ -159,9 +204,7 @@ def sam_prediction(
         settings.stress_intercept_in_survival
     )
 
-    predicted_stress_curve = np.clip(
-        main_fit.stress_curve + additional_stress, 0, 1
-    )
+    predicted_stress_curve = np.clip(main_fit.stress_curve + additional_stress, 0, 1)
 
     if settings.param_d_norm:
         predicted_survival_curve = (
@@ -170,11 +213,9 @@ def sam_prediction(
             * max_survival
         )
     else:
-        predicted_survival_curve = (
-            stress2sur(predicted_stress_curve) * max_survival
-        )
+        predicted_survival_curve = stress2sur(predicted_stress_curve) * max_survival
 
-    return SAM_Prediction(
+    return SAMPrediction(
         main_fit,
         stressor_fit,
         predicted_survival_curve,
@@ -183,11 +224,12 @@ def sam_prediction(
         max_survival,
     )
 
+
 def get_sam_lcs(
     stress_fit: ModelPredictions,
     sam_sur: np.ndarray,
     max_survival: float,
-)-> Predicted_LCs:
+) -> Predicted_LCs:
     """
     Calculates lethal concentrations (LC10 and LC50) for stress and SAM predictions.
 

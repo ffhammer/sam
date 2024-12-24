@@ -1,15 +1,18 @@
-from glob import glob
-import os
-from tqdm import tqdm
 import glob
+import os
 from dataclasses import dataclass
-import pandas as pd
-import numpy as np
-from typing import Optional, Dict, Tuple, Callable, Type
-import yaml
 from pathlib import Path
+from typing import Callable, Dict, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+import yaml
+from dataclasses_json import dataclass_json
+
+from .io import make_np_config
 
 
+@dataclass_json
 @dataclass
 class ExperimentMetaData:
     """
@@ -51,6 +54,7 @@ class ExperimentMetaData:
     
 
 
+@dataclass_json
 @dataclass
 class DoseResponseSeries:
     """
@@ -79,10 +83,10 @@ class DoseResponseSeries:
     """
     
     #: A non-negative, sorted array of unique concentration values (first value must be the control, i.e., 0).
-    concentration: np.ndarray
+    concentration: np.ndarray = make_np_config()
     
     #: Array of survival rates corresponding to each concentration value, with matching length to `concentration`.
-    survival_rate: np.ndarray
+    survival_rate: np.ndarray = make_np_config()
     
     #: Label for the dose-response series, used primarily in plotting.
     name: str
