@@ -1,12 +1,12 @@
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Callable, Tuple
 import os
 
 import numpy as np
 from dataclasses_json import config, dataclass_json
 from scipy.optimize import curve_fit
-
+import py_lmcurve_ll5
 from .data_formats import DoseResponseSeries
 from .helpers import compute_lc, ll5, pad_c0
 from .io import make_np_config
@@ -51,6 +51,9 @@ class DRF_Settings:
 
     #: p Parameter of beta distribution for survival to stress and vice versa conversions
     beta_p: float = 3.2
+
+    #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
+    curve_fit_lib : str = "scipy"
 
     def __post_init__(
         self,
@@ -182,7 +185,7 @@ def dose_response_fit(
     )
 
     fitted_func, optim_param = fit_ll5(
-        concentration=regress_conc, survival=regress_surv
+        concentration=regress_conc, survival=regress_surv, curve_fit_lib=cfg.curve_fit_lib,
     )
 
     return compute_predictions(
@@ -275,19 +278,34 @@ def get_regression_data(
 
 
 def fit_ll5(
-    concentration: np.ndarray, survival: np.ndarray
+    concentration: np.ndarray, survival: np.ndarray, curve_fit_lib : str
 ) -> Tuple[Callable, np.array]:
     fixed_params = {
         "c": 0,
         "d": survival[0],
     }
+    
+    if curve_fit_lib == "scipy":
+        params = fit_scipy(concentration=concentration, survival=survival, fixed_params=fixed_params)
+        
+    elif curve_fit_lib == "lmcurve":
+        params = fit_lmcurve(concentration=concentration, survival=survival, fixed_params=fixed_params)
+        
+    else:
+        raise ValueError("curve_fit_lib must be eitehr 'scipy' or 'lmcurve'")
+    
+    fitted_func = lambda conc: ll5(conc, **params)
 
+    return fitted_func, params
+
+
+def fit_scipy(concentration: np.ndarray, survival: np.ndarray, fixed_params : dict) -> dict:
     bounds = {
-        "b": [0, 100],
-        "c": [0, max(survival)],
-        "d": [0, 2 * max(survival)],
-        "e": [0, max(concentration)],
-        "f": [0.1, 10],
+    "b": [0, 100],
+    "c": [0, max(survival)],
+    "d": [0, 2 * max(survival)],
+    "e": [0, max(concentration)],
+    "f": [0.1, 10],
     }
 
     keep = {k: v for k, v in bounds.items() if k not in fixed_params}
@@ -310,6 +328,11 @@ def fit_ll5(
     params = fixed_params.copy()
     params.update({k: v for k, v in zip(keep.keys(), popt)})
 
-    fitted_func = lambda conc: ll5(conc, **params)
+    return params
 
-    return fitted_func, params
+def fit_lmcurve(concentration: np.ndarray, survival: np.ndarray, fixed_params : dict) -> dict:
+
+    values = py_lmcurve_ll5.lmcurve_ll5(concentration.tolist(), survival.tolist(), **fixed_params)
+    
+    return asdict(values)
+

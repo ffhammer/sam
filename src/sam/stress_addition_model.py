@@ -61,6 +61,9 @@ class SAM_Settings:
 
     #: p Parameter of beta distribution for survival to stress and vice versa conversions
     beta_p: float = 3.2
+    
+    #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
+    curve_fit_lib : str = "scipy"
 
     def __post_init__(
         self,
@@ -171,6 +174,7 @@ def sam_prediction(
         param_d_norm=settings.param_d_norm,
         beta_q=settings.beta_q,
         beta_p=settings.beta_p,
+        curve_fit_lib=settings.curve_fit_lib
     )
 
     main_fit = dose_response_fit(main_series, cfg=dose_cfg)

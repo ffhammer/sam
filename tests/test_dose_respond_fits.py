@@ -3,11 +3,13 @@ from sam.dose_reponse_fit import dose_response_fit, ModelPredictions, DRF_Settin
 from sam.plotting import plot_fit_prediction
 from sam.data_formats import ExperimentData, read_data, load_files
 from copy import deepcopy
+from itertools import product
 import matplotlib.pyplot as plt
 
-@pytest.mark.parametrize("file", load_files())
+
+@pytest.mark.parametrize("file", product(load_files(), ("lmcurve", "scipy")))
 def test_dose_response_fit_and_plot(file):
-    path, data = file
+    (path, data), curve_fit_lib = file
     
     data: ExperimentData = read_data(path)
 
@@ -15,7 +17,7 @@ def test_dose_response_fit_and_plot(file):
 
     # Perform the model fitting
     res: ModelPredictions = dose_response_fit(
-        data.main_series, DRF_Settings(max_survival=data.meta.max_survival)
+        data.main_series, DRF_Settings(max_survival=data.meta.max_survival, curve_fit_lib=curve_fit_lib)
     )
 
 
@@ -27,3 +29,4 @@ def test_dose_response_fit_and_plot(file):
 
     # Save the plot
     plt.close()
+
