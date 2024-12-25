@@ -21,7 +21,7 @@ jobs:
       
       - name: Generate Docs
         run: |
-          bash compute_docs.sh
+          bash scripts/compute_docs.sh
       
       - name: Setup Pages
         uses: actions/configure-pages@v5
