@@ -68,7 +68,7 @@ def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index)
         x_data=concentration_cleaned, y_data=survival_cleaned
     )
 
-    return fitted_func
+    return fitted_func, popt
 
 
 @dataclass_json
@@ -129,7 +129,7 @@ def predict_with_hormesis_cancelled(
 
     old_fit : ModelPredictions = dose_response_fit(main_series, dose_cfg)
 
-    fitted_model_without_hormesis = pred_surv_without_hormesis(
+    fitted_model_without_hormesis, _ = pred_surv_without_hormesis(
         main_series.concentration,
         main_series.survival_rate / max_survival,
         hormesis_index=hormesis_index,

@@ -39,7 +39,7 @@ def predict_cleaned_curv(data: ExperimentData):
             data.meta.hormesis_concentration == data.main_series.concentration
         )[0, 0]
 
-    func, _, popt = pred_surv_without_hormesis(
+    func, popt = pred_surv_without_hormesis(
         concentration=concentration,
         surv_withhormesis=survival_tox_observerd,
         hormesis_index=hormesis_index,
