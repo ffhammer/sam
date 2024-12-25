@@ -1,21 +1,24 @@
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
-from sam.dose_reponse_fit import dose_response_fit, survival_to_stress, DRF_Settings
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
-from sam.data_formats import read_data, load_files, load_datapoints
-from sam.helpers import compute_lc
-from scipy.optimize import brentq
+import pandas as pd
 import seaborn as sns
+from scipy.optimize import brentq
+from tqdm import tqdm
+
+from sam.data_formats import load_datapoints, load_files, read_data
+from sam.dose_reponse_fit import DRF_Settings, dose_response_fit, survival_to_stress
+from sam.helpers import compute_lc
 from sam.stress_addition_model import (
     STANDARD_SAM_SETTING,
-    sam_prediction,
     get_sam_lcs,
+    sam_prediction,
     stress_to_survival,
     survival_to_stress,
 )
-from tqdm import tqdm
 from scripts.img_creation.utils import predict_cleaned_curv
 
 STRESSES = np.linspace(0, 0.6, 100)
@@ -94,7 +97,7 @@ def gen_dose_response_frame(lc10, lc50) -> pd.DataFrame:
                 "Name": meta.title,
                 "Chemical": meta.main_stressor,
                 "Organism": meta.organism,
-                "Experiment": data.meta.path.parent.name,
+                "Experiment": Path(data.meta.path).parent.name,
                 "Duration": int(meta.days),
             }
         )
@@ -141,7 +144,7 @@ def gen_experiment_res_frame(lc10, lc50):
                 "stress_lc50": lcs.stress_lc50,
                 "sam_lc10": lcs.sam_lc10,
                 "sam_lc50": lcs.sam_lc50,
-                "experiment_name": data.meta.path.parent.name,
+                "experiment_name": Path(data.meta.path).parent.name,
                 "Name": data.meta.title,
             }
         )
