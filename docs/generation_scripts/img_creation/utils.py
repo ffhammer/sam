@@ -1,23 +1,23 @@
 import os
-import os
+from pathlib import Path
 
 os.chdir(os.environ["SAM_REPO_PATH"])
-from sam.dose_reponse_fit import (
-    dose_response_fit,
-    ModelPredictions,
-    survival_to_stress,
-    DRF_Settings,
-)
-import pandas as pd
 import numpy as np
-from sam.data_formats import load_files
-from sam.system_stress import pred_surv_without_hormesis
+import pandas as pd
+
+from sam.data_formats import ExperimentData, load_files
+from sam.dose_reponse_fit import (
+    DRF_Settings,
+    ModelPredictions,
+    dose_response_fit,
+    survival_to_stress,
+)
 from sam.helpers import (
     detect_hormesis_index,
     pad_c0,
     weibull_2param_inverse,
 )
-from sam.data_formats import ExperimentData
+from sam.system_stress import pred_surv_without_hormesis
 
 
 def predict_cleaned_curv(data: ExperimentData):
@@ -78,7 +78,7 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
                 "lc99": lc99,
                 "Name": meta.title,
                 "Duration": int(meta.days),
-                "Experiment": meta.path.parent.name,
+                "Experiment": Path(meta.path).parent.name,
             }
         )
 

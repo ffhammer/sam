@@ -18,8 +18,9 @@ from tqdm import tqdm
 import argparse
 import sys
 
-sys.path.append("./")
-from scripts.img_creation.utils import predict_cleaned_curv
+sys.path.append("docs/generation_scripts/")
+
+from img_creation.utils import predict_cleaned_curv
 
 
 def cleaned_difference_plots():

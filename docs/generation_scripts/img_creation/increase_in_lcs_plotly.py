@@ -10,8 +10,9 @@ from pathlib import Path
 import argparse
 import sys
 
-sys.path.append("./")
-from scripts.img_creation.lc_increase_data import (
+sys.path.append("docs/generation_scripts/")
+
+from img_creation.lc_increase_data import (
     calculate_lc_trajectories,
     gen_dose_response_frame,
     gen_experiment_res_frame,

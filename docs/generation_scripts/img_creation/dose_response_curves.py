@@ -11,8 +11,8 @@ import plotly.graph_objects as go
 from pathlib import Path
 import sys
 
-sys.path.append("./")
-from scripts.img_creation.utils import create_dose_response_fits_frame
+sys.path.append("docs/generation_scripts/")
+from img_creation.utils import create_dose_response_fits_frame
 import argparse
 
 

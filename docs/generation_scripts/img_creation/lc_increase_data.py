@@ -19,7 +19,11 @@ from sam.stress_addition_model import (
     stress_to_survival,
     survival_to_stress,
 )
-from scripts.img_creation.utils import predict_cleaned_curv
+import sys
+
+sys.path.append("docs/generation_scripts/")
+
+from img_creation.utils import predict_cleaned_curv
 
 STRESSES = np.linspace(0, 0.6, 100)
 

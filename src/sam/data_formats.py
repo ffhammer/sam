@@ -127,7 +127,8 @@ class DoseResponseSeries:
         )
 
 
-def read_meta_yaml(xlsx_path: Path) -> dict:
+def read_meta_yaml(xlsx_path: str) -> dict:
+    xlsx_path = Path(xlsx_path)
     meta_path = xlsx_path.parent / "meta.yaml"
 
     if not os.path.exists(meta_path):
