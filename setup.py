@@ -21,7 +21,7 @@ setup(
         "numpy",
         "pandas",
         "PyYAML",
-        "dataclass-json",
+        "dataclasses-json",
         "scikit_learn",
         "scipy",
         "seaborn",
