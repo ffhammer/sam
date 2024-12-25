@@ -60,6 +60,38 @@ def test_saving_and_loading_stays_same():
             os.remove(temp_file_path)
 
 
+def test_saving_and_loading_stays_same_real_data():
+    # Generate the example prediction
+    data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
+
+    original_prediction = sam_prediction(
+        data.main_series, data.additional_stress["Food_1% + Prochloraz_1"], data.meta
+    )
+
+    # Save to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        original_prediction.save_to_file(temp_file.name)
+        temp_file_path = temp_file.name
+
+    try:
+        # Deserialize
+        loaded_prediction = SAMPrediction.load_from_file(temp_file_path)
+
+        # Convert both original and loaded predictions to dictionaries
+        original_dict = asdict(original_prediction)
+        loaded_dict = asdict(loaded_prediction)
+
+        # Compare the dictionaries
+        assert dict_eq_manual(
+            original_dict, loaded_dict
+        ), "The original and loaded predictions do not match."
+
+    finally:
+        # Ensure the temporary file is deleted after the test
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+
 def dict_eq_manual(a: dict, b: dict) -> bool:
     # Check if both inputs are dictionaries
     if not isinstance(a, dict) or not isinstance(b, dict):

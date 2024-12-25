@@ -169,7 +169,7 @@ def read_metadata(path: str, df: pd.DataFrame) -> ExperimentMetaData:
         title += "_" + child_name
 
     return ExperimentMetaData(
-        **meta_dict, title=title, path=path, experiment_name=Path(path).parent.name
+        **meta_dict, title=title, path=str(path), experiment_name=Path(path).parent.name
     )
 
 
