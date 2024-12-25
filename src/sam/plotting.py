@@ -18,6 +18,7 @@ def darken_color(color, amount=0.5):
     except ValueError:
         return color
 
+
 def plot_fit_prediction(model: ModelPredictions, title=None):
     """
     Plots the complete set of survival and stress curves on both linear and logarithmic scales.
@@ -83,9 +84,9 @@ def plot_stress(
     xlab="Concentration",
     ylab="Stress",
     title=None,
-    label = None,
-    color = "deepskyblue",
-    ):
+    label=None,
+    color="deepskyblue",
+):
     """
     Plots the stress curve.
 
@@ -103,13 +104,10 @@ def plot_stress(
     if title:
         ax.set_title(title)
 
-    ax.plot(concentration_curve, stress_curve, color=color, linestyle="--", label = label)
+    ax.plot(concentration_curve, stress_curve, color=color, linestyle="--", label=label)
 
     if show_legend:
         ax.legend()
-
-
-
 
 
 def plot_survival(
@@ -121,10 +119,10 @@ def plot_survival(
     show_legend=False,
     xlab="Concentration",
     ylab="Survival",
-    label = None,
+    label=None,
     title=None,
-    color = "deepskyblue",
-    hormesis_index : Optional[int] = None,
+    color="deepskyblue",
+    hormesis_index: Optional[int] = None,
 ):
     """
     Plots the survival curve and observed survival data points.
@@ -151,30 +149,28 @@ def plot_survival(
         linestyle="--",
         label=label,
     )
-    
-    SCATTER_SIZE = 20
-    
-    if orig_series is not None:
 
+    SCATTER_SIZE = 20
+
+    if orig_series is not None:
         ax.scatter(
             orig_series.concentration,
             orig_series.survival_rate,
             label=label,
             zorder=5,
-            s = SCATTER_SIZE,
+            s=SCATTER_SIZE,
             color=color,
         )
-        
+
         if hormesis_index is not None:
-            
             mask = np.arange(len(orig_series.concentration)) != hormesis_index
-            
+
             ax.scatter(
                 orig_series.concentration[mask],
                 orig_series.survival_rate[mask],
                 label=label,
                 zorder=5,
-                s = SCATTER_SIZE,
+                s=SCATTER_SIZE,
                 color=color,
             )
 
@@ -183,7 +179,7 @@ def plot_survival(
                 [orig_series.survival_rate[hormesis_index]],
                 zorder=5,
                 color="red",
-                s = SCATTER_SIZE,
+                s=SCATTER_SIZE,
             )
 
         else:
@@ -193,28 +189,24 @@ def plot_survival(
                 label=label,
                 zorder=5,
                 color=color,
-                s = SCATTER_SIZE,
+                s=SCATTER_SIZE,
             )
-
 
     if show_legend:
         ax.legend()
 
 
-
-
 def plot_sam_prediction(
     prediction,
-    lcs : Optional[Predicted_LCs] = None,
-    survival_max : float = 100,
-    title = None
+    lcs: Optional[Predicted_LCs] = None,
+    survival_max: float = 100,
+    title=None,
 ) -> Figure:
-    
-    main_fit  = prediction.main_fit
+    main_fit = prediction.main_fit
     stressor_fit = prediction.stressor_fit
     predicted_survival_curve = prediction.predicted_survival_curve
     predicted_stress_curve = prediction.predicted_stress_curve
-    
+
     """
     Plots survival and stress predictions for SAM (Stress Addition Model), including observed and predicted
     curves on linear and log scales.
@@ -231,17 +223,16 @@ def plot_sam_prediction(
     Returns:
         matplotlib.figure.Figure: The generated plot figure with survival and stress curves.
     """
-    
+
     colors = color_palette("tab10", 3)
 
     stress_label = "Tox + Env"
     tox_label = "Tox"
     sam_label = "SAM"
-    
-    to_color = {tox_label : colors[0], stress_label : colors[1], sam_label : colors[2]}
+
+    to_color = {tox_label: colors[0], stress_label: colors[1], sam_label: colors[2]}
 
     fig, axs = plt.subplots(1, 2, figsize=(10, 3))
-
 
     def third_plot(conc, surv, orig_series, label):
         plot_survival(
@@ -272,22 +263,46 @@ def plot_sam_prediction(
             label=label,
         )
 
-    def plt_lcs(ax, level : float, surv, label : str):
+    def plt_lcs(ax, level: float, surv, label: str):
         level = max(level, main_fit.concentrations[0])
-        ax.plot([level,level],[0, surv * survival_max],linestyle="-", label =label, c = to_color[label], alpha = 0.7)
-        
-        
-    third_plot(main_fit.concentrations, main_fit.survival_curve, main_fit.inputs, label=tox_label)
-    third_plot(stressor_fit.concentrations, stressor_fit.survival_curve, stressor_fit.inputs, label=stress_label)
-    third_plot(stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label)
+        ax.plot(
+            [level, level],
+            [0, surv * survival_max],
+            linestyle="-",
+            label=label,
+            c=to_color[label],
+            alpha=0.7,
+        )
+
+    third_plot(
+        main_fit.concentrations,
+        main_fit.survival_curve,
+        main_fit.inputs,
+        label=tox_label,
+    )
+    third_plot(
+        stressor_fit.concentrations,
+        stressor_fit.survival_curve,
+        stressor_fit.inputs,
+        label=stress_label,
+    )
+    third_plot(
+        stressor_fit.concentrations, predicted_survival_curve, None, label=sam_label
+    )
 
     fourth_plot(main_fit.concentrations, main_fit.stress_curve, label=tox_label)
-    fourth_plot(stressor_fit.concentrations, stressor_fit.stress_curve, label=stress_label)
+    fourth_plot(
+        stressor_fit.concentrations, stressor_fit.stress_curve, label=stress_label
+    )
     fourth_plot(stressor_fit.concentrations, predicted_stress_curve, label=sam_label)
-    
+
     if lcs is not None:
-        plt_lcs(axs[0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label)
-        plt_lcs(axs[0], lcs.stress_lc50, 0.5 * stressor_fit.optim_param["d"], stress_label)
+        plt_lcs(
+            axs[0], lcs.stress_lc10, 0.9 * stressor_fit.optim_param["d"], stress_label
+        )
+        plt_lcs(
+            axs[0], lcs.stress_lc50, 0.5 * stressor_fit.optim_param["d"], stress_label
+        )
         plt_lcs(axs[0], lcs.sam_lc10, 0.9 * stressor_fit.optim_param["d"], sam_label)
         plt_lcs(axs[0], lcs.sam_lc50, 0.5 * stressor_fit.optim_param["d"], sam_label)
 
@@ -295,8 +310,5 @@ def plot_sam_prediction(
         plt.suptitle(title)
 
     plt.tight_layout()
-    
-    
+
     return fig
-
-

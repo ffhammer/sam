@@ -23,18 +23,18 @@ def surv_to_stress_new(x0):
     numerator = np.log(0.907 * x0)
     denominator = x0 - (1.09 / x0)
     x = term1 + numerator / denominator
-    
+
     x = np.clip(x, 0, 1)
-    
-    
+
     return x
 
+
 MIN_VAL = surv_to_stress_new(1 - 1e-9)
+
 
 @np.vectorize
 def stress_to_surv_new(y):
     y = np.maximum(y, MIN_VAL)
-
 
     def equation(x0):
         return surv_to_stress_new(x0) - y
@@ -51,22 +51,20 @@ def stress_to_surv_new(y):
         )
 
 
-
 def surv_to_stress_new2(x0):
-    x0 = np.clip(x0, 0,1-1e-7)   
-    x0 = 1-x0
+    x0 = np.clip(x0, 0, 1 - 1e-7)
+    x0 = 1 - x0
     pred = 0.000995 + np.log(0.907 * x0) / (x0 - (1.09 / x0))
-    
+
     return np.clip(pred, 0, 1)
-    
+
 
 MIN_VAL = surv_to_stress_new2(1 - 1e-9)
 
+
 @np.vectorize
 def stress_to_surv_new2(y):
-    
     y = np.clip(y, MIN_VAL, 1)
-
 
     def equation(x0):
         return surv_to_stress_new2(x0) - y
@@ -116,7 +114,6 @@ def compute_variations(main_series, stress_series, meta):
     results = {}
 
     for name, setting in SETTINGS.items():
-
         main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
             main_series, stress_series, meta, settings=setting
         )
@@ -131,15 +128,12 @@ def compute_variations(main_series, stress_series, meta):
 rows = []
 
 for path, data, name, val in tqdm(load_datapoints()):
-
-
     if data.main_series.survival_rate[0] < val.survival_rate[0]:
         continue
 
     target, results = compute_variations(data.main_series, val, data.meta)
 
     if PLOT:
-
         fig = plt.figure(figsize=(10, 4))
 
         x = target.concentrations

@@ -59,11 +59,9 @@ SETTINGS = {
 
 
 def compute_variations(main_series, stress_series, meta):
-  
     results = {}
 
     for name, setting in SETTINGS.items():
-
         main_fit, stress_fit, sam_sur, sam_stress, additional_stress = sam_prediction(
             main_series, stress_series, meta, settings=setting
         )
@@ -78,18 +76,15 @@ def compute_variations(main_series, stress_series, meta):
 rows = []
 
 for path in tqdm(glob.glob("data/*.xlsx")):
-
     data: ExperimentData = read_data(path)
 
     for name, val in data.additional_stress.items():
-
         if data.main_series.survival_rate[0] < val.survival_rate[0]:
             continue
 
         target, results = compute_variations(data.main_series, val, data.meta)
 
         if PLOT:
-
             fig = plt.figure(figsize=(10, 4))
 
             x = target.concentration_curve
@@ -107,59 +102,35 @@ for path in tqdm(glob.glob("data/*.xlsx")):
             fig.savefig(save_path)
             plt.close()
 
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric" : "r2"
-        }
+        row = {"path": path, "stressor": name, "metric": "r2"}
 
         for name, (sam_sur, lcs) in results.items():
             row[name] = r2_score(target.survival_curve, sam_sur)
 
         rows.append(row)
-        
-        
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric" : "r2_50"
-        }
+
+        row = {"path": path, "stressor": name, "metric": "r2_50"}
 
         for name, (sam_sur, lcs) in results.items():
             l = int(len(target.survival_curve) * 0.50)
             row[name] = r2_score(target.survival_curve[:l], sam_sur[:l])
 
-
         rows.append(row)
 
-
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric" : "r2_50r"
-        }
+        row = {"path": path, "stressor": name, "metric": "r2_50r"}
 
         for name, (sam_sur, lcs) in results.items():
             l = int(len(target.survival_curve) * 0.5)
             row[name] = r2_score(target.survival_curve[l:], sam_sur[l:])
 
-
         rows.append(row)
 
-        
-        
-
-        row = {
-            "path": path,
-            "stressor": name,
-            "metric" : "diff"
-        }
+        row = {"path": path, "stressor": name, "metric": "diff"}
 
         for name, (sam_sur, lcs) in results.items():
-            row[name] = (target.survival_curve -sam_sur).astype(str).tolist()
+            row[name] = (target.survival_curve - sam_sur).astype(str).tolist()
 
         rows.append(row)
-
 
 
 df = pd.DataFrame(rows)
@@ -167,5 +138,3 @@ df = pd.DataFrame(rows)
 # print(df.iloc[:,4:].mean())
 
 df.to_csv("was_ist_das_problem.csv")
-
-

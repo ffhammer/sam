@@ -81,25 +81,24 @@ import numpy as np
 # print(study.best_params)
 
 
-
 def experiment(trial):
-
     setting = SAM_Setting(
-        beta_p=trial.suggest_float("p",1,10), beta_q=trial.suggest_float("q",1,10),
+        beta_p=trial.suggest_float("p", 1, 10),
+        beta_q=trial.suggest_float("q", 1, 10),
         param_d_norm=False,
         stress_form="stress_sub",
-        stress_intercept_in_survival=trial.suggest_float("intercept", 0.99, 1, log = True),
-        max_control_survival=trial.suggest_float("max control", 0.98, 1, log = True),
+        stress_intercept_in_survival=trial.suggest_float(
+            "intercept", 0.99, 1, log=True
+        ),
+        max_control_survival=trial.suggest_float("max control", 0.98, 1, log=True),
     )
 
     r2s = []
 
     for path in glob.glob("data/*.xlsx"):
-
         data: ExperimentData = read_data(path)
 
         for name, val in data.additional_stress.items():
-
             main_fit, stress_fit, sam_sur, sam_stress, additional_stress = (
                 sam_prediction(
                     data.main_series,

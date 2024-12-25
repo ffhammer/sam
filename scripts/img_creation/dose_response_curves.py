@@ -10,6 +10,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from pathlib import Path
 import sys
+
 sys.path.append("./")
 from scripts.img_creation.utils import create_dose_response_fits_frame
 import argparse
@@ -101,9 +102,7 @@ def make_fig(surv_col, stres_col, df, color_map):
     }
 
     for key, label_name in cleaner.items():
-
         for val, frame in df.groupby(key):
-
             name = f"{label_name} = {val}"
             add_means(frame, name)
     gen_traces(surv_col, 1)
@@ -151,9 +150,7 @@ def make_fig(surv_col, stres_col, df, color_map):
     assert len(visible(df, "All")) == len(fig.data)
 
     for key, label_name in cleaner.items():
-
         for val, frame in df.groupby(key):
-
             name = f"{label_name} = {val}"
             buttons.append(
                 dict(
@@ -199,17 +196,14 @@ def make_fig(surv_col, stres_col, df, color_map):
 
 
 def graphic(surv_col, stres_col, df, color_map):
-
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
     x = np.linspace(1, 99, 1000)
 
     for _, row in df.iterrows():
-
         axs[0].plot(x, row[surv_col], label=row.chemical, color=color_map[row.chemical])
 
     for _, row in df.iterrows():
-
         axs[1].plot(
             x, row[stres_col], label=row.chemical, color=color_map[row.chemical]
         )
@@ -250,7 +244,6 @@ def graphic(surv_col, stres_col, df, color_map):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir4imgs", type=str)
     args = parser.parse_args()

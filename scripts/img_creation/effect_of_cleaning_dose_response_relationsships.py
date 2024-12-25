@@ -17,13 +17,13 @@ from io import BytesIO
 from tqdm import tqdm
 import argparse
 import sys
+
 sys.path.append("./")
 from scripts.img_creation.utils import predict_cleaned_curv
 
+
 def cleaned_difference_plots():
-
     for path, data in tqdm(load_files()):
-
         meta = data.meta
         res: ModelPredictions = dose_response_fit(
             data.main_series,
@@ -65,22 +65,21 @@ def cleaned_difference_plots():
         plt.legend()
         plt.title(title)
         plt.xscale("log")
-        
+
         buf = BytesIO()
-        plt.savefig(buf, format = "png")
+        plt.savefig(buf, format="png")
         plt.close(plt.gcf())
         yield title, buf
-        
+
 
 if __name__ == "__main__":
-    
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir4imgs", type=str)
     args = parser.parse_args()
-    
+
     dir4imgs = Path(args.dir4imgs)
     dir4imgs.mkdir(exist_ok=True, parents=True)
-    
+
     for title, buf in cleaned_difference_plots():
         file_path = dir4imgs / f"{title}.png"
         with open(file_path, "wb") as f:

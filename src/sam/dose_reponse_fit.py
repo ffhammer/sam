@@ -53,7 +53,7 @@ class DRF_Settings:
     beta_p: float = 3.2
 
     #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
-    curve_fit_lib : str = "scipy"
+    curve_fit_lib: str = "scipy"
 
     def __post_init__(
         self,
@@ -67,6 +67,7 @@ class DRF_Settings:
 
 
 STANDARD_DRF_SETTING = DRF_Settings()
+
 
 @dataclass_json
 @dataclass
@@ -110,23 +111,20 @@ class ModelPredictions:
 
     #: Survival values corresponding to `regress_conc`.
     regress_surv: np.ndarray = make_np_config()
-    
+
     @property
     def model(self) -> Callable:
-        
         return lambda conc: ll5(conc, **self.optim_param)
-    
-    def save_to_file(self, file_path : str) -> None:
-        
+
+    def save_to_file(self, file_path: str) -> None:
         with open(file_path, "w") as f:
             f.write(self.to_json())
 
     @classmethod
-    def load_from_file(cls, file_path : str) -> None:
-        
+    def load_from_file(cls, file_path: str) -> None:
         if not os.path.isfile(file_path):
             raise ValueError(f"Can't find file at {file_path}")
-    
+
         with open(file_path, "r") as f:
             return cls.from_json(f.read())
 
@@ -185,7 +183,9 @@ def dose_response_fit(
     )
 
     fitted_func, optim_param = fit_ll5(
-        concentration=regress_conc, survival=regress_surv, curve_fit_lib=cfg.curve_fit_lib,
+        concentration=regress_conc,
+        survival=regress_surv,
+        curve_fit_lib=cfg.curve_fit_lib,
     )
 
     return compute_predictions(
@@ -278,34 +278,40 @@ def get_regression_data(
 
 
 def fit_ll5(
-    concentration: np.ndarray, survival: np.ndarray, curve_fit_lib : str
+    concentration: np.ndarray, survival: np.ndarray, curve_fit_lib: str
 ) -> Tuple[Callable, np.array]:
     fixed_params = {
         "c": 0,
         "d": survival[0],
     }
-    
+
     if curve_fit_lib == "scipy":
-        params = fit_scipy(concentration=concentration, survival=survival, fixed_params=fixed_params)
-        
+        params = fit_scipy(
+            concentration=concentration, survival=survival, fixed_params=fixed_params
+        )
+
     elif curve_fit_lib == "lmcurve":
-        params = fit_lmcurve(concentration=concentration, survival=survival, fixed_params=fixed_params)
-        
+        params = fit_lmcurve(
+            concentration=concentration, survival=survival, fixed_params=fixed_params
+        )
+
     else:
         raise ValueError("curve_fit_lib must be eitehr 'scipy' or 'lmcurve'")
-    
+
     fitted_func = lambda conc: ll5(conc, **params)
 
     return fitted_func, params
 
 
-def fit_scipy(concentration: np.ndarray, survival: np.ndarray, fixed_params : dict) -> dict:
+def fit_scipy(
+    concentration: np.ndarray, survival: np.ndarray, fixed_params: dict
+) -> dict:
     bounds = {
-    "b": [0, 100],
-    "c": [0, max(survival)],
-    "d": [0, 2 * max(survival)],
-    "e": [0, max(concentration)],
-    "f": [0.1, 10],
+        "b": [0, 100],
+        "c": [0, max(survival)],
+        "d": [0, 2 * max(survival)],
+        "e": [0, max(concentration)],
+        "f": [0.1, 10],
     }
 
     keep = {k: v for k, v in bounds.items() if k not in fixed_params}
@@ -330,9 +336,12 @@ def fit_scipy(concentration: np.ndarray, survival: np.ndarray, fixed_params : di
 
     return params
 
-def fit_lmcurve(concentration: np.ndarray, survival: np.ndarray, fixed_params : dict) -> dict:
 
-    values = py_lmcurve_ll5.lmcurve_ll5(concentration.tolist(), survival.tolist(), **fixed_params)
-    
+def fit_lmcurve(
+    concentration: np.ndarray, survival: np.ndarray, fixed_params: dict
+) -> dict:
+    values = py_lmcurve_ll5.lmcurve_ll5(
+        concentration.tolist(), survival.tolist(), **fixed_params
+    )
+
     return asdict(values)
-

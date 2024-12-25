@@ -28,7 +28,6 @@ def predict_cleaned_curv(data: ExperimentData):
     )
 
     if data.meta.hormesis_concentration is None:
-
         hormesis_index = detect_hormesis_index(survival_tox_observerd)
 
         if hormesis_index is None:
@@ -52,7 +51,6 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
     dfs = []
 
     for path, data in load_files():
-
         meta = data.meta
         res: ModelPredictions = dose_response_fit(
             data.main_series,
@@ -87,7 +85,6 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
     df = pd.DataFrame(dfs)
 
     def compute_normalised_curve(model: ModelPredictions):
-
         if np.isnan(model.lc1):
             print("nan")
             model.lc1 = 0.0
@@ -96,7 +93,6 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
         return model.model(x) * 100
 
     def compute_cleaned_curve(row):
-
         x = np.linspace(row.lc1, row.lc99, 1000)
 
         return row.cleaned_func(x) * 100

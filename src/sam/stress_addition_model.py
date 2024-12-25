@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, Optional
-import os 
+import os
 
 import numpy as np
 from dataclasses_json import config, dataclass_json
@@ -55,15 +55,15 @@ class SAM_Settings:
             decoder=lambda t: getattr(Transforms, t),
         ),
     )
-    
+
     #: q Parameter of beta distribution for survival to stress and vice versa conversions
     beta_q: float = 3.2
 
     #: p Parameter of beta distribution for survival to stress and vice versa conversions
     beta_p: float = 3.2
-    
+
     #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
-    curve_fit_lib : str = "scipy"
+    curve_fit_lib: str = "scipy"
 
     def __post_init__(
         self,
@@ -76,7 +76,6 @@ class SAM_Settings:
         )
 
 
-
 @dataclass_json
 @dataclass
 class SAMPrediction:
@@ -86,7 +85,6 @@ class SAMPrediction:
     predicted_stress_curve: np.ndarray = make_np_config()
     additional_stress: float
     max_survival: float
-    
 
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
         lcs = (
@@ -102,19 +100,18 @@ class SAMPrediction:
             self, lcs=lcs, survival_max=self.max_survival, title=title
         )
 
-    def save_to_file(self, file_path : str) -> None:
-        
+    def save_to_file(self, file_path: str) -> None:
         with open(file_path, "w") as f:
             f.write(self.to_json())
 
     @classmethod
-    def load_from_file(cls, file_path : str) -> None:
-        
+    def load_from_file(cls, file_path: str) -> None:
         if not os.path.isfile(file_path):
             raise ValueError(f"Can't find file at {file_path}")
-    
+
         with open(file_path, "r") as f:
             return cls.from_json(f.read())
+
 
 NEW_STANDARD = SAM_Settings(
     param_d_norm=False,
@@ -174,7 +171,7 @@ def sam_prediction(
         param_d_norm=settings.param_d_norm,
         beta_q=settings.beta_q,
         beta_p=settings.beta_p,
-        curve_fit_lib=settings.curve_fit_lib
+        curve_fit_lib=settings.curve_fit_lib,
     )
 
     main_fit = dose_response_fit(main_series, cfg=dose_cfg)
@@ -192,7 +189,6 @@ def sam_prediction(
     elif settings.stress_form == "only_stress":
         additional_stress = 1 - stressor_fit.optim_param["d"]
     elif settings.stress_form == "stress_sub":
-
         a = sur2stress(stressor_fit.optim_param["d"])
 
         control_survival = min(main_fit.optim_param["d"], settings.max_control_survival)

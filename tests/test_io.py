@@ -34,8 +34,7 @@ def generate_example_prediction() -> SAMPrediction:
 
 def test_saving_and_loading_stays_same():
     # Generate the example prediction
-    original_prediction : SAMPrediction= generate_example_prediction()
-
+    original_prediction: SAMPrediction = generate_example_prediction()
 
     # Save to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
@@ -59,7 +58,6 @@ def test_saving_and_loading_stays_same():
         # Ensure the temporary file is deleted after the test
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-
 
 
 def dict_eq_manual(a: dict, b: dict) -> bool:

@@ -9,11 +9,18 @@ from plotly.subplots import make_subplots
 from pathlib import Path
 import argparse
 import sys
+
 sys.path.append("./")
-from scripts.img_creation.lc_increase_data import calculate_lc_trajectories, gen_dose_response_frame, gen_experiment_res_frame,  gen_mean_curves, STRESSES
+from scripts.img_creation.lc_increase_data import (
+    calculate_lc_trajectories,
+    gen_dose_response_frame,
+    gen_experiment_res_frame,
+    gen_mean_curves,
+    STRESSES,
+)
+
 
 def gen_different_curves_fig(meta_infos, stresses):
-
     unique_experiments = meta_infos.Chemical.unique()
     palette = sns.color_palette(
         "Set2", len(unique_experiments)
@@ -29,7 +36,6 @@ def gen_different_curves_fig(meta_infos, stresses):
     def gen_traces(y_key):
         ts = list()
         for _, row in meta_infos.iterrows():
-
             color = color_mapping[row.Chemical]
             ts.append(
                 go.Scatter(
@@ -101,7 +107,6 @@ def gen_different_curves_fig(meta_infos, stresses):
         name_to_id.append(f"mean_reference_{y_key}")
 
         for key, label_name in cleaner.items():
-
             for val, df in meta_infos.groupby(key):
                 mean_curve = np.mean(np.stack(df[y_key].values), 0)
 
@@ -173,9 +178,7 @@ def gen_different_curves_fig(meta_infos, stresses):
     assert len(get_visible(meta_infos, "all")) == len(fig.data)
 
     for key, label_name in cleaner.items():
-
         for val, df in meta_infos.groupby(key):
-
             name = f"{label_name} = {val}"
 
             buttons.append(
@@ -218,10 +221,13 @@ def gen_different_curves_fig(meta_infos, stresses):
 
 
 def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
-    (mean_curve_10, lower_curve_10, upper_curve_10), (
-        mean_curve_50,
-        lower_curve_50,
-        upper_curve_50,
+    (
+        (mean_curve_10, lower_curve_10, upper_curve_10),
+        (
+            mean_curve_50,
+            lower_curve_50,
+            upper_curve_50,
+        ),
     ) = curves
 
     fig = make_subplots(rows=1, cols=2)
@@ -237,7 +243,6 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
     name_to_id = []
 
     def add(mean_curve, upper, lower, col):
-
         fig.add_trace(
             go.Scatter(
                 x=stresses.tolist() + stresses[::-1].tolist(),
@@ -273,9 +278,7 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
     name_to_id.append("mean_50")
 
     def add_points(y_col, col):
-
         for _, row in cleaned.iterrows():
-
             fig.add_trace(
                 go.Scatter(
                     x=(row.stress_level,),
@@ -316,11 +319,8 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
     }
 
     def add_specific_means(y_col, col):
-
         for key, label_name in cleaner.items():
-
             for val, frame in cleaned.groupby(key):
-
                 name = f"{label_name} = {val}_{y_col}"
 
                 names = set(frame.Name.unique())
@@ -401,9 +401,7 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
     ]
 
     for key, label_name in cleaner.items():
-
         for val, frame in cleaned.groupby(key):
-
             name = f"{label_name} = {val}"
 
             buttons.append(
@@ -454,25 +452,23 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
     return fig
 
 
-
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--dir4imgs", type=str)
     args = parser.parse_args()
     dir4imgs = Path(args.dir4imgs)
     dir4imgs.mkdir(exist_ok=True, parents=True)
 
-    lc10,lc50 = calculate_lc_trajectories()
+    lc10, lc50 = calculate_lc_trajectories()
 
-    meta_infos = gen_dose_response_frame(lc10,lc50)
-    cleaned_frame = gen_experiment_res_frame(lc10,lc50)
-    mean_curvis = gen_mean_curves(lc10,lc50)
+    meta_infos = gen_dose_response_frame(lc10, lc50)
+    cleaned_frame = gen_experiment_res_frame(lc10, lc50)
+    mean_curvis = gen_mean_curves(lc10, lc50)
 
-    different_curves_fig = gen_different_curves_fig(meta_infos, STRESSES) 
+    different_curves_fig = gen_different_curves_fig(meta_infos, STRESSES)
     different_curves_fig.write_html(dir4imgs / "different_curves.html")
-    
-    dot_fig = gen_dot_plotly(cleaned_frame,mean_curvis, STRESSES, meta_infos)
+
+    dot_fig = gen_dot_plotly(cleaned_frame, mean_curvis, STRESSES, meta_infos)
     dot_fig.write_html(
-        dir4imgs/"lcs.html",
+        dir4imgs / "lcs.html",
     )
