@@ -9,6 +9,8 @@ from matplotlib.figure import Figure
 from .helpers import Predicted_LCs
 from seaborn import color_palette
 
+SCATTER_SIZE = 20
+
 
 def darken_color(color, amount=0.5):
     try:
@@ -149,8 +151,6 @@ def plot_survival(
         linestyle="--",
         label=label,
     )
-
-    SCATTER_SIZE = 20
 
     if orig_series is not None:
         ax.scatter(

@@ -19,6 +19,7 @@ from .stress_addition_model import (
 from .data_formats import DoseResponseSeries
 from .dose_reponse_fit import DRF_Settings, ModelPredictions, dose_response_fit
 from .helpers import pad_c0, weibull_2param, weibull_3param, detect_hormesis_index
+from .plotting import SCATTER_SIZE
 
 
 def fallback_linear_regression(x_data, y_data):
@@ -100,12 +101,18 @@ class CleanedPred:
             linestyle="--",
             c="black",
         )
+
+        color = [
+            "black" if i != self.hormesis_index else "red"
+            for i in range(len(self.original_series.concentration))
+        ]
+
         ax1.scatter(
             pad_c0(self.original_series.concentration),
             self.original_series.survival_rate,
             label="Original",
-            linestyle="--",
-            c="black",
+            c=color,
+            s=SCATTER_SIZE,
         )
         ax2.legend()
         return fig
@@ -149,12 +156,13 @@ def predict_with_hormesis_cancelled(
     old_fit: ModelPredictions = dose_response_fit(main_series, dose_cfg)
 
     fitted_model_without_hormesis, _ = pred_surv_without_hormesis(
-        main_series.concentration,
+        pad_c0(main_series.concentration),
         main_series.survival_rate / max_survival,
         hormesis_index=hormesis_index,
     )
-
-    cleaned_survival = fitted_model_without_hormesis(main_series.concentration)
+    cleaned_survival = fitted_model_without_hormesis(
+        pad_c0(main_series.concentration)
+    )  # pad to deal with log of 0 warning, will replace surv[0] anyways
 
     with_add_stress = (
         settings.stress_to_survival(
@@ -162,6 +170,8 @@ def predict_with_hormesis_cancelled(
         )
         * max_survival
     )
+
+    with_add_stress[0] = main_series.survival_rate[0]
 
     new_main_series = DoseResponseSeries(
         main_series.concentration,
