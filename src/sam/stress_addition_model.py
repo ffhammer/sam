@@ -65,6 +65,8 @@ class SAM_Settings:
     #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
     curve_fit_lib: str = "scipy"
 
+    fix_f_parameter_ll5: Optional[float] = None
+
     def __post_init__(
         self,
     ):
@@ -105,7 +107,7 @@ class SAMPrediction:
             f.write(self.to_json())
 
     @classmethod
-    def load_from_file(cls, file_path: str) -> None:
+    def load_from_file(cls, file_path: str) -> "SAMPrediction":
         if not os.path.isfile(file_path):
             raise ValueError(f"Can't find file at {file_path}")
 
@@ -124,6 +126,7 @@ STANDARD_SAM_SETTING = SAM_Settings(
     stress_form="div",
     stress_intercept_in_survival=1,
     max_control_survival=1,
+    fix_f_parameter_ll5=1.0,
 )
 
 
@@ -172,6 +175,7 @@ def sam_prediction(
         beta_q=settings.beta_q,
         beta_p=settings.beta_p,
         curve_fit_lib=settings.curve_fit_lib,
+        fix_f_parameter_ll5=settings.fix_f_parameter_ll5,
     )
 
     main_fit = dose_response_fit(main_series, cfg=dose_cfg)

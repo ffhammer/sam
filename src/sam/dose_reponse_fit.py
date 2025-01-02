@@ -1,6 +1,6 @@
 import warnings
 from dataclasses import dataclass, field, asdict
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Optional
 import os
 
 import numpy as np
@@ -54,6 +54,8 @@ class DRF_Settings:
 
     #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
     curve_fit_lib: str = "scipy"
+
+    fix_f_parameter_ll5: Optional[float] = None
 
     def __post_init__(
         self,
@@ -186,6 +188,7 @@ def dose_response_fit(
         concentration=regress_conc,
         survival=regress_surv,
         curve_fit_lib=cfg.curve_fit_lib,
+        fix_f_parameter_ll5=cfg.fix_f_parameter_ll5,
     )
 
     return compute_predictions(
@@ -278,12 +281,18 @@ def get_regression_data(
 
 
 def fit_ll5(
-    concentration: np.ndarray, survival: np.ndarray, curve_fit_lib: str
+    concentration: np.ndarray,
+    survival: np.ndarray,
+    curve_fit_lib: str,
+    fix_f_parameter_ll5: Optional[float],
 ) -> Tuple[Callable, np.array]:
     fixed_params = {
         "c": 0,
         "d": survival[0],
     }
+
+    if fix_f_parameter_ll5 is not None:
+        fixed_params["f"] = fix_f_parameter_ll5
 
     if curve_fit_lib == "scipy":
         params = fit_scipy(
