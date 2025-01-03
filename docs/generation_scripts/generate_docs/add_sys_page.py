@@ -48,10 +48,10 @@ for path, stressor_name, hormesis_index in examples:
     lines.append(f"""## {nicer(data.meta.title)} -  {nicer(stressor_name)}
                  
 ### Standard SAM Prediction:
-![{data.meta.experiment_name} SAM Prediction](imgs/{dir4imgs.name}/{base_path}_sam.png)
+![{data.meta.experiment_name} SAM Prediction](imgs/{base_path}_sam.png)
 
 ### System Stress Adjusted Prediction: 
-![{data.meta.experiment_name} SYS Adjusted Prediction](imgs/{dir4imgs.name}/{base_path}_sys.png)
+![{data.meta.experiment_name} SYS Adjusted Prediction](imgs/{base_path}_sys.png)
 
 
 """)
