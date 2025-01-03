@@ -9,22 +9,22 @@ from sam import SAMPrediction
 
 
 def generate_example_prediction() -> SAMPrediction:
-    control_series = DoseResponseSeries(
+    control_series = CauseEffectData(
         concentration=[0, 0.1, 0.5, 1.0, 5.0],
         survival_rate=[100, 98, 85, 50, 10],
         name="Control",
     )
 
-    stressor_series = DoseResponseSeries(
+    stressor_series = CauseEffectData(
         concentration=[0, 0.1, 0.5, 1.0, 5.0],
         survival_rate=[100, 95, 70, 30, 5],
         name="Stressor",
     )
 
     # Run SAM prediction
-    prediction: SAMPrediction = sam_prediction(
-        main_series=control_series,
-        stressor_series=stressor_series,
+    prediction: SAMPrediction = generate_sam_prediction(
+        control=control_series,
+        co_stressor=stressor_series,
         settings=STANDARD_SAM_SETTING,
         max_survival=100,
     )
@@ -64,7 +64,7 @@ def test_saving_and_loading_stays_same_real_data():
     # Generate the example prediction
     data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
 
-    original_prediction = sam_prediction(
+    original_prediction = generate_sam_prediction(
         data.main_series, data.additional_stress["Food_1% + Prochloraz_1"], data.meta
     )
 

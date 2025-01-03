@@ -6,10 +6,10 @@ import numpy as np
 import pandas as pd
 
 from sam.data_formats import ExperimentData, load_files
-from sam.dose_reponse_fit import (
-    DRF_Settings,
-    ModelPredictions,
-    dose_response_fit,
+from sam.concentration_response_fits import (
+    CRF_Settings,
+    ConcentrationResponsePrediction,
+    concentration_response_fit,
     survival_to_stress,
 )
 from sam.helpers import (
@@ -52,9 +52,9 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
 
     for path, data in load_files():
         meta = data.meta
-        res: ModelPredictions = dose_response_fit(
+        res: ConcentrationResponsePrediction = concentration_response_fit(
             data.main_series,
-            DRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
+            CRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
         cleaned_func, _, popt = predict_cleaned_curv(data)
@@ -84,7 +84,7 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
 
     df = pd.DataFrame(dfs)
 
-    def compute_normalised_curve(model: ModelPredictions):
+    def compute_normalised_curve(model: ConcentrationResponsePrediction):
         if np.isnan(model.lc1):
             print("nan")
             model.lc1 = 0.0

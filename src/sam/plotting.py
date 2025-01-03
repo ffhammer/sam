@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from .dose_reponse_fit import ModelPredictions
-from .data_formats import ExperimentData, ExperimentMetaData, DoseResponseSeries
+from .concentration_response_fits import ConcentrationResponsePrediction
+from .data_formats import ExperimentData, ExperimentMetaData, CauseEffectData
 from typing import TYPE_CHECKING
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
@@ -21,15 +21,15 @@ def darken_color(color, amount=0.5):
         return color
 
 
-def plot_fit_prediction(model: ModelPredictions, title=None):
+def plot_fit_prediction(model: ConcentrationResponsePrediction, title=None):
     """
     Plots the complete set of survival and stress curves on both linear and logarithmic scales.
     """
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
 
     plot_survival(
-        model.concentrations,
-        model.survival_curve,
+        model.concentration,
+        model.survival,
         ax=axs[0, 0],
         orig_series=model.inputs,
         xscale="linear",
@@ -39,8 +39,8 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title="Survival",
     )
     plot_stress(
-        model.concentrations,
-        model.stress_curve,
+        model.concentration,
+        model.general_stress,
         ax=axs[0, 1],
         xscale="linear",
         show_legend=False,
@@ -49,8 +49,8 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title="Stress",
     )
     plot_survival(
-        model.concentrations,
-        model.survival_curve,
+        model.concentration,
+        model.survival,
         ax=axs[1, 0],
         orig_series=model.inputs,
         xscale="log",
@@ -60,8 +60,8 @@ def plot_fit_prediction(model: ModelPredictions, title=None):
         title=None,
     )
     plot_stress(
-        model.concentrations,
-        model.stress_curve,
+        model.concentration,
+        model.general_stress,
         ax=axs[1, 1],
         xscale="log",
         show_legend=False,
@@ -116,7 +116,7 @@ def plot_survival(
     concentration_curve: np.ndarray,
     survival_curve: np.ndarray,
     ax,
-    orig_series: Optional[DoseResponseSeries] = None,
+    orig_series: Optional[CauseEffectData] = None,
     xscale="linear",
     show_legend=False,
     xlab="Concentration",

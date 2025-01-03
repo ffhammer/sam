@@ -1,10 +1,10 @@
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
-from sam.dose_reponse_fit import (
-    dose_response_fit,
-    ModelPredictions,
-    DRF_Settings,
+from sam.concentration_response_fits import (
+    concentration_response_fit,
+    ConcentrationResponsePrediction,
+    CRF_Settings,
 )
 import matplotlib.pyplot as plt
 from sam.data_formats import load_files
@@ -26,9 +26,9 @@ from img_creation.utils import predict_cleaned_curv
 def cleaned_difference_plots():
     for path, data in tqdm(load_files()):
         meta = data.meta
-        res: ModelPredictions = dose_response_fit(
+        res: ConcentrationResponsePrediction = concentration_response_fit(
             data.main_series,
-            DRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
+            CRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
         cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
@@ -55,10 +55,10 @@ def cleaned_difference_plots():
             label="orig",
             color=color,
         )
-        plt.plot(res.concentrations, res.survival_curve, label="Raw")
+        plt.plot(res.concentration, res.survival, label="Raw")
         plt.plot(
-            res.concentrations,
-            cleaned_func(res.concentrations) * meta.max_survival,
+            res.concentration,
+            cleaned_func(res.concentration) * meta.max_survival,
             label="Cleaned",
         )
         plt.axvline(lc1, 0, 1, color="red", ls="--")

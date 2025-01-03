@@ -11,13 +11,17 @@ from .io import make_np_config
 from typing import Optional
 from .data_formats import ExperimentMetaData
 from .stress_addition_model import (
-    sam_prediction,
+    generate_sam_prediction,
     SAMPrediction,
     STANDARD_SAM_SETTING,
     SAM_Settings,
 )
-from .data_formats import DoseResponseSeries
-from .dose_reponse_fit import DRF_Settings, ModelPredictions, dose_response_fit
+from .data_formats import CauseEffectData
+from .concentration_response_fits import (
+    CRF_Settings,
+    ConcentrationResponsePrediction,
+    concentration_response_fit,
+)
 from .helpers import pad_c0, weibull_2param, weibull_3param, detect_hormesis_index
 from .plotting import SCATTER_SIZE
 
@@ -75,8 +79,8 @@ def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index)
 @dataclass_json
 @dataclass
 class CleanedPred:
-    original_series: DoseResponseSeries
-    original_fit: ModelPredictions
+    original_series: CauseEffectData
+    original_fit: ConcentrationResponsePrediction
     additional_stress: float
     hormesis_index: int
     predicted_system_stress: np.ndarray = make_np_config()
@@ -88,15 +92,15 @@ class CleanedPred:
         ax2 = fig.axes[1]
 
         ax1.plot(
-            self.result.main_fit.concentrations,
-            self.original_fit.survival_curve,
+            self.result.control.concentration,
+            self.original_fit.survival,
             label="Original",
             linestyle="--",
             c="black",
         )
         ax2.plot(
-            self.result.main_fit.concentrations,
-            self.original_fit.stress_curve,
+            self.result.control.concentration,
+            self.original_fit.general_stress,
             label="Original",
             linestyle="--",
             c="black",
@@ -119,8 +123,8 @@ class CleanedPred:
 
 
 def predict_with_hormesis_cancelled(
-    main_series: DoseResponseSeries,
-    stressor_series: DoseResponseSeries,
+    main_series: CauseEffectData,
+    stressor_series: CauseEffectData,
     additional_stress: float,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
@@ -145,15 +149,17 @@ def predict_with_hormesis_cancelled(
         )
     max_survival = meta.max_survival if max_survival is None else max_survival
 
-    dose_cfg = DRF_Settings(
+    dose_cfg = CRF_Settings(
         max_survival=max_survival,
-        param_d_norm=settings.param_d_norm,
+        param_d_norm=settings.normalize_survival_for_stress_conversion,
         beta_q=settings.beta_q,
         beta_p=settings.beta_p,
         curve_fit_lib=settings.curve_fit_lib,
     )
 
-    old_fit: ModelPredictions = dose_response_fit(main_series, dose_cfg)
+    old_fit: ConcentrationResponsePrediction = concentration_response_fit(
+        main_series, dose_cfg
+    )
 
     fitted_model_without_hormesis, _ = pred_surv_without_hormesis(
         pad_c0(main_series.concentration),
@@ -173,22 +179,22 @@ def predict_with_hormesis_cancelled(
 
     with_add_stress[0] = main_series.survival_rate[0]
 
-    new_main_series = DoseResponseSeries(
+    new_main_series = CauseEffectData(
         main_series.concentration,
         survival_rate=with_add_stress,
         name=f"{main_series.name}_with_add_stress_{additional_stress}",
     )
 
-    prediction: SAMPrediction = sam_prediction(
-        main_series=new_main_series,
-        stressor_series=stressor_series,
+    prediction: SAMPrediction = generate_sam_prediction(
+        control=new_main_series,
+        co_stressor=stressor_series,
         meta=meta,
         max_survival=max_survival,
         settings=settings,
     )
 
     predicted_system_stress = settings.survival_to_stress(
-        fitted_model_without_hormesis(prediction.main_fit.concentrations)
+        fitted_model_without_hormesis(prediction.control.concentration)
     )
 
     return CleanedPred(

@@ -1,7 +1,7 @@
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
-from sam.dose_reponse_fit import survival_to_stress
+from sam.concentration_response_fits import survival_to_stress
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt

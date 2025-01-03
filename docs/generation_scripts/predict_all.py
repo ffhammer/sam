@@ -1,7 +1,11 @@
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
-from sam.stress_addition_model import sam_prediction, get_sam_lcs, STANDARD_SAM_SETTING
+from sam.stress_addition_model import (
+    generate_sam_prediction,
+    get_sam_lcs,
+    STANDARD_SAM_SETTING,
+)
 from sam.plotting import plot_sam_prediction
 from sam.data_formats import load_datapoints
 import os
@@ -15,7 +19,7 @@ SETTINGS = STANDARD_SAM_SETTING
 
 def compute_all(plot: bool, dir4imgs: str):
     for path, data, name, val in tqdm(load_datapoints()):
-        res = sam_prediction(
+        res = generate_sam_prediction(
             data.main_series,
             val,
             data.meta,

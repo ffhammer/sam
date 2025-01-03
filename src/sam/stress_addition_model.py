@@ -7,14 +7,14 @@ from dataclasses_json import config, dataclass_json
 from matplotlib.figure import Figure
 
 from .data_formats import (
-    DoseResponseSeries,
+    CauseEffectData,
     ExperimentMetaData,
 )
-from .dose_reponse_fit import (
-    DRF_Settings,
-    ModelPredictions,
+from .concentration_response_fits import (
+    CRF_Settings,
+    ConcentrationResponsePrediction,
     Transforms,
-    dose_response_fit,
+    concentration_response_fit,
 )
 from .helpers import (
     Predicted_LCs,
@@ -32,7 +32,7 @@ class SAM_Settings:
     """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions."""
 
     #: If `True`, normalizes survival values based on environmental stress.
-    param_d_norm: bool = False
+    normalize_survival_for_stress_conversion: bool = False
 
     #: Defines the formula used to calculate environmental stress. Supported options:
     #: - `"div"`: `additional_stress = stressor / control`
@@ -81,18 +81,18 @@ class SAM_Settings:
 @dataclass_json
 @dataclass
 class SAMPrediction:
-    main_fit: ModelPredictions
-    stressor_fit: ModelPredictions
-    predicted_survival_curve: np.ndarray = make_np_config()
-    predicted_stress_curve: np.ndarray = make_np_config()
+    control: ConcentrationResponsePrediction
+    co_stressor: ConcentrationResponsePrediction
+    predicted_survival: np.ndarray = make_np_config()
+    predicted_general_stress: np.ndarray = make_np_config()
     additional_stress: float
     max_survival: float
 
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
         lcs = (
             get_sam_lcs(
-                stress_fit=self.stressor_fit,
-                sam_sur=self.predicted_survival_curve,
+                stress_fit=self.co_stressor,
+                sam_sur=self.predicted_survival,
                 max_survival=self.max_survival,
             )
             if with_lcs
@@ -116,13 +116,13 @@ class SAMPrediction:
 
 
 NEW_STANDARD = SAM_Settings(
-    param_d_norm=False,
+    normalize_survival_for_stress_conversion=False,
     stress_form="stress_sub",
     stress_intercept_in_survival=0.9995,
     max_control_survival=0.995,
 )
 STANDARD_SAM_SETTING = SAM_Settings(
-    param_d_norm=True,
+    normalize_survival_for_stress_conversion=True,
     stress_form="div",
     stress_intercept_in_survival=1,
     max_control_survival=1,
@@ -130,9 +130,9 @@ STANDARD_SAM_SETTING = SAM_Settings(
 )
 
 
-def sam_prediction(
-    main_series: DoseResponseSeries,
-    stressor_series: DoseResponseSeries,
+def generate_sam_prediction(
+    control: CauseEffectData,
+    co_stressor: CauseEffectData,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
@@ -169,17 +169,17 @@ def sam_prediction(
         )
     max_survival = meta.max_survival if max_survival is None else max_survival
 
-    dose_cfg = DRF_Settings(
+    dose_cfg = CRF_Settings(
         max_survival=max_survival,
-        param_d_norm=settings.param_d_norm,
+        param_d_norm=settings.normalize_survival_for_stress_conversion,
         beta_q=settings.beta_q,
         beta_p=settings.beta_p,
         curve_fit_lib=settings.curve_fit_lib,
         fix_f_parameter_ll5=settings.fix_f_parameter_ll5,
     )
 
-    main_fit = dose_response_fit(main_series, cfg=dose_cfg)
-    stressor_fit = dose_response_fit(stressor_series, cfg=dose_cfg)
+    main_fit = concentration_response_fit(control, cfg=dose_cfg)
+    stressor_fit = concentration_response_fit(co_stressor, cfg=dose_cfg)
 
     sur2stress = settings.survival_to_stress
     stress2sur = settings.stress_to_survival
@@ -208,9 +208,9 @@ def sam_prediction(
         settings.stress_intercept_in_survival
     )
 
-    predicted_stress_curve = np.clip(main_fit.stress_curve + additional_stress, 0, 1)
+    predicted_stress_curve = np.clip(main_fit.general_stress + additional_stress, 0, 1)
 
-    if settings.param_d_norm:
+    if settings.normalize_survival_for_stress_conversion:
         predicted_survival_curve = (
             stress2sur(predicted_stress_curve)
             * main_fit.optim_param["d"]
@@ -230,7 +230,7 @@ def sam_prediction(
 
 
 def get_sam_lcs(
-    stress_fit: ModelPredictions,
+    stress_fit: ConcentrationResponsePrediction,
     sam_sur: np.ndarray,
     max_survival: float,
 ) -> Predicted_LCs:
@@ -248,14 +248,14 @@ def get_sam_lcs(
     stress_lc50 = compute_lc(optim_param=stress_fit.optim_param, lc=50)
 
     sam_lc10 = compute_lc_from_curve(
-        stress_fit.concentrations,
+        stress_fit.concentration,
         sam_sur,
         lc=10,
         survival_max=max_survival,
         c0=stress_fit.optim_param["d"],
     )
     sam_lc50 = compute_lc_from_curve(
-        stress_fit.concentrations,
+        stress_fit.concentration,
         sam_sur,
         lc=50,
         survival_max=max_survival,

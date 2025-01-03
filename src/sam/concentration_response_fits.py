@@ -7,7 +7,7 @@ import numpy as np
 from dataclasses_json import config, dataclass_json
 from scipy.optimize import curve_fit
 import py_lmcurve_ll5
-from .data_formats import DoseResponseSeries
+from .data_formats import CauseEffectData
 from .helpers import compute_lc, ll5, pad_c0
 from .io import make_np_config
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
@@ -20,7 +20,7 @@ CONC0_MIN_EXP = -100
 
 @dataclass_json
 @dataclass
-class DRF_Settings:
+class CRF_Settings:
     """
     Configuration settings for dose-response fitting.
 
@@ -68,12 +68,12 @@ class DRF_Settings:
         )
 
 
-STANDARD_DRF_SETTING = DRF_Settings()
+STANDARD_DRF_SETTING = CRF_Settings()
 
 
 @dataclass_json
 @dataclass
-class ModelPredictions:
+class ConcentrationResponsePrediction:
     """
     Contains the results of model predictions for dose-response data.
 
@@ -82,13 +82,13 @@ class ModelPredictions:
     """
 
     #: Concentration values for the fitted curve.
-    concentrations: np.ndarray = make_np_config()
+    concentration: np.ndarray = make_np_config()
 
     #: Array of predicted survival values.
-    survival_curve: np.ndarray = make_np_config()
+    survival: np.ndarray = make_np_config()
 
     #: Array of computed stress values from survival data.
-    stress_curve: np.ndarray = make_np_config()
+    general_stress: np.ndarray = make_np_config()
 
     #: Array of predicted survival values for input concentrations.
     predicted_survival: np.ndarray = make_np_config()
@@ -103,10 +103,10 @@ class ModelPredictions:
     lc99: float
 
     #: Input series of dose-response data provided to the model.
-    inputs: DoseResponseSeries
+    inputs: CauseEffectData
 
     #: Settings used for the dose-response fitting.
-    cfg: DRF_Settings
+    cfg: CRF_Settings
 
     #: Concentration values after applying transformations (before fitting).
     regress_conc: np.ndarray = make_np_config()
@@ -131,10 +131,10 @@ class ModelPredictions:
             return cls.from_json(f.read())
 
 
-def dose_response_fit(
-    dose_response_data: DoseResponseSeries,
-    cfg: DRF_Settings = STANDARD_DRF_SETTING,
-) -> ModelPredictions:
+def concentration_response_fit(
+    dose_response_data: CauseEffectData,
+    cfg: CRF_Settings = STANDARD_DRF_SETTING,
+) -> ConcentrationResponsePrediction:
     """
     Fits a five-parameter log-logistic (LL5) model to dose-response data.
 
@@ -204,11 +204,11 @@ def dose_response_fit(
 def compute_predictions(
     model,
     optim_param: np.array,
-    inputs: DoseResponseSeries,
-    cfg: DRF_Settings,
+    inputs: CauseEffectData,
+    cfg: CRF_Settings,
     regress_conc: np.ndarray,
     regress_surv: np.ndarray,
-) -> ModelPredictions:
+) -> ConcentrationResponsePrediction:
     """
     Computes the survival and stress predictions based on the fitted model.
 
@@ -241,10 +241,10 @@ def compute_predictions(
         stress_curve = cfg.survival_to_stress(pred_survival)
 
     predicted_survival = model(padded_concentration)
-    return ModelPredictions(
-        concentrations=concentration_curve,
-        survival_curve=survival_curve,
-        stress_curve=stress_curve,
+    return ConcentrationResponsePrediction(
+        concentration=concentration_curve,
+        survival=survival_curve,
+        general_stress=stress_curve,
         predicted_survival=predicted_survival,
         optim_param=optim_param,
         lc1=lc1,
@@ -259,7 +259,7 @@ def compute_predictions(
 def get_regression_data(
     orig_concentration: np.ndarray,
     orig_survival_observerd: np.ndarray,
-    cfg: DRF_Settings = DRF_Settings(),
+    cfg: CRF_Settings = CRF_Settings(),
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Prepares the data for regression analysis, handling hormesis concentration if provided.

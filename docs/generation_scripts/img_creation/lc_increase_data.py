@@ -10,12 +10,16 @@ from scipy.optimize import brentq
 from tqdm import tqdm
 
 from sam.data_formats import load_datapoints, load_files, read_data
-from sam.dose_reponse_fit import DRF_Settings, dose_response_fit, survival_to_stress
+from sam.concentration_response_fits import (
+    CRF_Settings,
+    concentration_response_fit,
+    survival_to_stress,
+)
 from sam.helpers import compute_lc
 from sam.stress_addition_model import (
     STANDARD_SAM_SETTING,
     get_sam_lcs,
-    sam_prediction,
+    generate_sam_prediction,
     stress_to_survival,
     survival_to_stress,
 )
@@ -51,15 +55,15 @@ def find_lc_brentq(func, lc, min_v=1e-8, max_v=100000):
 def compute_lc_trajectory(path: str):
     data = read_data(path)
 
-    cfg = DRF_Settings(
+    cfg = CRF_Settings(
         max_survival=data.meta.max_survival,
         param_d_norm=True,
     )
 
-    fit = dose_response_fit(data.main_series, cfg)
+    fit = concentration_response_fit(data.main_series, cfg)
     cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
 
-    x = fit.concentrations
+    x = fit.concentration
 
     lcs = []
 
@@ -117,7 +121,7 @@ def gen_experiment_res_frame(lc10, lc50):
     for path, data, stress_name, stress_series in load_datapoints():
         meta = data.meta
 
-        res = sam_prediction(
+        res = generate_sam_prediction(
             data.main_series,
             stress_series,
             data.meta,
@@ -125,13 +129,13 @@ def gen_experiment_res_frame(lc10, lc50):
         )
 
         lcs = get_sam_lcs(
-            stress_fit=res.stressor_fit,
-            sam_sur=res.predicted_survival_curve,
+            stress_fit=res.co_stressor,
+            sam_sur=res.predicted_survival,
             max_survival=data.meta.max_survival,
         )
 
-        main_lc10 = compute_lc(optim_param=res.main_fit.optim_param, lc=10)
-        main_lc50 = compute_lc(optim_param=res.main_fit.optim_param, lc=50)
+        main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
+        main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)
 
         dfs.append(
             {
@@ -139,8 +143,8 @@ def gen_experiment_res_frame(lc10, lc50):
                 "days": meta.days,
                 "chemical": meta.main_stressor,
                 "organism": meta.organism,
-                "main_fit": res.main_fit,
-                "stress_fit": res.stressor_fit,
+                "main_fit": res.control,
+                "stress_fit": res.co_stressor,
                 "stress_name": stress_name,
                 "main_lc10": main_lc10,
                 "main_lc50": main_lc50,

@@ -55,7 +55,7 @@ class ExperimentMetaData:
 
 @dataclass_json
 @dataclass
-class DoseResponseSeries:
+class CauseEffectData:
     """
     Represents a dose-response data series for use in `sam.dose_response_fit`.
 
@@ -74,7 +74,7 @@ class DoseResponseSeries:
     Example:
         Create a dose-response series for use in the SAM model:
 
-        >>> series = DoseResponseSeries(
+        >>> series = CauseEffectData(
         >>>     concentration=[0, 1.0, 2.5],
         >>>     survival_rate=[100, 95, 85],
         >>>     name="Example Data"
@@ -118,7 +118,7 @@ class DoseResponseSeries:
             raise ValueError("survival_observerd must be none NaN")
 
     def __eq__(self, other):
-        if not isinstance(other, DoseResponseSeries):
+        if not isinstance(other, CauseEffectData):
             return False
         return (
             self.name == other.name
@@ -194,10 +194,10 @@ class ExperimentData:
     """
 
     #: Dose-response data for the control series.
-    main_series: DoseResponseSeries
+    main_series: CauseEffectData
 
     #: Dictionary of additional stressor series, with stressor names as keys.
-    additional_stress: Dict[str, DoseResponseSeries]
+    additional_stress: Dict[str, CauseEffectData]
 
     #: Metadata for the experiment, including organism, duration, and conditions.
     meta: ExperimentMetaData
@@ -264,7 +264,7 @@ class ExperimentData:
                 f"Expected first two columns to be {expected_columns}, but got {df.columns[:2].tolist()}"
             )
         meta_data = read_metadata(path, df)
-        main_series = DoseResponseSeries(
+        main_series = CauseEffectData(
             df["concentration"].values,
             df["survival"].values,
             name="Toxicant",
@@ -277,7 +277,7 @@ class ExperimentData:
             if col not in ["concentration", "survival", "meta_category", "info"]
         ]
         additional_stress_dict = {
-            name: DoseResponseSeries(
+            name: CauseEffectData(
                 df["concentration"].values,
                 df[name].values,
                 name=name,
@@ -320,7 +320,7 @@ def load_files(
 def load_datapoints(
     filter: Optional[Callable] = None,
     data_dir: Optional[str] = None,
-) -> list[Tuple[str, ExperimentData, str, DoseResponseSeries]]:
+) -> list[Tuple[str, ExperimentData, str, CauseEffectData]]:
     files = load_files(filter=filter, data_dir=data_dir)
 
     return [
