@@ -22,7 +22,7 @@ CONC0_MIN_EXP = -100
 @dataclass
 class CRF_Settings:
     """
-    Configuration settings for dose-response fitting.
+    Configuration settings for concentration-response fitting.
 
     These mappings between stress and survival allow control over how survival values are transformed
     in the fitting process.
@@ -52,7 +52,7 @@ class CRF_Settings:
     #: p Parameter of beta distribution for survival to stress and vice versa conversions
     beta_p: float = 3.2
 
-    #: Controls which library is used for DoseResponse Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
+    #: Controls which library is used for Concentration Response Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
     curve_fit_lib: str = "scipy"
 
     fix_f_parameter_ll5: Optional[float] = None
@@ -68,14 +68,14 @@ class CRF_Settings:
         )
 
 
-STANDARD_DRF_SETTING = CRF_Settings()
+STANDARD_CRF_SETTING = CRF_Settings()
 
 
 @dataclass_json
 @dataclass
 class ConcentrationResponsePrediction:
     """
-    Contains the results of model predictions for dose-response data.
+    Contains the results of model predictions for concentration-response data.
 
     This structure is used to store key components of the model output, allowing access to curves
     and lethal concentration metrics.
@@ -102,10 +102,10 @@ class ConcentrationResponsePrediction:
     #: Lethal concentration value for 99% of the population.
     lc99: float
 
-    #: Input series of dose-response data provided to the model.
+    #: Input series of concentration-response data provided to the model.
     inputs: CauseEffectData
 
-    #: Settings used for the dose-response fitting.
+    #: Settings used for the concentration-response fitting.
     cfg: CRF_Settings
 
     #: Concentration values after applying transformations (before fitting).
@@ -132,34 +132,33 @@ class ConcentrationResponsePrediction:
 
 
 def concentration_response_fit(
-    dose_response_data: CauseEffectData,
-    cfg: CRF_Settings = STANDARD_DRF_SETTING,
+    concentration_response_data: CauseEffectData,
+    cfg: CRF_Settings = STANDARD_CRF_SETTING,
 ) -> ConcentrationResponsePrediction:
     """
-    Fits a five-parameter log-logistic (LL5) model to dose-response data.
+    Fits a five-parameter log-logistic (LL5) model to concentration-response data.
 
     Parameters:
-        dose_response_data (DoseResponseSeries): Series of concentration and survival data points.
-        cfg (DRF_Settings, optional): Configuration settings for dose-response fitting.
-            Defaults to `STANDARD_DRF_SETTING`.
+        concentration_response_data (CauseEffectData): Series of concentration and survival data points.
+        cfg (CRF_Settings, optional): Configuration settings for concentration-response fitting.
+            Defaults to `STANDARD_CRF_SETTING`.
 
     Returns:
-        ModelPredictions: Contains the fitted model's predictions, survival curve, stress curve,
-        and lethal concentration values (e.g., LC1, LC99).
+        ConcentrationResponsePrediction
 
-    This function takes dose-response data and fits an LL5 model to predict survival as a function
+    This function takes concentration-response data and fits an LL5 model to predict survival as a function
     of concentration, applying any specified transformations as needed.
     """
 
     if cfg.max_survival is None:
-        if dose_response_data.meta is None:
+        if concentration_response_data.meta is None:
             raise ValueError(
-                "Either cfg.max_survival or dose_response_data.meta must be none None to infere the maximum Survival!"
+                "Either cfg.max_survival or concentration_response_data.meta must be none None to infere the maximum Survival!"
             )
-        cfg.survival_max = dose_response_data.meta.max_survival
+        cfg.survival_max = concentration_response_data.meta.max_survival
 
-    concentration = dose_response_data.concentration
-    survival_observerd = dose_response_data.survival_rate
+    concentration = concentration_response_data.concentration
+    survival_observerd = concentration_response_data.survival_rate
 
     if cfg.max_survival <= 0:
         raise ValueError("survival_max must be >= 0")
@@ -194,7 +193,7 @@ def concentration_response_fit(
     return compute_predictions(
         model=fitted_func,
         optim_param=optim_param,
-        inputs=dose_response_data,
+        inputs=concentration_response_data,
         cfg=cfg,
         regress_conc=regress_conc,
         regress_surv=regress_surv,
@@ -209,19 +208,6 @@ def compute_predictions(
     regress_conc: np.ndarray,
     regress_surv: np.ndarray,
 ) -> ConcentrationResponsePrediction:
-    """
-    Computes the survival and stress predictions based on the fitted model.
-
-    Args:
-        model (Callable): The fitted Weibull model.
-        optim_param (np.array): Optimized parameters.
-        inputs (DoseResponseSeries): The input data.
-        cfg (StandardSettings): Configuration settings.
-
-    Returns:
-        ModelPredictions: The model predictions.
-    """
-
     lc1 = compute_lc(optim_param=optim_param, lc=1)
     lc99 = compute_lc(optim_param=optim_param, lc=99)
 
@@ -261,18 +247,6 @@ def get_regression_data(
     orig_survival_observerd: np.ndarray,
     cfg: CRF_Settings = CRF_Settings(),
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Prepares the data for regression analysis, handling hormesis concentration if provided.
-
-    Args:
-        orig_concentration (np.ndarray): Original concentration values.
-        orig_survival_observerd (np.ndarray): Original observed survival values.
-        cfg (StandardSettings, optional): Configuration settings. Defaults to StandardSettings().
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray, int]: Prepared concentration and survival data, and hormesis index.
-    """
-
     survival = orig_survival_observerd / cfg.max_survival
 
     transform_func = cfg.transform

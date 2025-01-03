@@ -17,13 +17,13 @@ stressor_series = CauseEffectData(
 
 # Run SAM prediction
 prediction = generate_sam_prediction(
-    control=control_series,
-    co_stressor=stressor_series,
+    control_data=control_series,
+    co_stressor_data=stressor_series,
     max_survival=100,
 )
 
 
 # Plot results
-fig = prediction.plot(title="SAM Prediction Example")
+fig = prediction.plot(title="SAM Prediction Example", with_lcs=True)
 
 plt.show()

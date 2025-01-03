@@ -6,6 +6,10 @@ import numpy as np
 
 from sam import *
 from sam import SAMPrediction
+from sam.system_stress import (
+    SysAdjustedSamPrediction,
+    generate_sys_adjusted_sam_prediction,
+)
 
 
 def generate_example_prediction() -> SAMPrediction:
@@ -23,8 +27,8 @@ def generate_example_prediction() -> SAMPrediction:
 
     # Run SAM prediction
     prediction: SAMPrediction = generate_sam_prediction(
-        control=control_series,
-        co_stressor=stressor_series,
+        control_data=control_series,
+        co_stressor_data=stressor_series,
         settings=STANDARD_SAM_SETTING,
         max_survival=100,
     )
@@ -32,7 +36,7 @@ def generate_example_prediction() -> SAMPrediction:
     return prediction
 
 
-def test_saving_and_loading_stays_same():
+def test_saving_and_loading_stays_same_sam():
     # Generate the example prediction
     original_prediction: SAMPrediction = generate_example_prediction()
 
@@ -60,7 +64,48 @@ def test_saving_and_loading_stays_same():
             os.remove(temp_file_path)
 
 
-def test_saving_and_loading_stays_same_real_data():
+def gen_sys_adjusted_pred() -> SysAdjustedSamPrediction:
+    data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
+    ser = data.additional_stress["Food_1% + Prochloraz_100"]
+
+    return generate_sys_adjusted_sam_prediction(
+        control_data=data.main_series,
+        co_stressor_data=ser,
+        additional_stress=0.18,
+        hormesis_index=3,
+        meta=data.meta,
+    )
+
+
+def test_saving_and_loading_stays_same_sys_adjusted_sam():
+    # Generate the example prediction
+    original_prediction: SysAdjustedSamPrediction = gen_sys_adjusted_pred()
+
+    # Save to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+        original_prediction.save_to_file(temp_file.name)
+        temp_file_path = temp_file.name
+
+    try:
+        # Deserialize
+        loaded_prediction = SysAdjustedSamPrediction.load_from_file(temp_file_path)
+
+        # Convert both original and loaded predictions to dictionaries
+        original_dict = asdict(original_prediction)
+        loaded_dict = asdict(loaded_prediction)
+
+        # Compare the dictionaries
+        assert dict_eq_manual(
+            original_dict, loaded_dict
+        ), "The original and loaded predictions do not match."
+
+    finally:
+        # Ensure the temporary file is deleted after the test
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+
+def test_saving_and_loading_stays_same_for_sam_with_real_data():
     # Generate the example prediction
     data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
 

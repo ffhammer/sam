@@ -10,7 +10,7 @@ from .concentration_response_fits import (
     concentration_response_fit,
     CRF_Settings,
     ConcentrationResponsePrediction,
-    STANDARD_DRF_SETTING,
+    STANDARD_CRF_SETTING,
 )
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
 from .stress_addition_model import (
@@ -20,6 +20,8 @@ from .stress_addition_model import (
     get_sam_lcs,
     SAMPrediction,
 )
+from .system_stress import SysAdjustedSamPrediction, generate_sam_prediction
+
 from .plotting import plot_sam_prediction
 
 __all__ = [
@@ -31,7 +33,7 @@ __all__ = [
     "load_files",
     "concentration_response_fit",
     "CRF_Settings",
-    "STANDARD_DRF_SETTING",
+    "STANDARD_CRF_SETTING",
     "ConcentrationResponsePrediction",
     "stress_to_survival",
     "survival_to_stress",
@@ -41,4 +43,6 @@ __all__ = [
     "plot_sam_prediction",
     "get_sam_lcs",
     "SAMPrediction",
+    "SysAdjustedSamPrediction",
+    "generate_sam_prediction",
 ]

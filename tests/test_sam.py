@@ -1,7 +1,10 @@
-from sam.stress_addition_model import generate_sam_prediction, STANDARD_SAM_SETTING
-from sam.data_formats import load_datapoints
-import pytest
 from copy import deepcopy
+
+import matplotlib.pyplot as plt
+import pytest
+
+from sam.data_formats import load_datapoints
+from sam.stress_addition_model import STANDARD_SAM_SETTING, generate_sam_prediction
 
 SETTINGS = STANDARD_SAM_SETTING
 
@@ -22,3 +25,6 @@ def test_dose_response_fit_and_plot(datapoint):
 
     assert frozen_main_series == res.control.inputs, "Mutated Data"
     assert frozen_val_series == res.co_stressor.inputs, "Mutated Data"
+
+    res.plot(with_lcs=True)
+    plt.close()

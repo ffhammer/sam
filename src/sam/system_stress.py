@@ -1,29 +1,29 @@
-from warnings import warn
+import os
 from dataclasses import dataclass
-from dataclasses_json import dataclass_json
+from typing import Optional
+from warnings import warn
 
 import numpy as np
+from dataclasses_json import dataclass_json
+from matplotlib.figure import Figure
 from scipy.optimize import curve_fit
 from sklearn.linear_model import LinearRegression
-from matplotlib.figure import Figure
 
-from .io import make_np_config
-from typing import Optional
-from .data_formats import ExperimentMetaData
-from .stress_addition_model import (
-    generate_sam_prediction,
-    SAMPrediction,
-    STANDARD_SAM_SETTING,
-    SAM_Settings,
-)
-from .data_formats import CauseEffectData
 from .concentration_response_fits import (
-    CRF_Settings,
     ConcentrationResponsePrediction,
+    CRF_Settings,
     concentration_response_fit,
 )
-from .helpers import pad_c0, weibull_2param, weibull_3param, detect_hormesis_index
+from .data_formats import CauseEffectData, ExperimentMetaData
+from .helpers import detect_hormesis_index, pad_c0, weibull_2param, weibull_3param
+from .io import make_np_config
 from .plotting import SCATTER_SIZE
+from .stress_addition_model import (
+    STANDARD_SAM_SETTING,
+    SAM_Settings,
+    SAMPrediction,
+    generate_sam_prediction,
+)
 
 
 def fallback_linear_regression(x_data, y_data):
@@ -78,15 +78,35 @@ def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index)
 
 @dataclass_json
 @dataclass
-class CleanedPred:
+class SysAdjustedSamPrediction:
+    #: The unmodified input cause-effect data.
     original_series: CauseEffectData
+
+    #: The corresponding unmodified concentration-response fit.
     original_fit: ConcentrationResponsePrediction
+
+    #: Additional system-level stress manually added
     additional_stress: float
+
+    #: Index of original_series.survival_rate indicating the hormesis point, either provided or determined automatically.
     hormesis_index: int
+
+    #: Predicted system stress values after adjustment for hormesis of the input concentration series.
     predicted_system_stress: np.ndarray = make_np_config()
+
+    #: Resulting SAM prediction after system adjustment.
     result: SAMPrediction
 
     def plot(self, title: Optional[str] = None) -> Figure:
+        """
+        Plots the adjusted SAM prediction alongside the original fit and data.
+
+        Parameters:
+            title (Optional[str]): Title for the plot.
+
+        Returns:
+            Figure: A matplotlib figure containing the plot.
+        """
         fig = self.result.plot(title=title)
         ax1 = fig.axes[0]
         ax2 = fig.axes[1]
@@ -121,24 +141,96 @@ class CleanedPred:
         ax2.legend()
         return fig
 
+    def save_to_file(self, file_path: str) -> None:
+        """
+        Saves the SysAdjustedSamPrediction to a JSON file.
 
-def predict_with_hormesis_cancelled(
-    main_series: CauseEffectData,
-    stressor_series: CauseEffectData,
+        Parameters:
+            file_path (str): The file path to save the JSON data.
+        """
+        with open(file_path, "w") as f:
+            f.write(self.to_json())
+
+    @classmethod
+    def load_from_file(cls, file_path: str) -> "SysAdjustedSamPrediction":
+        """
+        Loads a SysAdjustedSamPrediction from a JSON file.
+
+        Parameters:
+            file_path (str): The file path to load the JSON data from.
+
+        Returns:
+            SysAdjustedSamPrediction: The loaded SysAdjustedSamPrediction.
+        """
+        if not os.path.isfile(file_path):
+            raise ValueError(f"Can't find file at {file_path}")
+
+        with open(file_path, "r") as f:
+            return cls.from_json(f.read())
+
+
+def generate_sys_adjusted_sam_prediction(
+    control_data: CauseEffectData,
+    co_stressor_data: CauseEffectData,
     additional_stress: float,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
     hormesis_index: Optional[int] = None,
-) -> CleanedPred:
+) -> SysAdjustedSamPrediction:
+    """
+    Generates a system-adjusted SAM prediction by modifying the control data's survival rate to account for system stress.
+
+    This function adjusts the control data to remove inherent system stress and replaces it with a manually specified
+    value (`additional_stress`). The adjustment process includes:
+
+    1. **Concentration-Response Fit on Adjusted Data**:
+       - Processes the input data to ignore sub-hormesis effects and sets the control survival rate (at concentration=0)
+         to 100%.
+       - Performs a concentration-response fit to approximate the effect without the inherent system stress.
+
+    2. **Prediction Without System Stress**:
+       - Predicts survival rates for the control_date.concentration values using the "cleaned" model (without system stress).
+
+    3. **Conversion to Stress, adding Additional Stress and Back to Survival**:
+       - Converts survival predictions to stress values, adds the manual `additional_stress`, and converts back to
+         survival rates.
+
+    4. **SAM Prediction**:
+       - Updates the adjusted control survival data and generates a new SAM prediction using the modified data.
+
+    Parameters:
+        control_data (CauseEffectData): The original control group concentration-response data.
+        co_stressor_data (CauseEffectData): The co-stressor concentration-response data.
+        additional_stress (float): The manually specified additional system stress to apply.
+        meta (Optional[ExperimentMetaData]): Metadata for the experiment. Used to infer `max_survival` if not provided.
+        max_survival (Optional[float]): The maximum survival rate. Overrides `meta.max_survival` if specified.
+        settings (SAM_Settings): Configuration settings for the SAM prediction.
+        hormesis_index (Optional[int]): Index of the hormesis point. If not provided, it will be detected automatically.
+
+    Returns:
+        SysAdjustedSamPrediction: The adjusted SAM prediction, including the modified control data, original fits, and
+        predicted system stress values.
+
+    Example:
+        ```python
+        prediction = generate_sys_adjusted_sam_prediction(
+            control_data=control,
+            co_stressor_data=co_stressor,
+            additional_stress=0.2,
+            meta=experiment_meta,
+            settings=custom_settings,
+        )
+        ```
+    """
     if hormesis_index is None:
         warn("Try to detect hormesis automatically")
-        hormesis_index = detect_hormesis_index(main_series.survival_rate)
+        hormesis_index = detect_hormesis_index(control_data.survival_rate)
 
     if (
         hormesis_index is None
         or hormesis_index < 0
-        or hormesis_index >= len(main_series.concentration)
+        or hormesis_index >= len(control_data.concentration)
     ):
         raise ValueError("Invalid hormesis index")
 
@@ -149,7 +241,7 @@ def predict_with_hormesis_cancelled(
         )
     max_survival = meta.max_survival if max_survival is None else max_survival
 
-    dose_cfg = CRF_Settings(
+    crf_cfg = CRF_Settings(
         max_survival=max_survival,
         param_d_norm=settings.normalize_survival_for_stress_conversion,
         beta_q=settings.beta_q,
@@ -158,16 +250,16 @@ def predict_with_hormesis_cancelled(
     )
 
     old_fit: ConcentrationResponsePrediction = concentration_response_fit(
-        main_series, dose_cfg
+        control_data, crf_cfg
     )
 
     fitted_model_without_hormesis, _ = pred_surv_without_hormesis(
-        pad_c0(main_series.concentration),
-        main_series.survival_rate / max_survival,
+        pad_c0(control_data.concentration),
+        control_data.survival_rate / max_survival,
         hormesis_index=hormesis_index,
     )
     cleaned_survival = fitted_model_without_hormesis(
-        pad_c0(main_series.concentration)
+        pad_c0(control_data.concentration)
     )  # pad to deal with log of 0 warning, will replace surv[0] anyways
 
     with_add_stress = (
@@ -177,17 +269,17 @@ def predict_with_hormesis_cancelled(
         * max_survival
     )
 
-    with_add_stress[0] = main_series.survival_rate[0]
+    with_add_stress[0] = control_data.survival_rate[0]
 
     new_main_series = CauseEffectData(
-        main_series.concentration,
+        control_data.concentration,
         survival_rate=with_add_stress,
-        name=f"{main_series.name}_with_add_stress_{additional_stress}",
+        name=f"{control_data.name}_with_add_stress_{additional_stress}",
     )
 
     prediction: SAMPrediction = generate_sam_prediction(
-        control=new_main_series,
-        co_stressor=stressor_series,
+        control_data=new_main_series,
+        co_stressor_data=co_stressor_data,
         meta=meta,
         max_survival=max_survival,
         settings=settings,
@@ -197,8 +289,8 @@ def predict_with_hormesis_cancelled(
         fitted_model_without_hormesis(prediction.control.concentration)
     )
 
-    return CleanedPred(
-        original_series=main_series,
+    return SysAdjustedSamPrediction(
+        original_series=control_data,
         original_fit=old_fit,
         result=prediction,
         additional_stress=additional_stress,

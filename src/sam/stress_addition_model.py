@@ -29,7 +29,7 @@ from .stress_survival_conversion import stress_to_survival, survival_to_stress
 @dataclass_json
 @dataclass
 class SAM_Settings:
-    """Settings for configuring the SAM (Stress Addition Model) used in dose-response predictions."""
+    """Settings for configuring the SAM (Stress Addition Model) used in concentration-response predictions."""
 
     #: If `True`, normalizes survival values based on environmental stress.
     normalize_survival_for_stress_conversion: bool = False
@@ -44,7 +44,7 @@ class SAM_Settings:
     #: Adds a constant factor to `additional_stress` for modifying survival predictions (default is `1`).
     stress_intercept_in_survival: float = 1
 
-    #: Upper bound on survival for control samples, useful for steep dose-response curves (default is `1`).
+    #: Upper bound on survival for control samples, useful for steep concentration-response curves (default is `1`).
     max_control_survival: float = 1
 
     #: Transformation function applied to regression data prior to model fitting.
@@ -81,14 +81,35 @@ class SAM_Settings:
 @dataclass_json
 @dataclass
 class SAMPrediction:
+    #: Fitted concentration-response prediction for the control data.
     control: ConcentrationResponsePrediction
+
+    #: Fitted concentration-response prediction for the co-stressor data.
     co_stressor: ConcentrationResponsePrediction
+
+    #: Array of survival predictions from the SAM model.
     predicted_survival: np.ndarray = make_np_config()
+
+    #: Array of general stress values corresponding to the predicted survival.
     predicted_general_stress: np.ndarray = make_np_config()
-    additional_stress: float
+
+    #: The additional stress assumed by the SAM model.
+    assumed_additional_stress: float
+
+    #: The range of the data. (normally 100 -> 100%, sometimes also 1 -> 100% or deviating values)
     max_survival: float
 
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
+        """
+        Plots the SAM prediction with optional lethal concentration (LC) indicators.
+
+        Parameters:
+            with_lcs (bool): Whether to include LC indicators in the plot.
+            title (Optional[str]): Title for the plot.
+
+        Returns:
+            Figure: A matplotlib figure containing the plot.
+        """
         lcs = (
             get_sam_lcs(
                 stress_fit=self.co_stressor,
@@ -103,11 +124,26 @@ class SAMPrediction:
         )
 
     def save_to_file(self, file_path: str) -> None:
+        """
+        Saves the SAM prediction to a JSON file.
+
+        Parameters:
+            file_path (str): The file path to save the JSON data.
+        """
         with open(file_path, "w") as f:
             f.write(self.to_json())
 
     @classmethod
     def load_from_file(cls, file_path: str) -> "SAMPrediction":
+        """
+        Loads a SAM prediction from a JSON file.
+
+        Parameters:
+            file_path (str): The file path to load the JSON data from.
+
+        Returns:
+            SAMPrediction: The loaded SAM prediction.
+        """
         if not os.path.isfile(file_path):
             raise ValueError(f"Can't find file at {file_path}")
 
@@ -131,8 +167,8 @@ STANDARD_SAM_SETTING = SAM_Settings(
 
 
 def generate_sam_prediction(
-    control: CauseEffectData,
-    co_stressor: CauseEffectData,
+    control_data: CauseEffectData,
+    co_stressor_data: CauseEffectData,
     meta: Optional[ExperimentMetaData] = None,
     max_survival: Optional[float] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
@@ -141,24 +177,18 @@ def generate_sam_prediction(
     using the Stress Addition Model (SAM).
 
     Parameters:
-        main_series (DoseResponseSeries): Dose-response data for the control group.
-        stressor_series (DoseResponseSeries): Dose-response data for the stressor condition.
+        control_data (CauseEffectData): Concentration-response data for the control group.
+        co_stressor_data (CauseEffectData): Concentration-response data for the stressor condition.
         meta (Optional[ExperimentMetaData]): Metadata, used to infer max survival if not provided.
         max_survival (Optional[float]): Maximum survival rate. Overrides `meta.max_survival` if given.
         settings (SAM_Settings): Configuration settings for SAM. Controls stress computation formula,
             normalization, and additional adjustments.
 
     Returns:
-        Tuple: Contains:
-            - `main_fit` (ModelPredictions): Predictions for the control data.
-            - `stressor_fit` (ModelPredictions): Predictions for the stressor data.
-            - `predicted_survival_curve` (np.ndarray): Predicted survival curve.
-            - `predicted_stress_curve` (np.ndarray): Predicted stress curve.
-            - `additional_stress` (float): Computed environmental stress level.
-
+        SAMPrediction
     Example:
         ```python
-        prediction = sam_prediction(main_series, stressor_series, settings=SAM_Settings(stress_form="div"))
+        prediction = generate_sam_prediction(control_data, co_stressor_data, settings=SAM_Settings(stress_form="div"))
         ```
     """
 
@@ -169,7 +199,7 @@ def generate_sam_prediction(
         )
     max_survival = meta.max_survival if max_survival is None else max_survival
 
-    dose_cfg = CRF_Settings(
+    crf_cfg = CRF_Settings(
         max_survival=max_survival,
         param_d_norm=settings.normalize_survival_for_stress_conversion,
         beta_q=settings.beta_q,
@@ -178,8 +208,8 @@ def generate_sam_prediction(
         fix_f_parameter_ll5=settings.fix_f_parameter_ll5,
     )
 
-    main_fit = concentration_response_fit(control, cfg=dose_cfg)
-    stressor_fit = concentration_response_fit(co_stressor, cfg=dose_cfg)
+    main_fit = concentration_response_fit(control_data, cfg=crf_cfg)
+    stressor_fit = concentration_response_fit(co_stressor_data, cfg=crf_cfg)
 
     sur2stress = settings.survival_to_stress
     stress2sur = settings.stress_to_survival

@@ -57,9 +57,9 @@ class ExperimentMetaData:
 @dataclass
 class CauseEffectData:
     """
-    Represents a dose-response data series for use in `sam.dose_response_fit`.
+    Represents a concentration-response data series for use in `sam.concentration_response_fit`.
 
-    This class holds concentration and survival rate data for dose-response modeling,
+    This class holds concentration and survival rate data for concentration-response modeling,
     ensuring that input data meets specific requirements essential for accurate modeling.
     The `concentration` values must be a sorted, unique, and non-negative sequence starting
     with a control value of 0, and both `concentration` and `survival_rate` arrays must be
@@ -72,7 +72,7 @@ class CauseEffectData:
         ValueError: If any `concentration` or `survival_rate` value is NaN.
 
     Example:
-        Create a dose-response series for use in the SAM model:
+        Create a concentration-response series for use in the SAM model:
 
         >>> series = CauseEffectData(
         >>>     concentration=[0, 1.0, 2.5],
@@ -87,7 +87,7 @@ class CauseEffectData:
     #: Array of survival rates corresponding to each concentration value, with matching length to `concentration`.
     survival_rate: np.ndarray = make_np_config()
 
-    #: Label for the dose-response series, used primarily in plotting.
+    #: Label for the concentration-response series, used primarily in plotting.
     name: str
 
     #: Additional experimental metadata, used mainly for internal purposes.
