@@ -16,7 +16,16 @@ if ! python docs/generation_scripts/predict_all.py --plot True --dir4imgs docs/i
     exit 1
 fi
 
+if ! python docs/generation_scripts/img_creation/sys_adjusted_imgs.py --dir4imgs docs/imgs/sys_adjusted/; then
+    echo "Error: Failed to run predictions and generate SAM plots with sys_adjusted_imgs.py."
+    exit 1
+fi
 
+
+if ! python docs/generation_scripts/generate_docs/add_sys_page.py --dir4imgs docs/imgs/sys_adjusted/; then
+    echo "Error: Failed to build sys page."
+    exit 1
+fi
 
 for file in docs/imgs/sam_predictions/*; do 
     if [[ "$file" == *" "* ]]; then

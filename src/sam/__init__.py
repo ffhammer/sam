@@ -20,7 +20,10 @@ from .stress_addition_model import (
     get_sam_lcs,
     SAMPrediction,
 )
-from .system_stress import SysAdjustedSamPrediction, generate_sam_prediction
+from .system_stress import (
+    SysAdjustedSamPrediction,
+    generate_sys_adjusted_sam_prediction,
+)
 
 from .plotting import plot_sam_prediction
 
@@ -44,5 +47,5 @@ __all__ = [
     "get_sam_lcs",
     "SAMPrediction",
     "SysAdjustedSamPrediction",
-    "generate_sam_prediction",
+    "generate_sys_adjusted_sam_prediction",
 ]
