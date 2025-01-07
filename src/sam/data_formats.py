@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
+from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -109,13 +110,21 @@ class CauseEffectData:
         if (np.sort(self.concentration) != self.concentration).all():
             raise ValueError("The concentration values must be in sorted order.")
         if any(np.array(self.concentration) < 0):
-            raise ValueError("Concentrations must be >= 0")
+            raise ValueError("Concentrations must be >= 0 ")
+        if self.concentration[0] != 0:
+            raise ValueError("first concentration must be 0 ")
+        if any(self.concentration[1:] == 0):
+            raise ValueError("concentration[1:] must be  > 0 ")
         if min(self.concentration) > 0:
             raise ValueError("No control is given. The first concentration must be 0.")
         if np.isnan(self.concentration).any():
             raise ValueError("concentration must be none NaN")
         if np.isnan(self.survival_rate).any():
             raise ValueError("survival_observerd must be none NaN")
+        if self.survival_rate[-1] != 0.0:
+            warn(
+                "It is advised to add a data point where survival_rate becomes 0 at the highest concentration."
+            )
 
     def __eq__(self, other):
         if not isinstance(other, CauseEffectData):

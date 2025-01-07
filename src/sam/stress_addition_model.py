@@ -192,6 +192,11 @@ def generate_sam_prediction(
         ```
     """
 
+    if len(control_data.survival_rate) != len(co_stressor_data.survival_rate):
+        raise ValueError("both data series must be of same length")
+    if not np.all(control_data.concentration == co_stressor_data.concentration):
+        raise ValueError("control and costressor must have identical concentrations")
+
     if max_survival is None and meta is None:
         raise ValueError(
             "Either `max_survival` or `meta` with a defined `max_survival` must be provided. "
