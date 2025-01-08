@@ -8,7 +8,7 @@ __pycache__
 r_code
 betas
 zips
-
+*.DS_STORE
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

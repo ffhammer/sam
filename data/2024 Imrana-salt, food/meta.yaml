@@ -1,4 +1,3 @@
 organism: "Daphnia magna"
 main_stressor: "Salt (NaCl)"
 max_survival: 100
-days: 21
