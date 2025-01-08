@@ -218,13 +218,13 @@ class ExperimentData:
 
         args = np.argwhere(
             self.main_series.concentration == self.meta.hormesis_concentration
-        )[0]
-        if len(args) != 1:
+        )
+        if args.size != 1:
             raise ValueError(
-                f"Can't find a single match for hormesis_concentratio {self.meta.hormesis_concentratio} in concentrations {self.main_series.concentration}"
+                f"Can't find a single match for hormesis_concentratio {self.meta.hormesis_concentration} in concentrations {self.main_series.concentration}"
             )
 
-        return args[0]
+        return args[0][0]
 
     def to_markdown_table(self):
         cols = {
