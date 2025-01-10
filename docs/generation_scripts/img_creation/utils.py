@@ -16,7 +16,6 @@ from sam.helpers import (
     pad_c0,
     weibull_2param_inverse,
 )
-from sam.system_stress import pred_surv_without_hormesis
 from sam.hormesis_free_response_fitting import fit_hormesis_free_response
 
 os.chdir(os.environ["SAM_REPO_PATH"])
@@ -33,7 +32,7 @@ def predict_cleaned_curv(data: ExperimentData):
         hormesis_index,
         tox_fit_params,
     ) = fit_hormesis_free_response(
-        data=data,
+        data=data.main_series,
         max_survival=data.meta.max_survival,
         hormesis_index=data.hormesis_index or 1,
         interpolate=True,

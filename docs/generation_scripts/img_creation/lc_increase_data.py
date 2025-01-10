@@ -52,9 +52,7 @@ def find_lc_brentq(func, lc, min_v=1e-8, max_v=100000):
     return brentq(brent_func, min_v, max_v)
 
 
-def compute_lc_trajectory(path: str):
-    data = read_data(path)
-
+def compute_lc_trajectory(data):
     cfg = CRF_Settings(
         max_survival=data.meta.max_survival,
         param_d_norm=True,
@@ -76,7 +74,6 @@ def compute_lc_trajectory(path: str):
                 find_lc_brentq(func, 50, max_v=x.max()),
             )
         )
-
     return np.array(lcs)
 
 
@@ -86,7 +83,11 @@ def calculate_lc_trajectories() -> tuple[np.ndarray, np.ndarray]:
     for path, _ in tqdm(
         load_files(), desc="Computing increase in LCs. Can take a while"
     ):
-        results[path] = compute_lc_trajectory(path)
+        data = read_data(path)
+
+        if data.main_series.survival_rate[-1] != 0:
+            continue
+        results[path] = compute_lc_trajectory(data)
 
     lc10 = np.array([i[:, 0] for i in results.values()])
     lc50 = np.array([i[:, 1] for i in results.values()])
@@ -100,6 +101,8 @@ def gen_dose_response_frame(lc10, lc50) -> pd.DataFrame:
     df = []
     for _, data in load_files():
         meta = data.meta
+        if data.main_series.survival_rate[-1] != 0:
+            continue
         df.append(
             {
                 "Name": meta.title,

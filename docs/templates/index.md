@@ -5,7 +5,7 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 
 ## Documentation
 
-[To the package Documentation](https://mockawolke.github.io/sam_documentation/)
+[To the package Documentation](https://ffhammer.github.io/sam_documentation/)
 
 ## System Stress Adjusted SAM Prediction
 [System Stress Adjusted SAM Prediction Page](add_sys.md)
