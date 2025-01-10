@@ -38,7 +38,7 @@ def save_imgs(dir4imgs):
             control_data=data.main_series,
             co_stressor_data=ser,
             additional_stress=ADD_STRESS,
-            hormesis_index=4,
+            hormesis_index=hormesis_index,
             meta=data.meta,
         ).plot(
             title=f"With {ADD_STRESS:.2f} additional Stress and hormesis index set to {hormesis_index}"
