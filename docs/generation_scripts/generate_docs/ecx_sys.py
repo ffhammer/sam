@@ -43,12 +43,14 @@ for _, data in load_files():
 
     experiment_name = data.meta.experiment_name
     img_path = dir4imgs / f"{data.meta.title.replace(' ', '_')}.png"
-
+    rel_doc_path = f"imgs/{dir4imgs.name}/{{data.meta.title.replace(' ', '_')}}.png"
     fig = prediction.plot()
     fig.savefig(img_path)
     plt.close()
 
-    resulst_by_experiments[experiment_name].append((data.meta.specific_name, img_path))
+    resulst_by_experiments[experiment_name].append(
+        (data.meta.specific_name, rel_doc_path)
+    )
 
 # Render the markdown file
 experiments = [
