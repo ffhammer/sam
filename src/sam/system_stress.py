@@ -18,6 +18,7 @@ from .data_formats import CauseEffectData, ExperimentMetaData
 from .helpers import detect_hormesis_index, pad_c0, weibull_2param, weibull_3param
 from .io import make_np_config
 from .plotting import SCATTER_SIZE
+from .hormesis_free_response_fitting import fit_hormesis_free_response
 from .stress_addition_model import (
     STANDARD_SAM_SETTING,
     SAM_Settings,
@@ -62,20 +63,6 @@ def fit_weibull_3param(x_data, y_data):
         return fallback_linear_regression(x_data, y_data)
 
 
-def pred_surv_without_hormesis(concentration, surv_withhormesis, hormesis_index):
-    survival_cleaned = np.concatenate(([1.0], surv_withhormesis[hormesis_index:]))
-
-    concentration_cleaned = np.concatenate(
-        (concentration[:1], concentration[hormesis_index:])
-    )
-
-    fitted_func, popt = fit_weibull_2param(
-        x_data=concentration_cleaned, y_data=survival_cleaned
-    )
-
-    return fitted_func, popt
-
-
 @dataclass_json
 @dataclass
 class SysAdjustedSamPrediction:
@@ -96,6 +83,9 @@ class SysAdjustedSamPrediction:
 
     #: Resulting SAM prediction after system adjustment.
     result: SAMPrediction
+
+    #:
+    hormesis_free_model_parameter: dict[str, float]
 
     def plot(self, title: Optional[str] = None) -> Figure:
         """
@@ -253,10 +243,13 @@ def generate_sys_adjusted_sam_prediction(
         control_data, crf_cfg
     )
 
-    fitted_model_without_hormesis, _ = pred_surv_without_hormesis(
-        pad_c0(control_data.concentration),
-        control_data.survival_rate / max_survival,
-        hormesis_index=hormesis_index,
+    _, _, _, fitted_model_without_hormesis, _, hormesis_free_params = (
+        fit_hormesis_free_response(
+            data=control_data,
+            max_survival=max_survival,
+            hormesis_index=hormesis_index,
+            interpolate=True,
+        )
     )
     cleaned_survival = fitted_model_without_hormesis(
         pad_c0(control_data.concentration)
@@ -296,4 +289,5 @@ def generate_sys_adjusted_sam_prediction(
         additional_stress=additional_stress,
         hormesis_index=hormesis_index,
         predicted_system_stress=predicted_system_stress,
+        hormesis_free_model_parameter=hormesis_free_params._asdict(),
     )

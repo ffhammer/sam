@@ -31,9 +31,8 @@ def cleaned_difference_plots():
             CRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
-        cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
-
-        inverse = lambda x: weibull_2param_inverse(x, *popt)
+        hormesis_index = data.hormesis_index or 1
+        cleaned_func, inverse = predict_cleaned_curv(data)
 
         def find_lc(lc):
             lc = 1 - lc / 100

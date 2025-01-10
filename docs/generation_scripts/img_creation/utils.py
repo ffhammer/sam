@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-os.chdir(os.environ["SAM_REPO_PATH"])
 import numpy as np
 import pandas as pd
 
@@ -18,48 +17,48 @@ from sam.helpers import (
     weibull_2param_inverse,
 )
 from sam.system_stress import pred_surv_without_hormesis
+from sam.hormesis_free_response_fitting import fit_hormesis_free_response
+
+os.chdir(os.environ["SAM_REPO_PATH"])
 
 
 def predict_cleaned_curv(data: ExperimentData):
     """ "Predicts the cleaned Curv"""
-    concentration = pad_c0(data.main_series.concentration).copy()
-    survival_tox_observerd = np.copy(
-        data.main_series.survival_rate / data.meta.max_survival
+
+    (
+        concentrations,
+        survival_rate,
+        tox_survival,
+        cleaned_tox_func,
+        hormesis_index,
+        tox_fit_params,
+    ) = fit_hormesis_free_response(
+        data=data,
+        max_survival=data.meta.max_survival,
+        hormesis_index=data.hormesis_index or 1,
+        interpolate=True,
     )
 
-    if data.meta.hormesis_concentration is None:
-        hormesis_index = detect_hormesis_index(survival_tox_observerd)
+    def inverse(x):
+        return weibull_2param_inverse(x, b=tox_fit_params.b, e=tox_fit_params.e)
 
-        if hormesis_index is None:
-            hormesis_index = 1
-
-    else:
-        hormesis_index = np.argwhere(
-            data.meta.hormesis_concentration == data.main_series.concentration
-        )[0, 0]
-
-    func, popt = pred_surv_without_hormesis(
-        concentration=concentration,
-        surv_withhormesis=survival_tox_observerd,
-        hormesis_index=hormesis_index,
-    )
-
-    return func, hormesis_index, popt
+    return cleaned_tox_func, inverse
 
 
 def create_dose_response_fits_frame() -> pd.DataFrame:
     dfs = []
 
     for path, data in load_files():
+        if data.main_series.survival_rate[-1] != 0:
+            continue
+
         meta = data.meta
         res: ConcentrationResponsePrediction = concentration_response_fit(
             data.main_series,
             CRF_Settings(param_d_norm=True, max_survival=meta.max_survival),
         )
 
-        cleaned_func, _, popt = predict_cleaned_curv(data)
-
-        inverse = lambda x: weibull_2param_inverse(x, *popt)
+        cleaned_func, inverse = predict_cleaned_curv(data)
 
         def find_lc(lc):
             lc = 1 - lc / 100

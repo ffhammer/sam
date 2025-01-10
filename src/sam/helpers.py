@@ -1,8 +1,8 @@
+from functools import partial
 import numpy as np
 from dataclasses import dataclass
-from typing import Optional
-import os
-from pathlib import Path
+from typing import Callable, Optional
+from py_lbfgs import wbl1_params
 
 
 def ll5(conc, b, c, d, e, f):
@@ -23,6 +23,36 @@ def weibull_2param_inverse(y, b, e):
 
 def weibull_3param(x, b, d, e):
     return d * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
+
+
+def wlb1(x: float, b: float, c: float, d: float, e: float) -> float:
+    """
+    Compute the Weibull function value for a given x and parameters b, c, d, e.
+
+    Args:
+        x (float): Independent variable value.
+        b (float): Parameter b.
+        c (float): Parameter c.
+        d (float): Parameter d.
+        e (float): Parameter e.
+
+    Returns:
+        float: The value of the Weibull function at x.
+    """
+    return c + (d - c) * np.exp(-np.exp(b * (np.log(x) - np.log(e))))
+
+
+def fix_wlb1(params: wbl1_params) -> Callable:
+    """
+    Create a partially applied Weibull function with some fixed parameters.
+
+    Args:
+        params (wbl1_params): Parameters to fix in the Weibull function.
+
+    Returns:
+        Callable: A Weibull function with fixed parameters.
+    """
+    return partial(wlb1, b=params.b, c=params.c, d=params.d, e=params.e)
 
 
 def compute_lc_from_curve(

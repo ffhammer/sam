@@ -1,41 +1,17 @@
-from _warnings import warn
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Optional
 
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import numpy as np
-from dataclasses_json import dataclass_json
-from py_lbfgs import fix_wlb1, lbfgs_fit, wbl1_params
+from py_lbfgs import lbfgs_fit
+from seaborn import color_palette
 
 from .data_formats import CauseEffectData
-from .helpers import detect_hormesis_index, pad_c0
+from .helpers import weibull_2param_inverse, pad_c0, fix_wlb1
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
-
-
-def interpolate_sub_horm(
-    arr,
-    subhormesis_index,
-    hormesis_index,
-    n_new_points=3,
-    log=False,
-) -> np.ndarray:
-    if log:
-        arr_interpolated = np.logspace(
-            np.log10(arr[subhormesis_index]),
-            np.log10(arr[hormesis_index]),
-            2 + n_new_points,
-        )
-
-    else:
-        arr_interpolated = np.linspace(
-            arr[subhormesis_index], arr[hormesis_index], 2 + n_new_points
-        )
-    return np.concatenate(
-        [
-            arr[:subhormesis_index],
-            arr_interpolated,
-            arr[hormesis_index + 1 :],
-        ]
-    )
+from .hormesis_free_response_fitting import fit_hormesis_free_response
+from .plotting import SCATTER_SIZE
 
 
 def exsys(
@@ -47,80 +23,14 @@ def exsys(
     beta_p=3.2,
     interpolate=True,
 ):
-    if hormesis_index is None:
-        warn("Try to detect hormesis automatically")
-        hormesis_index = detect_hormesis_index(data.survival_rate)
-
-    if (
-        hormesis_index is None
-        or hormesis_index < 1
-        or hormesis_index >= len(data.concentration)
-    ):
-        raise ValueError("hormeis index must be  0 < index < len(data)")
-
-    subhormesis_index = hormesis_index - 1
-
-    if max_survival < 0:
-        raise ValueError("Max Survival must be >= 0")
-
-    concentrations = data.concentration
-
-    survival_rate = data.survival_rate / max_survival
-
-    min_conc = pad_c0(data.concentration)[0]
-    print(concentrations, min_conc)
-
-    keep = np.ones(len(concentrations), dtype=bool)
-    if interpolate:
-        # interpolate between subhormesis and hormesis
-        n_new = 3
-        print(len(concentrations))
-        concentrations = interpolate_sub_horm(
-            concentrations, subhormesis_index, hormesis_index, n_new, log=True
-        )
-        survival_rate = interpolate_sub_horm(
-            survival_rate,
-            subhormesis_index,
-            hormesis_index,
-            n_new,
-            log=False,
-        )
-        keep = np.concatenate(
-            (
-                keep[: subhormesis_index + 1],
-                np.array([False] * n_new),
-                keep[hormesis_index:],
-            )
-        )
-        assert len(keep) == len(concentrations)
-        assert (concentrations[keep] == data.concentration).all()
-        hormesis_index = hormesis_index + n_new
-
-    tox_survival = survival_rate.copy()
-    tox_survival[0] = 1.0
-
-    # drop all parameters between hormesis and first point
-    filtered_tox_survival = np.concatenate(
-        (tox_survival[:1], tox_survival[hormesis_index:])
-    )
-    filtered_concentrations = np.concatenate(
-        (concentrations[:1], concentrations[hormesis_index:])
-    )
-
-    tox_fit_params = lbfgs_fit(
-        filtered_concentrations.tolist(),
-        filtered_tox_survival.tolist(),
-        b=None,
-        c=0,
-        d=1,
-        e=None,
-    )
-    cleaned_tox_func = np.vectorize(fix_wlb1(tox_fit_params))
-
-    if hormesis_index > 1:
-        tox_survival[1:hormesis_index] = cleaned_tox_func(
-            concentrations[1:hormesis_index]
-        )
+    (
+        concentrations,
+        survival_rate,
+        tox_survival,
+        cleaned_tox_func,
+        _,
+        tox_fit_params,
+    ) = fit_hormesis_free_response(data, max_survival, hormesis_index, interpolate)
 
     observed_stress = survival_to_stress(survival_rate, p=beta_p, q=beta_q)
     tox_stress = survival_to_stress(tox_survival, p=beta_p, q=beta_q)
@@ -145,16 +55,23 @@ def exsys(
     tox_sys_stress = tox_stress + sys_stress
     tox_sys_survival = stress_to_survival(tox_sys_stress, p=beta_p, q=beta_q)
 
-    # creating curves
+    def get_lc_only_tox(lc):
+        val = 1 - (lc / 100)
+        return weibull_2param_inverse(val, b=tox_fit_params.b, e=tox_fit_params.e)
+
+    lc99_9 = get_lc_only_tox(99.9)
     concentrations_smooth = np.logspace(
-        np.log10(min_conc), np.log10(concentrations.max()), len_curves
+        np.log10(pad_c0(data.concentration)[0]),
+        np.log10(max(concentrations.max(), lc99_9)),
+        len_curves,
     )
-    tox_survival_smooth = cleaned_tox_func(concentrations_smooth)
-    tox_stress_smooth = survival_to_stress(tox_survival_smooth, p=beta_p, q=beta_q)
+    tox_survival_smooth_raw = cleaned_tox_func(concentrations_smooth)
+    tox_stress_smooth = survival_to_stress(tox_survival_smooth_raw, p=beta_p, q=beta_q)
+    tox_survival_smooth = tox_survival_smooth_raw * max_survival
     sys_stress_smooth = sys_stress_func(tox_stress_smooth)
     tox_sys_stress_smooth = tox_stress_smooth + sys_stress_smooth
-    tox_sys_survival_smooth = stress_to_survival(
-        tox_sys_stress_smooth, p=beta_p, q=beta_q
+    tox_sys_survival_smooth = (
+        stress_to_survival(tox_sys_stress_smooth, p=beta_p, q=beta_q) * max_survival
     )
 
     return ExSysOutput(
@@ -174,6 +91,14 @@ def exsys(
     )
 
 
+COLORS = color_palette("tab10", 4)
+TOX_COLOR = COLORS[0]
+TOX_SYS_COLOR = COLORS[1]
+SYS_COLOR = COLORS[2]
+HORMESIS_COLOR = COLORS[3]
+DATA_COLOR = "black"
+
+
 @dataclass
 class ExSysOutput:
     input_data: CauseEffectData
@@ -190,3 +115,39 @@ class ExSysOutput:
     tox_surv_params: dict[str, float]
     sys_stress_params: dict[str, float]
     max_survival: float
+
+    def plot(self, figsize=(10, 4), title=None) -> Figure:
+        fig = plt.figure(figsize=figsize)
+        plt.subplot(1, 2, 1)
+        plt.plot(
+            self.concentration, self.tox_sys_survival, label="Tox+Sys", c=TOX_SYS_COLOR
+        )
+        plt.plot(self.concentration, self.tox_survival, label="Tox", c=TOX_COLOR)
+        plt.scatter(
+            pad_c0(self.input_data.concentration),
+            self.input_data.survival_rate,
+            c=[
+                DATA_COLOR if i != self.hormesis_index else HORMESIS_COLOR
+                for i in range(len(self.input_data.concentration))
+            ],
+            s=SCATTER_SIZE,
+        )
+
+        plt.xscale("log")
+        plt.title("Survival")
+
+        plt.subplot(1, 2, 2)
+        plt.scatter([], [], c=DATA_COLOR, label="Measurements")
+        plt.scatter([], [], c=HORMESIS_COLOR, label="Hormesis Point")
+        plt.plot(self.concentration, self.tox_stress, label="Tox", c=TOX_COLOR)
+        plt.plot(
+            self.concentration, self.tox_sys_stress, label="Tox+Sys", c=TOX_SYS_COLOR
+        )
+        plt.plot(self.concentration, self.sys_stress, label="Sys", c=SYS_COLOR)
+        plt.xscale("log")
+        plt.title("Stress")
+        plt.legend()
+        if title is not None:
+            plt.suptitle(title)
+        plt.tight_layout()
+        return fig

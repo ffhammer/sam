@@ -61,7 +61,7 @@ def compute_lc_trajectory(path: str):
     )
 
     fit = concentration_response_fit(data.main_series, cfg)
-    cleaned_func, hormesis_index, popt = predict_cleaned_curv(data)
+    cleaned_func, _ = predict_cleaned_curv(data)
 
     x = fit.concentration
 
