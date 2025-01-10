@@ -47,6 +47,8 @@ class ExperimentMetaData:
     #: Path to the source `.xlsx` file.
     path: str
 
+    specific_name: str
+
     #: Concentration corresponding to the hormesis effect in the control series, if applicable.
     hormesis_concentration: Optional[int] = None
 
@@ -179,7 +181,11 @@ def read_metadata(path: str, df: pd.DataFrame) -> ExperimentMetaData:
         title += "_" + child_name
 
     return ExperimentMetaData(
-        **meta_dict, title=title, path=str(path), experiment_name=Path(path).parent.name
+        **meta_dict,
+        title=title,
+        path=str(path),
+        experiment_name=Path(path).parent.name,
+        specific_name=child_name,
     )
 
 

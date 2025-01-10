@@ -10,6 +10,9 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 ## System Stress Adjusted SAM Prediction
 [System Stress Adjusted SAM Prediction Page](add_sys.md)
 
+## ECx-SyS model
+[ECx-SyS model Prediction Page](ecx_sys.md)
+
 ## Impact of Additional Stress on Lethal Concentrations (LCs)
 
 

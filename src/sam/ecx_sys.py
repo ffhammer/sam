@@ -14,7 +14,7 @@ from .hormesis_free_response_fitting import fit_hormesis_free_response
 from .plotting import SCATTER_SIZE
 
 
-def exsys(
+def generate_ecx_sys_prediction(
     data: CauseEffectData,
     max_survival: float,
     hormesis_index: Optional[int] = None,
@@ -74,7 +74,7 @@ def exsys(
         stress_to_survival(tox_sys_stress_smooth, p=beta_p, q=beta_q) * max_survival
     )
 
-    return ExSysOutput(
+    return ECxSySOutput(
         input_data=data,
         hormesis_index=hormesis_index,
         concentration=concentrations_smooth,
@@ -100,7 +100,7 @@ DATA_COLOR = "black"
 
 
 @dataclass
-class ExSysOutput:
+class ECxSySOutput:
     input_data: CauseEffectData
     hormesis_index: int
     concentration: np.ndarray

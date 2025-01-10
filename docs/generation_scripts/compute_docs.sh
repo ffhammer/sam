@@ -21,6 +21,10 @@ if ! python docs/generation_scripts/img_creation/sys_adjusted_imgs.py --dir4imgs
     exit 1
 fi
 
+if ! python docs/generation_scripts/generate_docs/ecx_sys.py --dir4imgs docs/imgs/exc_sys/; then
+    echo "Error: Failed to create ecx sys page."
+    exit 1
+fi
 
 if ! python docs/generation_scripts/generate_docs/add_sys_page.py --dir4imgs docs/imgs/sys_adjusted/; then
     echo "Error: Failed to build sys page."
