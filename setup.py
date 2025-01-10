@@ -27,7 +27,8 @@ setup(
         "seaborn",
         "openpyxl",
         "tqdm",
-        "py_lmcurve_ll5 @ git+https://github.com/mockaWolke/py_lmcurve_ll5.git",
+        "py_lmcurve_ll5 @ git+https://github.com/ffhammer/py_lmcurve_ll5.git",
+        "py_lbfgs @ git+https://github.com/ffhammer/py_lbfgs.git",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
