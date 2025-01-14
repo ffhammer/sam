@@ -6,6 +6,11 @@ if ! python docs/generation_scripts/img_creation/increase_in_lcs_plotly.py --dir
     exit 1
 fi
 
+if ! python docs/generation_scripts/img_creation/lcs_normed_effect_range.py --dir4imgs docs/imgs/increase_in_lcs/; then
+    echo "Error: Failed to generate increase in LCs plots with lcs_normed_effect_range.py."
+    exit 1
+fi
+
 if ! python docs/generation_scripts/img_creation/dose_response_curves.py --dir4imgs docs/imgs/dose_response_curves/; then
     echo "Error: Failed to create dose-response curves with dose_response_curves.py."
     exit 1

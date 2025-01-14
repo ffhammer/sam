@@ -5,7 +5,7 @@ import numpy as np
 from py_lbfgs import lbfgs_fit
 
 from .data_formats import CauseEffectData
-from .helpers import detect_hormesis_index, fix_wlb1
+from .helpers import detect_hormesis_index, fix_wlb1, weibull_2param_inverse
 
 
 def interpolate_sub_horm(
@@ -135,3 +135,33 @@ def get_hormesis_free_model(
         interpolate=interpolate,
     )
     return cleaned_tox_func
+
+
+def calculate_effect_range(
+    data: CauseEffectData,
+    max_survival: float,
+    hormesis_index: int,
+    start_lc: float = 1,
+    end_lc: float = 99,
+):
+    index = hormesis_index or 1
+
+    (
+        _,
+        _,
+        _,
+        model,
+        _,
+        tox_fit_params,
+    ) = fit_hormesis_free_response(
+        data, max_survival=max_survival, hormesis_index=index, interpolate=True
+    )
+
+    def inverse(y):
+        return weibull_2param_inverse(y, b=tox_fit_params.b, e=tox_fit_params.e)
+
+    def get_lc(val):
+        val = (100 - val) / 100
+        return inverse(val)
+
+    return get_lc(end_lc) / get_lc(start_lc)

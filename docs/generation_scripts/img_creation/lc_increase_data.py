@@ -23,6 +23,7 @@ from sam.stress_addition_model import (
     stress_to_survival,
     survival_to_stress,
 )
+from sam.hormesis_free_response_fitting import calculate_effect_range
 import sys
 
 sys.path.append("docs/generation_scripts/")
@@ -118,7 +119,7 @@ def gen_dose_response_frame(lc10, lc50) -> pd.DataFrame:
     return df
 
 
-def gen_experiment_res_frame(lc10, lc50):
+def gen_experiment_res_frame(with_effect_range=False):
     dfs = []
 
     for path, data, stress_name, stress_series in load_datapoints():
@@ -140,34 +141,41 @@ def gen_experiment_res_frame(lc10, lc50):
         main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)
 
-        dfs.append(
-            {
-                "title": path[:-4],
-                "days": meta.days,
-                "chemical": meta.main_stressor,
-                "organism": meta.organism,
-                "main_fit": res.control,
-                "stress_fit": res.co_stressor,
-                "stress_name": stress_name,
-                "main_lc10": main_lc10,
-                "main_lc50": main_lc50,
-                "stress_lc10": lcs.stress_lc10,
-                "stress_lc50": lcs.stress_lc50,
-                "sam_lc10": lcs.sam_lc10,
-                "sam_lc50": lcs.sam_lc50,
-                "experiment_name": Path(data.meta.path).parent.name,
-                "Name": data.meta.title,
-            }
-        )
+        row = {
+            "title": path[:-4],
+            "days": meta.days,
+            "chemical": meta.main_stressor,
+            "organism": meta.organism,
+            "main_fit": res.control,
+            "stress_fit": res.co_stressor,
+            "stress_name": stress_name,
+            "main_lc10": main_lc10,
+            "main_lc50": main_lc50,
+            "stress_lc10": lcs.stress_lc10,
+            "stress_lc50": lcs.stress_lc50,
+            "sam_lc10": lcs.sam_lc10,
+            "sam_lc50": lcs.sam_lc50,
+            "experiment_name": Path(data.meta.path).parent.name,
+            "Name": data.meta.title,
+            "add_stress": res.assumed_additional_stress,
+        }
+        if with_effect_range:
+            row["effect_range"] = calculate_effect_range(
+                data.main_series,
+                max_survival=data.meta.max_survival,
+                hormesis_index=data.hormesis_index,
+            )
+
+        dfs.append(row)
 
     df = pd.DataFrame(dfs)
-    df["true_10_frac"] = df.main_lc10 / df.stress_lc10
-    df["true_50_frac"] = df.main_lc50 / df.stress_lc50
-    df["sam_10_frac"] = df.main_lc10 / df.sam_lc10
-    df["sam_50_frac"] = df.main_lc50 / df.sam_lc50
-    df["stress_level"] = df.stress_fit.apply(
-        lambda x: survival_to_stress(x.optim_param["d"])
-    )
+
+    fac = 1 if not with_effect_range else df.effect_range
+    df["true_10_frac"] = df.main_lc10 / df.stress_lc10 / fac
+    df["true_50_frac"] = df.main_lc50 / df.stress_lc50 / fac
+    df["sam_10_frac"] = df.main_lc10 / df.sam_lc10 / fac
+    df["sam_50_frac"] = df.main_lc50 / df.sam_lc50 / fac
+    df["stress_level"] = df.add_stress
     return df
 
 

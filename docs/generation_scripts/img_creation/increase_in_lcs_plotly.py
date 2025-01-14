@@ -286,7 +286,7 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
                     y=(row[y_col],),
                     mode="markers",
                     name=row.Name,
-                    hovertext=f"<br><b>Name</b>: {row.Name}<br><b>Experiment</b>: {row.experiment_name} <br><b>Main Stressor</b>: {row.chemical}<br><b>Additional Stressor</b>: {row.stress_name}<br> <b>Duration</b>: {row.days}<br><b>Organism</b>: {row.organism}",
+                    hovertext=f"<br><b>Name</b>: {row.Name}<br><b>Experiment</b>: {row.experiment_name} <br><b>Main Stressor</b>: {row.chemical}<br><b>Additional Stressor</b>: {row.stress_name}<br><b>Duration</b>: {row.days}<br><b>Organism</b>: {row.organism}",
                     showlegend=False,
                     line=dict(color=color_mapping["Measurements"]),
                 ),
@@ -301,7 +301,7 @@ def gen_dot_plotly(cleaned, curves, stresses, meta_infos):
                     y=(row[y_col.replace("true", "sam")],),
                     mode="markers",
                     name=row.Name,
-                    hovertext=f"<br><b>Name</b>: {row.Name}<br><b>Experiment</b>: {row.experiment_name} <br><b>Main Stressor</b>: {row.chemical}<br><b>Additional Stressor</b>: {row.stress_name}<br> <b>Duration</b>: {row.days}<br><b>Organism</b>: {row.organism}",
+                    hovertext=f"<br><b>Name</b>: {row.Name}<br><b>Experiment</b>: {row.experiment_name} <br><b>Main Stressor</b>: {row.chemical}<br><b>Additional Stressor</b>: {row.stress_name}<br><b>Duration</b>: {row.days}<br><b>Organism</b>: {row.organism}",
                     showlegend=False,
                     line=dict(color=color_mapping["Predictions"]),
                 ),
@@ -463,7 +463,7 @@ if __name__ == "__main__":
     lc10, lc50 = calculate_lc_trajectories()
 
     meta_infos = gen_dose_response_frame(lc10, lc50)
-    cleaned_frame = gen_experiment_res_frame(lc10, lc50)
+    cleaned_frame = gen_experiment_res_frame()
     mean_curvis = gen_mean_curves(lc10, lc50)
 
     different_curves_fig = gen_different_curves_fig(meta_infos, STRESSES)

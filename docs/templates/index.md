@@ -24,6 +24,8 @@ This section demonstrates how lethal concentrations (LCs) increase with added st
 - **[Observed vs. SAM-Predicted LC Increases](imgs/increase_in_lcs/lcs.html)**  
   This graphic compares observed (blue) and SAM-predicted (green) increases in lethal concentrations (LCs) for all data samples subjected to additional stress.
 
+- **[Observed LC Increases normalized by Effect Range](imgs/effect_range_normed_lcs.html)**  
+
 ## Visualizing Dose-Response Fits Across Experiments
 
 This section visualizes dose-response fits across all experiments. Each curve is projected into a "normalized" scale, where lethal concentrations (LCs) range from LC1 to LC99, enabling effective comparisons between experiments.
