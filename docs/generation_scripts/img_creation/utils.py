@@ -67,6 +67,8 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
         lc99 = find_lc(99)
         dfs.append(
             {
+                "og_conc": res.concentration,
+                "og_surv": cleaned_func(res.concentration),
                 "title": os.path.split(path[:-5])[1],
                 "chemical": meta.main_stressor,
                 "Organism": meta.organism,

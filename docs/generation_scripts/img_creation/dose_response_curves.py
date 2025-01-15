@@ -55,7 +55,7 @@ def make_fig(surv_col, stres_col, df, color_map):
 
             name_to_id.append(f"line_{row.Name}_{y_key}")
 
-    def add_means(df: pd.DataFrame, name):
+    def add_means_old(df: pd.DataFrame, name):
         mean_curve = np.mean(np.stack(df[surv_col].values), axis=0)
         mean_stress = survival_to_stress(mean_curve / 100)
         key = "Mean" if name == "Mean" else "Selection Mean"
@@ -92,7 +92,46 @@ def make_fig(surv_col, stres_col, df, color_map):
 
         name_to_id.append(f"mean_{name}_stress")
 
-    add_means(df, "Mean")
+    def add_means_exp(df: pd.DataFrame, name: str):
+        this_x = df.og_conc.iloc[0]
+
+        mean_curve = np.mean(np.stack(df.og_surv.values), axis=0)
+        mean_stress = survival_to_stress(mean_curve)
+        key = "Selection Mean"
+
+        fig.add_trace(
+            go.Scatter(
+                x=this_x,
+                y=mean_curve * 100,
+                mode="lines",
+                name=name,
+                line=dict(color=color_map[key]),
+                showlegend=False,
+                opacity=0.7 if key != "Mean" else 1,
+            ),
+            col=1,
+            row=1,
+        )
+
+        name_to_id.append(f"mean_{name}_surv")
+
+        fig.add_trace(
+            go.Scatter(
+                x=this_x,
+                y=mean_stress,
+                mode="lines",
+                name=name,
+                line=dict(color=color_map[key]),
+                showlegend=False,
+                opacity=0.7 if key != "Mean" else 1,
+            ),
+            col=2,
+            row=1,
+        )
+
+        name_to_id.append(f"mean_{name}_stress")
+
+    add_means_old(df, "Mean")
 
     cleaner = {
         "chemical": "Main Stressor",
@@ -104,9 +143,38 @@ def make_fig(surv_col, stres_col, df, color_map):
     for key, label_name in cleaner.items():
         for val, frame in df.groupby(key):
             name = f"{label_name} = {val}"
-            add_means(frame, name)
+            if label_name != "Experiment":
+                add_means_old(frame, name)
+            else:
+                add_means_exp(frame, name)
+
     gen_traces(surv_col, 1)
     gen_traces(stres_col, 2)
+
+    def plot_experiment_same_x(frame, exp_name, y_key, col):
+        for _, row in frame.iterrows():
+            fig.add_trace(
+                go.Scatter(
+                    x=row.og_conc,
+                    y=(
+                        row.og_surv * 100
+                        if y_key == surv_col
+                        else survival_to_stress(row.og_surv)
+                    ),
+                    mode="lines",
+                    name=row.Name,
+                    line=dict(color=color_map[row.chemical]),
+                    hovertext=f"<br><b>Name</b>: {row.Name}<br><b>Experiment</b>: {row.Experiment}<br><b>Duration</b>: {row.Duration}<br><b>Main Stressor</b>: {row.chemical}<br><b>Organism</b>: {row.Organism}",
+                    showlegend=False,
+                ),
+                col=col,
+                row=1,
+            )
+            name_to_id.append(f"Experiment = {exp_name}_{y_key}")
+
+    for val, frame in df.groupby("Experiment"):
+        plot_experiment_same_x(frame, val, surv_col, 1)
+        plot_experiment_same_x(frame, val, stres_col, 2)
 
     for chemical, color in color_map.items():
         fig.add_trace(
@@ -120,7 +188,7 @@ def make_fig(surv_col, stres_col, df, color_map):
         )
         name_to_id.append(f"color_{chemical}")
 
-    def visible(df, name):
+    def normal_visible(df, name):
         valid = {"mean_Mean_stress", "mean_Mean_surv", "color_Mean"}
 
         for n in df.Name.values:
@@ -139,6 +207,31 @@ def make_fig(surv_col, stres_col, df, color_map):
             assert v in name_to_id, f"{v} wrong!"
 
         return [i in valid for i in name_to_id]
+
+    def exp_visible(df, name):
+        valid = set()
+
+        valid.add(f"{name}_{surv_col}")
+        valid.add(f"{name}_{stres_col}")
+
+        for chem in df.chemical.unique():
+            valid.add(f"color_{chem}")
+
+        if len(df) > 1 and name != "All":
+            valid.add(f"mean_{name}_surv")
+            valid.add(f"mean_{name}_stress")
+            valid.add("color_Selection Mean")
+
+        for v in valid:
+            assert v in name_to_id, f"{v} wrong!"
+
+        return [i in valid for i in name_to_id]
+
+    def visible(df, name):
+        if name.startswith("Experiment"):
+            return exp_visible(df, name)
+        else:
+            return normal_visible(df, name)
 
     buttons = [
         dict(
@@ -160,9 +253,19 @@ def make_fig(surv_col, stres_col, df, color_map):
                 )
             )
     fig.update_yaxes(title_text="Survival Rate", row=1, col=1)
-    fig.update_xaxes(title_text="LC", type="log", row=1, col=1)
+    fig.update_xaxes(
+        title_text="LC (or actual concentration if Experiment is chosen)",
+        type="log",
+        row=1,
+        col=1,
+    )
     fig.update_yaxes(title_text="Stress", row=1, col=2)
-    fig.update_xaxes(title_text="LC", type="log", row=1, col=2)
+    fig.update_xaxes(
+        title_text="LC (or actual concentration if Experiment is chosen)",
+        type="log",
+        row=1,
+        col=2,
+    )
 
     fig.update_layout(
         updatemenus=[
