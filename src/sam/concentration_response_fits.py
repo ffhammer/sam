@@ -55,7 +55,7 @@ class CRF_Settings:
     #: Controls which library is used for Concentration Response Curve fitting. Either scipy for scipy.optimize.curve_fit or lmcurce for using https://github.com/MockaWolke/py_lmcurve_ll5
     curve_fit_lib: str = "scipy"
 
-    fix_f_parameter_ll5: Optional[float] = None
+    fix_f_parameter_ll5: Optional[float] = 1.0
 
     def __post_init__(
         self,
@@ -175,6 +175,7 @@ def concentration_response_fit(
         survival_observerd = np.array(survival_observerd, np.float64)
 
     if any(survival_observerd > cfg.max_survival) or any(survival_observerd < 0):
+        breakpoint()
         raise ValueError("Observed survival must be between 0 and survival_max.")
 
     regress_conc, regress_surv = get_regression_data(

@@ -41,12 +41,6 @@ class SAM_Settings:
     #: - `"stress_sub"`: Subtracts transformed control stress from transformed stressor stress.
     stress_form: str = "div"
 
-    #: Adds a constant factor to `additional_stress` for modifying survival predictions (default is `1`).
-    stress_intercept_in_survival: float = 1
-
-    #: Upper bound on survival for control samples, useful for steep concentration-response curves (default is `1`).
-    max_control_survival: float = 1
-
     #: Transformation function applied to regression data prior to model fitting.
     transform: "Transforms" = field(
         default=Transforms.williams_and_linear_interpolation,
@@ -154,14 +148,10 @@ class SAMPrediction:
 NEW_STANDARD = SAM_Settings(
     normalize_survival_for_stress_conversion=False,
     stress_form="stress_sub",
-    stress_intercept_in_survival=0.9995,
-    max_control_survival=0.995,
 )
 STANDARD_SAM_SETTING = SAM_Settings(
     normalize_survival_for_stress_conversion=True,
     stress_form="div",
-    stress_intercept_in_survival=1,
-    max_control_survival=1,
     fix_f_parameter_ll5=1.0,
 )
 
@@ -216,43 +206,27 @@ def generate_sam_prediction(
     main_fit = concentration_response_fit(control_data, cfg=crf_cfg)
     stressor_fit = concentration_response_fit(co_stressor_data, cfg=crf_cfg)
 
-    sur2stress = settings.survival_to_stress
-    stress2sur = settings.stress_to_survival
-
-    if settings.stress_form == "div":
-        additional_stress = stressor_fit.optim_param["d"] / main_fit.optim_param["d"]
-    elif settings.stress_form == "substract":
-        additional_stress = 1 - (
-            main_fit.optim_param["d"] - stressor_fit.optim_param["d"]
-        )
-    elif settings.stress_form == "only_stress":
-        additional_stress = 1 - stressor_fit.optim_param["d"]
-    elif settings.stress_form == "stress_sub":
-        a = sur2stress(stressor_fit.optim_param["d"])
-
-        control_survival = min(main_fit.optim_param["d"], settings.max_control_survival)
-
-        b = sur2stress(control_survival)
-
-        additional_stress = stress2sur(a - b)
-
-    else:
-        raise ValueError(f"Unknown stress form '{settings.stress_form}'")
-
-    additional_stress = sur2stress(additional_stress) + sur2stress(
-        settings.stress_intercept_in_survival
+    additional_stress = compute_additional_stress(
+        co_stressor_data=co_stressor_data,
+        control_data=control_data,
+        max_survival=max_survival,
+        beta_p=settings.beta_p,
+        beta_q=settings.beta_q,
+        stress_form=settings.stress_form,
     )
 
     predicted_stress_curve = np.clip(main_fit.general_stress + additional_stress, 0, 1)
 
     if settings.normalize_survival_for_stress_conversion:
         predicted_survival_curve = (
-            stress2sur(predicted_stress_curve)
+            settings.stress_to_survival(predicted_stress_curve)
             * main_fit.optim_param["d"]
             * max_survival
         )
     else:
-        predicted_survival_curve = stress2sur(predicted_stress_curve) * max_survival
+        predicted_survival_curve = (
+            settings.stress_to_survival(predicted_stress_curve) * max_survival
+        )
 
     return SAMPrediction(
         main_fit,
@@ -262,6 +236,31 @@ def generate_sam_prediction(
         additional_stress,
         max_survival,
     )
+
+
+def compute_additional_stress(
+    control_data: CauseEffectData,
+    co_stressor_data: CauseEffectData,
+    stress_form: str,
+    max_survival: float,
+    beta_p: float,
+    beta_q: float,
+) -> float:
+    normed_stress_surv = co_stressor_data.survival_rate[0] / max_survival
+    normed_control_surv = control_data.survival_rate[0] / max_survival
+
+    sur2stress = lambda x: survival_to_stress(x, p=beta_p, q=beta_q)
+
+    if stress_form == "div":
+        return sur2stress(normed_stress_surv / normed_control_surv)
+    elif stress_form == "substract":
+        return sur2stress(1 - (normed_control_surv - normed_stress_surv))
+    elif stress_form == "only_stress":
+        return sur2stress(1 - normed_stress_surv)
+    elif stress_form == "stress_sub":
+        return sur2stress(normed_control_surv) - sur2stress(normed_stress_surv)
+    else:
+        raise ValueError(f"Unknown stress form '{stress_form}'")
 
 
 def get_sam_lcs(
