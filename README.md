@@ -5,9 +5,9 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 
 ## Website and Documentation
 
-https://mockawolke.github.io/sam/
+https://ffhamer.github.io/sam/
 
-https://mockawolke.github.io/sam_documentation/
+https://ffhamer.github.io/sam_documentation/
 
 
 ## Install

@@ -207,9 +207,8 @@ def generate_sam_prediction(
     stressor_fit = concentration_response_fit(co_stressor_data, cfg=crf_cfg)
 
     additional_stress = compute_additional_stress(
-        co_stressor_data=co_stressor_data,
-        control_data=control_data,
-        max_survival=max_survival,
+        control_first_surivival_normed=main_fit.optim_param["d"],
+        co_stressor_first_surivival_normed=stressor_fit.optim_param["d"],
         beta_p=settings.beta_p,
         beta_q=settings.beta_q,
         stress_form=settings.stress_form,
@@ -239,26 +238,28 @@ def generate_sam_prediction(
 
 
 def compute_additional_stress(
-    control_data: CauseEffectData,
-    co_stressor_data: CauseEffectData,
+    control_first_surivival_normed: CauseEffectData,
+    co_stressor_first_surivival_normed: CauseEffectData,
     stress_form: str,
-    max_survival: float,
     beta_p: float,
     beta_q: float,
 ) -> float:
-    normed_stress_surv = co_stressor_data.survival_rate[0] / max_survival
-    normed_control_surv = control_data.survival_rate[0] / max_survival
-
     sur2stress = lambda x: survival_to_stress(x, p=beta_p, q=beta_q)
 
     if stress_form == "div":
-        return sur2stress(normed_stress_surv / normed_control_surv)
+        return sur2stress(
+            co_stressor_first_surivival_normed / control_first_surivival_normed
+        )
     elif stress_form == "substract":
-        return sur2stress(1 - (normed_control_surv - normed_stress_surv))
+        return sur2stress(
+            1 - (control_first_surivival_normed - co_stressor_first_surivival_normed)
+        )
     elif stress_form == "only_stress":
-        return sur2stress(1 - normed_stress_surv)
+        return sur2stress(1 - co_stressor_first_surivival_normed)
     elif stress_form == "stress_sub":
-        return sur2stress(normed_control_surv) - sur2stress(normed_stress_surv)
+        return sur2stress(control_first_surivival_normed) - sur2stress(
+            co_stressor_first_surivival_normed
+        )
     else:
         raise ValueError(f"Unknown stress form '{stress_form}'")
 
