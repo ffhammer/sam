@@ -20,6 +20,8 @@ from img_creation.lc_increase_data import (
     STRESSES,
 )
 
+from img_creation.e_fac_mod import overwrite_examples_with_efac
+
 
 def gen_different_curves_fig(meta_infos, stresses):
     unique_experiments = meta_infos.Chemical.unique()
@@ -597,18 +599,79 @@ if __name__ == "__main__":
     dir4imgs = Path(args.dir4imgs)
     dir4imgs.mkdir(exist_ok=True, parents=True)
 
-    lc10, lc50 = calculate_lc_trajectories()
-
-    meta_infos = gen_dose_response_frame(lc10, lc50)
     cleaned_frame = gen_experiment_res_frame()
+    # lc10, lc50 = calculate_lc_trajectories()
+
+    # meta_infos = gen_dose_response_frame(lc10, lc50)
+    # mean_curvis = gen_mean_curves(lc10, lc50)
+
+    # different_curves_fig = gen_different_curves_fig(meta_infos, STRESSES)
+    # different_curves_fig.write_html(dir4imgs / "different_curves.html")
+
+    # dot_fig = gen_dot_plotly(cleaned_frame, mean_curvis, STRESSES, meta_infos)
+    # dot_fig.write_html(
+    #     dir4imgs / "lcs.html",
+    # )
+
+    # gen_dot_plotly(
+    #     overwrite_examples_with_efac(0.25, cleaned_frame),
+    #     mean_curvis,
+    #     STRESSES,
+    #     meta_infos,
+    # ).write_html(
+    #     dir4imgs / "lcs_with_e_fac_0_comma_25.html",
+    # )
+
+    # gen_dot_plotly(
+    #     overwrite_examples_with_efac("optimal", cleaned_frame),
+    #     mean_curvis,
+    #     STRESSES,
+    #     meta_infos,
+    # ).write_html(
+    #     dir4imgs / "lcs_with_e_fac_optimal.html",
+    # )
+
+    # gen_dot_plotly(
+    #     overwrite_examples_with_efac("optimal", cleaned_frame),
+    #     mean_curvis,
+    #     STRESSES,
+    #     meta_infos,
+    # ).write_html(
+    #     dir4imgs / "lcs_with_e_fac_optimal.html",
+    # )
+
+    # filtered
+    lc10, lc50 = calculate_lc_trajectories(
+        filter_func=lambda x: x.main_stressor in ["Salt (NaCl)", "Copper"]
+    )
+    meta_infos = gen_dose_response_frame(
+        lc10, lc50, filter_func=lambda x: x.main_stressor in ["Salt (NaCl)", "Copper"]
+    )
+    cleaned_frame = overwrite_examples_with_efac("optimal", cleaned_frame)
+    mask = cleaned_frame.chemical.apply(lambda x: x not in ["Salt (NaCl)", "Copper"])
+    cleaned_frame = cleaned_frame[mask]
+
     mean_curvis = gen_mean_curves(lc10, lc50)
 
-    different_curves_fig = gen_different_curves_fig(meta_infos, STRESSES)
-    different_curves_fig.write_html(dir4imgs / "different_curves.html")
+    gen_dot_plotly(
+        cleaned_frame,
+        mean_curvis,
+        STRESSES,
+        meta_infos,
+    ).write_html(
+        dir4imgs / "lcs_with_e_fac_optimal_filtered.html",
+    )
 
-    dot_fig = gen_dot_plotly(cleaned_frame, mean_curvis, STRESSES, meta_infos)
-    dot_fig.write_html(
-        dir4imgs / "lcs.html",
+    cleaned_frame = overwrite_examples_with_efac(0.25, cleaned_frame)
+    mask = cleaned_frame.chemical.apply(lambda x: x not in ["Salt (NaCl)", "Copper"])
+    cleaned_frame = cleaned_frame[mask]
+    gen_dot_plotly(
+        cleaned_frame,
+        mean_curvis,
+        STRESSES,
+        meta_infos,
+    ).write_html(
+        dir4imgs / "lcs_with_e_fac_025_filtered.html",
     )
 
     normed_fig = gen_normed_ploty(cleaned_frame)

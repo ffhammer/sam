@@ -16,14 +16,11 @@ from .concentration_response_fits import (
     Transforms,
     concentration_response_fit,
 )
-from .helpers import (
-    Predicted_LCs,
-    compute_lc,
-    compute_lc_from_curve,
-)
+from .helpers import Predicted_LCs, compute_lc, compute_lc_from_curve, ll5
 from .io import make_np_config
 from .plotting import plot_sam_prediction
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
+from copy import deepcopy
 
 
 @dataclass_json
@@ -61,6 +58,11 @@ class SAM_Settings:
 
     fix_f_parameter_ll5: Optional[float] = None
 
+    keep_co_stressor_f_parameter_free: bool = False
+
+    f_param_modifier_pre_sam: Callable = lambda x: x
+    e_param_modifier_pre_sam: Callable = lambda x: x
+
     def __post_init__(
         self,
     ):
@@ -92,6 +94,10 @@ class SAMPrediction:
 
     #: The range of the data. (normally 100 -> 100%, sometimes also 1 -> 100% or deviating values)
     max_survival: float
+
+    settings: SAM_Settings
+
+    new_model: Callable
 
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
         """
@@ -204,7 +210,12 @@ def generate_sam_prediction(
     )
 
     main_fit = concentration_response_fit(control_data, cfg=crf_cfg)
-    stressor_fit = concentration_response_fit(co_stressor_data, cfg=crf_cfg)
+
+    # special fit because of keep_co_stressor_f_parameter_free
+    stressor_crf_cgf = deepcopy(crf_cfg)
+    if settings.keep_co_stressor_f_parameter_free:
+        stressor_crf_cgf.fix_f_parameter_ll5 = None
+    stressor_fit = concentration_response_fit(co_stressor_data, cfg=stressor_crf_cgf)
 
     additional_stress = compute_additional_stress(
         control_first_surivival_normed=main_fit.optim_param["d"],
@@ -214,7 +225,33 @@ def generate_sam_prediction(
         stress_form=settings.stress_form,
     )
 
-    predicted_stress_curve = np.clip(main_fit.general_stress + additional_stress, 0, 1)
+    # specific calc with f modifier
+    new_f = settings.f_param_modifier_pre_sam(main_fit.optim_param["f"])
+    new_e = settings.e_param_modifier_pre_sam(main_fit.optim_param["e"])
+
+    def new_model(x):
+        return ll5(
+            x,
+            b=main_fit.optim_param["b"],
+            c=main_fit.optim_param["c"],
+            d=main_fit.optim_param["d"],
+            e=new_e,
+            f=new_f,
+        )
+
+    pred_survival = new_model(main_fit.concentration)
+    if settings.normalize_survival_for_stress_conversion:
+        stress_curve = survival_to_stress(
+            pred_survival / main_fit.optim_param["d"],
+            p=settings.beta_p,
+            q=settings.beta_q,
+        )
+    else:
+        stress_curve = survival_to_stress(
+            pred_survival, p=settings.beta_p, q=settings.beta_q
+        )
+
+    predicted_stress_curve = np.clip(stress_curve + additional_stress, 0, 1)
 
     if settings.normalize_survival_for_stress_conversion:
         predicted_survival_curve = (
@@ -234,6 +271,8 @@ def generate_sam_prediction(
         predicted_stress_curve,
         additional_stress,
         max_survival,
+        settings=settings,
+        new_model=pred_survival,
     )
 
 

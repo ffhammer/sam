@@ -78,13 +78,17 @@ def compute_lc_trajectory(data):
     return np.array(lcs)
 
 
-def calculate_lc_trajectories() -> tuple[np.ndarray, np.ndarray]:
+def calculate_lc_trajectories(
+    filter_func=lambda x: False,
+) -> tuple[np.ndarray, np.ndarray]:
     results = {}
 
     for path, _ in tqdm(
         load_files(), desc="Computing increase in LCs. Can take a while"
     ):
         data = read_data(path)
+        if filter_func(data.meta):
+            continue
 
         if data.main_series.survival_rate[-1] != 0:
             continue
@@ -95,13 +99,17 @@ def calculate_lc_trajectories() -> tuple[np.ndarray, np.ndarray]:
     return lc10, lc50
 
 
-def gen_dose_response_frame(lc10, lc50) -> pd.DataFrame:
+def gen_dose_response_frame(lc10, lc50, filter_func=lambda x: False) -> pd.DataFrame:
     lc_10_frac = lc10[:, 0][:, None] / lc10
     lc_50_frac = lc50[:, 0][:, None] / lc50
 
     df = []
     for _, data in load_files():
         meta = data.meta
+
+        if filter_func(meta):
+            continue
+
         if data.main_series.survival_rate[-1] != 0:
             continue
         df.append(

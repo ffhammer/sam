@@ -1,6 +1,22 @@
 [
-    ["data/2019 Naeem-Esf, Pro, food/21_days.xlsx", "Food_1% + Prochloraz_100", 3],
-    ["data/2001 Liess-food, UV Cu/data.xlsx", "Food_1% + UV", 3],
-    ["data/2024 Naeem-Mix13,°C,food/21_days.xlsx", "Temp_25 + Food_1%", 4],
-    ["data/2024 Naeem-Esfe, °C, food/21_days.xlsx", "Food_1% + Temp_25", 4]
+    [
+        "data/2019 Naeem-Esf, Pro, food/21_days.xlsx",
+        "Food_1% + Prochloraz_100",
+        3
+    ],
+    [
+        "data/2001 Liess-food, UV Cu/data.xlsx",
+        "Food_1% + UV",
+        3
+    ],
+    [
+        "data/2024 Naeem-Mix13,°C,food/21_days.xlsx",
+        "Temp_25 + Food_1%",
+        4
+    ],
+    [
+        "data/2024 Naeem-Esfe, °C, food/21_days.xlsx",
+        "Food_1% + Temp_25",
+        4
+    ]
 ]

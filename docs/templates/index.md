@@ -24,7 +24,8 @@ This section demonstrates how lethal concentrations (LCs) increase with added st
 - **[Observed vs. SAM-Predicted LC Increases](imgs/increase_in_lcs/lcs.html)**  
   This graphic compares observed (blue) and SAM-predicted (green) increases in lethal concentrations (LCs) for all data samples subjected to additional stress.
 
-- **[Observed LC Increases normalized by Effect Range](imgs/increase_in_lcs/effect_range_normed_lcs.html)**  
+- **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac 0.25](imgs/increase_in_lcs/lcs_with_e_fac_0_comma_25.html)**  
+- **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac Optimal](imgs/increase_in_lcs/lcs_with_e_fac_optimal.html)**  
 
 ## Visualizing Dose-Response Fits Across Experiments
 
