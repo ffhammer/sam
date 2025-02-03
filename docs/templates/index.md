@@ -7,9 +7,6 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 
 [To the package Documentation](https://ffhammer.github.io/sam_documentation/)
 
-## System Stress Adjusted SAM Prediction
-[System Stress Adjusted SAM Prediction Page](add_sys.md)
-
 ## ECx-SyS model
 [ECx-SyS model Prediction Page](ecx_sys.md)
 
@@ -18,14 +15,12 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 
 This section demonstrates how lethal concentrations (LCs) increase with added stress across different dose-response curves. The following graphics illustrate various aspects of this impact:
 
-- **[LC10 and LC50 Increases with Additional Stress](imgs/increase_in_lcs/different_curves.html)**  
-  This graphic shows, for each dose-response curve in our dataset, how LC10 (left) and LC50 (right) values increase in response to additional stress, as predicted by our SAM Model.
+- **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac 0.25](imgs/increase_in_lcs/lcs_with_e_fac_025_filtered.html)**  
 
-- **[Observed vs. SAM-Predicted LC Increases](imgs/increase_in_lcs/lcs.html)**  
-  This graphic compares observed (blue) and SAM-predicted (green) increases in lethal concentrations (LCs) for all data samples subjected to additional stress.
+- **[Observed vs. SAM-Predicted LC Increases - Outliers Optimal E Fac](imgs/increase_in_lcs/lcs_with_e_fac_optimal_filtered.html)**  
 
-- **[Observed LC Increases normalized by Effect Range](imgs/increase_in_lcs/effect_range_normed_lcs.html)**  
-
+- **[Normalized LC Increases - Effect Range Adjustment](imgs/increase_in_lcs/lcs_optimal_effect_range_norm.html)**  
+  
 ## Visualizing Dose-Response Fits Across Experiments
 
 This section visualizes dose-response fits across all experiments. Each curve is projected into a "normalized" scale, where lethal concentrations (LCs) range from LC1 to LC99, enabling effective comparisons between experiments.

@@ -1,6 +1,14 @@
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
+
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="It is advised to add a data point where survival_rate becomes 0 at the highest concentration.",
+)
+
 from sam.concentration_response_fits import survival_to_stress
 import pandas as pd
 import numpy as np

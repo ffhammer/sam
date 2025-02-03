@@ -1,3 +1,10 @@
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="It is advised to add a data point where survival_rate becomes 0 at the highest concentration.",
+)
+
 import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
