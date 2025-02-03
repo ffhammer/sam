@@ -61,7 +61,6 @@ def overwrite_examples_with_efac(e_fac: float | str, df: pd.DataFrame) -> pd.Dat
                 co_stressor_data=data.additional_stress[stress_name],
                 control_data=data.main_series,
             )
-            print(f"Optimal E Fac For {example[0]} - {example[1]} is {optimal_e_fac}")
             settings.e_param_modifier_pre_sam = lambda x: x * optimal_e_fac
 
         elif isinstance(e_fac, float):

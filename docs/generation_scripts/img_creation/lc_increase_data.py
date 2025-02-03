@@ -171,6 +171,8 @@ def gen_experiment_res_frame():
             data.main_series,
             max_survival=data.meta.max_survival,
             hormesis_index=data.hormesis_index,
+            start_lc=5,
+            end_lc=95,
         )
 
         dfs.append(row)

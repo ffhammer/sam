@@ -120,9 +120,12 @@ class ECxSySOutput:
         fig = plt.figure(figsize=figsize)
         plt.subplot(1, 2, 1)
         plt.plot(
-            self.concentration, self.tox_sys_survival, label="Tox+Sys", c=TOX_SYS_COLOR
+            self.concentration,
+            self.tox_sys_survival,
+            label="Tox+Sys",
+            color=TOX_SYS_COLOR,
         )
-        plt.plot(self.concentration, self.tox_survival, label="Tox", c=TOX_COLOR)
+        plt.plot(self.concentration, self.tox_survival, label="Tox", color=TOX_COLOR)
         plt.scatter(
             pad_c0(self.input_data.concentration),
             self.input_data.survival_rate,
@@ -137,13 +140,16 @@ class ECxSySOutput:
         plt.title("Survival")
 
         plt.subplot(1, 2, 2)
-        plt.scatter([], [], c=DATA_COLOR, label="Measurements")
-        plt.scatter([], [], c=HORMESIS_COLOR, label="Hormesis Point")
-        plt.plot(self.concentration, self.tox_stress, label="Tox", c=TOX_COLOR)
+        plt.scatter([], [], color=DATA_COLOR, label="Measurements")
+        plt.scatter([], [], color=HORMESIS_COLOR, label="Hormesis Point")
+        plt.plot(self.concentration, self.tox_stress, label="Tox", color=TOX_COLOR)
         plt.plot(
-            self.concentration, self.tox_sys_stress, label="Tox+Sys", c=TOX_SYS_COLOR
+            self.concentration,
+            self.tox_sys_stress,
+            label="Tox+Sys",
+            color=TOX_SYS_COLOR,
         )
-        plt.plot(self.concentration, self.sys_stress, label="Sys", c=SYS_COLOR)
+        plt.plot(self.concentration, self.sys_stress, label="Sys", color=SYS_COLOR)
         plt.xscale("log")
         plt.title("Stress")
         plt.legend()
