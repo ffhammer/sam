@@ -32,7 +32,7 @@ from img_creation.lc_increase_data import (
 from img_creation.e_fac_mod import overwrite_examples_with_efac
 import json
 from sam import read_data
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_percentage_error
 
 
 def gen_dot_plotly(input_df, norm_by_effect_range=False):
@@ -62,6 +62,12 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
 
     def add_points(y_col, col):
         for _, row in input_df.iterrows():
+            add_text = (
+                f"<br><b>Effect Range</b>: {float(row.effect_range) :.2f}"
+                if norm_by_effect_range
+                else ""
+            )
+
             # Measurements
             fig.add_trace(
                 go.Scatter(
@@ -75,7 +81,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
                         f"<br><b>Main Stressor</b>: {row.chemical}"
                         f"<br><b>Additional Stressor</b>: {row.stress_name}"
                         f"<br><b>Duration</b>: {row.days}"
-                        f"<br><b>Organism</b>: {row.organism}"
+                        f"<br><b>Organism</b>: {row.organism}" + add_text
                     ),
                     showlegend=False,
                     marker=dict(color=color_mapping["Measurements"]),
@@ -98,10 +104,24 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
                         f"<br><b>Main Stressor</b>: {row.chemical}"
                         f"<br><b>Additional Stressor</b>: {row.stress_name}"
                         f"<br><b>Duration</b>: {row.days}"
-                        f"<br><b>Organism</b>: {row.organism}"
+                        f"<br><b>Organism</b>: {row.organism}" + add_text
                     ),
                     showlegend=False,
                     marker=dict(color=color_mapping["Predictions"]),
+                ),
+                row=1,
+                col=col,
+            )
+            name_to_id.append(f"{row.Name}_{y_col}")
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[row.stress_level, row.stress_level],
+                    y=[row[y_col], row[y_col.replace("true", "sam")]],
+                    mode="lines",
+                    line=dict(color="grey", width=2),
+                    showlegend=False,
+                    opacity=0.5,
                 ),
                 row=1,
                 col=col,
@@ -150,7 +170,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
         y_line = 10 ** (slope * x_line + intercept)
 
         preds = 10 ** (slope * x_data + intercept)
-        score = r2_score(y_data, preds)
+        score = mean_absolute_percentage_error(y_data, preds)
 
         fig.add_trace(
             go.Scatter(
@@ -159,7 +179,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
                 mode="lines",
                 line=dict(color=color, dash="dash"),
                 name=legend_name,
-                showlegend=True,
+                showlegend=col == 2,
             ),
             row=1,
             col=col,
@@ -167,29 +187,61 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
         name_to_id.append(name_2_id_name)
         return score
 
-    add_regression_line(
-        y_key="true_10_frac",
-        name_2_id_name="reg_meas_10",
-        col=1,
-    )
+    ten_r2s = [
+        mean_absolute_percentage_error(input_df.true_10_frac, input_df.sam_10_frac),
+        add_regression_line(
+            y_key="true_10_frac",
+            name_2_id_name="reg_meas_10",
+            col=1,
+        ),
+        add_regression_line(
+            y_key="sam_10_frac",
+            name_2_id_name="reg_pred_10",
+            col=1,
+        ),
+    ]
 
-    add_regression_line(
-        y_key="sam_10_frac",
-        name_2_id_name="reg_pred_10",
-        col=1,
-    )
+    fifty_r2s = [
+        mean_absolute_percentage_error(input_df.true_50_frac, input_df.sam_50_frac),
+        add_regression_line(
+            y_key="true_50_frac",
+            name_2_id_name="reg_meas_50",
+            col=2,
+        ),
+        add_regression_line(
+            y_key="sam_50_frac",
+            name_2_id_name="reg_pred_50",
+            col=2,
+        ),
+    ]
 
-    add_regression_line(
-        y_key="true_50_frac",
-        name_2_id_name="reg_meas_50",
-        col=2,
-    )
-
-    add_regression_line(
-        y_key="sam_50_frac",
-        name_2_id_name="reg_pred_50",
-        col=2,
-    )
+    fig_text = f"""
+<table style="margin: auto; border-collapse: collapse; font-size: 14px; text-align: center;">
+    <caption style="font-weight: bold; margin-bottom: 5px;">MAPEs (Mean Absolute Percentage Errors)</caption>
+    <thead>
+        <tr>
+            <th style="border: 1px solid #ccc; padding: 5px;">LC</th>
+            <th style="border: 1px solid #ccc; padding: 5px;">SAM Model</th>
+            <th style="border: 1px solid #ccc; padding: 5px;">Measurement Regression</th>
+            <th style="border: 1px solid #ccc; padding: 5px;">Prediction Regression</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="border: 1px solid #ccc; padding: 5px;">10</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{ten_r2s[0]:.3f}</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{ten_r2s[1]:.3f}</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{ten_r2s[2]:.3f}</td>
+        </tr>
+        <tr>
+            <td style="border: 1px solid #ccc; padding: 5px;">50</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{fifty_r2s[0]:.3f}</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{fifty_r2s[1]:.3f}</td>
+            <td style="border: 1px solid #ccc; padding: 5px;">{fifty_r2s[2]:.3f}</td>
+        </tr>
+    </tbody>
+</table>
+"""
 
     # ------------------------------------------------------
     # Dropdown logic
@@ -279,7 +331,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
     fig.update_xaxes(title_text="Environmental Stress", row=1, col=2)
     fig.update_yaxes(title_text=y_title, type="log", row=1, col=2)
 
-    return fig
+    return fig, fig_text
 
 
 def generate_html_page(
@@ -330,11 +382,14 @@ def generate_html_page(
 
         page_sections.append(f"<h3>Day {day}</h3>")
 
-        fig = gen_dot_plotly(subset, norm_by_effect_range=norm_by_effect_range)
+        fig, figtext = gen_dot_plotly(subset, norm_by_effect_range=norm_by_effect_range)
         # Convert the figure to an HTML snippet
         fig_html_snippet = pio.to_html(fig, include_plotlyjs=False, full_html=False)
 
         page_sections.append(fig_html_snippet)
+        page_sections.append(
+            f"<div style='text-align: center; margin-top: 10px;'>{figtext}</div>"
+        )
         page_sections.append("<hr>")
 
     # Final combined page, single <head> & <body>
@@ -392,9 +447,7 @@ if __name__ == "__main__":
         norm_by_effect_range=False,
         additional_site_info=f"Using new_e=e *0.25 for outliers:\n{outlier_text}",
     )
-    with open(
-        dir4imgs / "lcs_with_e_fac_025_filtered.html", "w", encoding="utf-8"
-    ) as f:
+    with open(dir4imgs / "lcs_with_e_fac_025.html", "w", encoding="utf-8") as f:
         f.write(html_025)
 
     # Example #2: e-factor="optimal"
@@ -405,9 +458,7 @@ if __name__ == "__main__":
         norm_by_effect_range=False,
         additional_site_info=f"Using an optimal e-factor for each of these outliers:\n{outlier_text}",
     )
-    with open(
-        dir4imgs / "lcs_with_e_fac_optimal_filtered.html", "w", encoding="utf-8"
-    ) as f:
+    with open(dir4imgs / "lcs_with_e_fac_optimal.html", "w", encoding="utf-8") as f:
         f.write(html_opt)
 
     # Example #3: e-factor="optimal", normalized by effect range

@@ -17,9 +17,9 @@ This section demonstrates how lethal concentrations (LCs) increase with added st
 
 - **[Observed vs. SAM-Predicted LC Increases - Original (E Fac == 1)](imgs/increase_in_lcs/lcs_original.html)**  
 
-- **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac 0.25](imgs/increase_in_lcs/lcs_with_e_fac_025_filtered.html)**  
+- **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac 0.25](imgs/increase_in_lcs/lcs_with_e_fac_025.html)**  
 
-- **[Observed vs. SAM-Predicted LC Increases - Outliers Optimal E Fac](imgs/increase_in_lcs/lcs_with_e_fac_optimal_filtered.html)**  
+- **[Observed vs. SAM-Predicted LC Increases - Outliers Optimal E Fac](imgs/increase_in_lcs/lcs_with_e_fac_optimal.html)**  
 
 - **[Normalized LC Increases - Effect Range Adjustment](imgs/increase_in_lcs/lcs_optimal_effect_range_norm.html)**  
   
