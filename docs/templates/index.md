@@ -15,6 +15,8 @@ This is a Python reimplementation of the Stress Addition Model (SAM) from the re
 
 This section demonstrates how lethal concentrations (LCs) increase with added stress across different dose-response curves. The following graphics illustrate various aspects of this impact:
 
+- **[Observed vs. SAM-Predicted LC Increases - Original (E Fac == 1)](imgs/increase_in_lcs/lcs_original.html)**  
+
 - **[Observed vs. SAM-Predicted LC Increases - Outliers E Fac 0.25](imgs/increase_in_lcs/lcs_with_e_fac_025_filtered.html)**  
 
 - **[Observed vs. SAM-Predicted LC Increases - Outliers Optimal E Fac](imgs/increase_in_lcs/lcs_with_e_fac_optimal_filtered.html)**  
