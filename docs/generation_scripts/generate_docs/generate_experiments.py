@@ -37,7 +37,7 @@ def create_page_for_data(name, exps: list[ExperimentData]):
     # Write to Markdown
     text = f"""# {name}\n\n## Experiment Metadata\n\n```yaml\n{yaml_text}\n```\n"""
 
-    for exp in sorted(exps, key=lambda x: x.meta.title):
+    for exp in sorted(exps, key=lambda x: x.meta.days):
         table = exp.to_markdown_table()
         title = exp.meta.title.replace(" ", "_")
         text += f"\n\n## {title}\n\n### Data\n\n{table}\n\n### SAM Predictions\n"

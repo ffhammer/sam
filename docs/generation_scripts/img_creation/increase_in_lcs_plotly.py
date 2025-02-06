@@ -390,16 +390,22 @@ if __name__ == "__main__":
         [f"{read_data(a).meta.title} - {b}" for a, b, _ in sys_examples]
     )
 
+    # example no/ e-factor1
+    html_original = generate_html_page(
+        original_frame,
+        norm_by_effect_range=False,
+        additional_site_info="Keeping all e-factors untouched.",
+    )
+    with open(dir4imgs / "lcs_original", "w", encoding="utf-8") as f:
+        f.write(html_original)
+
     # Example #1: e-factor=0.25
     df_025 = overwrite_examples_with_efac(0.25, original_frame)
-    mask = df_025.chemical.apply(lambda x: x not in ["Salt (NaCl)", "Copper"])
-    df_025_filtered = df_025[mask]
 
     html_025 = generate_html_page(
-        df_025_filtered,
+        df_025,
         norm_by_effect_range=False,
-        additional_site_info="Experiments Containing Salt (NaCl) or Copper as Main Stressors have been disgarded for this experiment\n\n"
-        f"Using new_e=e *0.25 for outliers:\n{outlier_text}",
+        additional_site_info=f"Using new_e=e *0.25 for outliers:\n{outlier_text}",
     )
     with open(
         dir4imgs / "lcs_with_e_fac_025_filtered.html", "w", encoding="utf-8"
@@ -408,14 +414,11 @@ if __name__ == "__main__":
 
     # Example #2: e-factor="optimal"
     df_opt = overwrite_examples_with_efac("optimal", original_frame)
-    mask = df_opt.chemical.apply(lambda x: x not in ["Salt (NaCl)", "Copper"])
-    df_opt_filtered = df_opt[mask]
 
     html_opt = generate_html_page(
-        df_opt_filtered,
+        df_opt,
         norm_by_effect_range=False,
-        additional_site_info="Experiments Containing Salt (NaCl) or Copper as Main Stressors have been disgarded for this experiment\n"
-        f"Using an optimal e-factor for each of these outliers:\n{outlier_text}",
+        additional_site_info=f"Using an optimal e-factor for each of these outliers:\n{outlier_text}",
     )
     with open(
         dir4imgs / "lcs_with_e_fac_optimal_filtered.html", "w", encoding="utf-8"
