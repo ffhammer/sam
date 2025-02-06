@@ -32,6 +32,7 @@ from img_creation.lc_increase_data import (
 from img_creation.e_fac_mod import overwrite_examples_with_efac
 import json
 from sam import read_data
+from sklearn.metrics import r2_score
 
 
 def gen_dot_plotly(input_df, norm_by_effect_range=False):
@@ -129,82 +130,66 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
     # ------------------------------------------------------
     # Add dashed regression lines (log-based) for "all data", always visible
     # ------------------------------------------------------
-    x_data = input_df["stress_level"].values
 
-    # For LC10 subplot
-    y_data_true_10 = input_df["true_10_frac"].values
-    slope_10_m, intercept_10_m = np.polyfit(x_data, np.log10(y_data_true_10), 1)
-    x_line = np.linspace(x_data.min(), x_data.max(), 100)
-    y_line = 10 ** (slope_10_m * x_line + intercept_10_m)
+    def add_regression_line(y_key: str, name_2_id_name: str, col: int) -> float:
+        if y_key.startswith("true"):
+            color = "blue"
+            legend_name = "Measurements (Regression)"
+        elif y_key.startswith("sam"):
+            color = "green"
+            legend_name = "Predictions (Regression)"
+        else:
+            NotImplementedError("wrong")
 
-    fig.add_trace(
-        go.Scatter(
-            x=x_line,
-            y=y_line,
-            mode="lines",
-            line=dict(color="blue", dash="dash"),
-            name="Measurements (Regression)",
-            showlegend=True,  # Only show legend on left
-        ),
-        row=1,
+        x_data = input_df["stress_level"].values
+
+        # For LC10 subplot
+        y_data = input_df[y_key].values
+        slope, intercept = np.polyfit(x_data, np.log10(y_data), 1)
+        x_line = np.linspace(x_data.min(), x_data.max(), 100)
+        y_line = 10 ** (slope * x_line + intercept)
+
+        preds = 10 ** (slope * x_data + intercept)
+        score = r2_score(y_data, preds)
+
+        fig.add_trace(
+            go.Scatter(
+                x=x_line,
+                y=y_line,
+                mode="lines",
+                line=dict(color=color, dash="dash"),
+                name=legend_name,
+                showlegend=True,
+            ),
+            row=1,
+            col=col,
+        )
+        name_to_id.append(name_2_id_name)
+        return score
+
+    add_regression_line(
+        y_key="true_10_frac",
+        name_2_id_name="reg_meas_10",
         col=1,
     )
-    name_to_id.append("reg_meas_10")
 
-    y_data_pred_10 = input_df["sam_10_frac"].values
-    slope_10_p, intercept_10_p = np.polyfit(x_data, np.log10(y_data_pred_10), 1)
-    y_line = 10 ** (slope_10_p * x_line + intercept_10_p)
-
-    fig.add_trace(
-        go.Scatter(
-            x=x_line,
-            y=y_line,
-            mode="lines",
-            line=dict(color="green", dash="dash"),
-            name="Predictions (Regression)",
-            showlegend=True,  # Only show legend on left
-        ),
-        row=1,
+    add_regression_line(
+        y_key="sam_10_frac",
+        name_2_id_name="reg_pred_10",
         col=1,
     )
-    name_to_id.append("reg_pred_10")
 
-    # For LC50 subplot
-    y_data_true_50 = input_df["true_50_frac"].values
-    slope_50_m, intercept_50_m = np.polyfit(x_data, np.log10(y_data_true_50), 1)
-    y_line = 10 ** (slope_50_m * x_line + intercept_50_m)
-
-    fig.add_trace(
-        go.Scatter(
-            x=x_line,
-            y=y_line,
-            mode="lines",
-            line=dict(color="blue", dash="dash"),
-            name="Measurements (Regression)",
-            showlegend=False,
-        ),
-        row=1,
+    add_regression_line(
+        y_key="true_50_frac",
+        name_2_id_name="reg_meas_50",
         col=2,
     )
-    name_to_id.append("reg_meas_50")
 
-    y_data_pred_50 = input_df["sam_50_frac"].values
-    slope_50_p, intercept_50_p = np.polyfit(x_data, np.log10(y_data_pred_50), 1)
-    y_line = 10 ** (slope_50_p * x_line + intercept_50_p)
-
-    fig.add_trace(
-        go.Scatter(
-            x=x_line,
-            y=y_line,
-            mode="lines",
-            line=dict(color="green", dash="dash"),
-            name="Predictions (Regression)",
-            showlegend=False,
-        ),
-        row=1,
+    add_regression_line(
+        y_key="sam_50_frac",
+        name_2_id_name="reg_pred_50",
         col=2,
     )
-    name_to_id.append("reg_pred_50")
 
     # ------------------------------------------------------
     # Dropdown logic
@@ -396,7 +381,7 @@ if __name__ == "__main__":
         norm_by_effect_range=False,
         additional_site_info="Keeping all e-factors untouched.",
     )
-    with open(dir4imgs / "lcs_original", "w", encoding="utf-8") as f:
+    with open(dir4imgs / "lcs_original.html", "w", encoding="utf-8") as f:
         f.write(html_original)
 
     # Example #1: e-factor=0.25
