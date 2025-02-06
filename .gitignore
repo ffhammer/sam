@@ -9,6 +9,9 @@ r_code
 betas
 zips
 *.DS_STORE
+docs/imgs
+docs/experiments
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
