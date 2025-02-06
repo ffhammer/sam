@@ -99,6 +99,8 @@ class SAMPrediction:
 
     new_model: Callable
 
+    effect_addition_prediction: np.ndarray = make_np_config()
+
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
         """
         Plots the SAM prediction with optional lethal concentration (LC) indicators.
@@ -264,6 +266,11 @@ def generate_sam_prediction(
             settings.stress_to_survival(predicted_stress_curve) * max_survival
         )
 
+    # effect addition
+    effect_addition_pred = (
+        stressor_fit.optim_param["d"] / main_fit.optim_param["d"] * main_fit.survival
+    )
+
     return SAMPrediction(
         main_fit,
         stressor_fit,
@@ -273,6 +280,7 @@ def generate_sam_prediction(
         max_survival,
         settings=settings,
         new_model=pred_survival,
+        effect_addition_prediction=effect_addition_pred,
     )
 
 

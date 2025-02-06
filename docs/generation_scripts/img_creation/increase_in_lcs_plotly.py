@@ -35,7 +35,7 @@ from sam import read_data
 from sklearn.metrics import mean_absolute_percentage_error
 
 
-def gen_dot_plotly(input_df, norm_by_effect_range=False):
+def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=True):
     y_title = "Increase of Toxicant Sensitivity"
 
     if norm_by_effect_range:
@@ -57,6 +57,9 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
         "Measurements": "blue",
         "Predictions": "green",
     }
+
+    if with_effect_addition:
+        color_mapping["Effect Addition"] = "orange"
 
     name_to_id = []
 
@@ -122,6 +125,31 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
                     line=dict(color="grey", width=2),
                     showlegend=False,
                     opacity=0.5,
+                ),
+                row=1,
+                col=col,
+            )
+            name_to_id.append(f"{row.Name}_{y_col}")
+
+            if not with_effect_addition:
+                continue
+
+            fig.add_trace(
+                go.Scatter(
+                    x=[row.stress_level],
+                    y=[row[y_col.replace("true", "ea")]],
+                    mode="markers",
+                    name=row.Name,
+                    hovertext=(
+                        f"<br><b>Name</b>: {row.Name}"
+                        f"<br><b>Experiment</b>: {row.experiment_name}"
+                        f"<br><b>Main Stressor</b>: {row.chemical}"
+                        f"<br><b>Additional Stressor</b>: {row.stress_name}"
+                        f"<br><b>Duration</b>: {row.days}"
+                        f"<br><b>Organism</b>: {row.organism}" + add_text
+                    ),
+                    showlegend=False,
+                    marker=dict(color=color_mapping["Effect Addition"]),
                 ),
                 row=1,
                 col=col,
@@ -262,6 +290,8 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False):
             "color_Measurements",
             "color_Predictions",
         }
+        if with_effect_addition:
+            valid.add("color_Effect Addition")
 
         for n in df.Name.values:
             valid.add(f"{n}_true_10_frac")

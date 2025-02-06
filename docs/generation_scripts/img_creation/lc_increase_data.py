@@ -15,7 +15,7 @@ from sam.concentration_response_fits import (
     concentration_response_fit,
     survival_to_stress,
 )
-from sam.helpers import compute_lc
+from sam.helpers import compute_lc, ll5_inv
 from sam.stress_addition_model import (
     STANDARD_SAM_SETTING,
     get_sam_lcs,
@@ -127,6 +127,14 @@ def gen_dose_response_frame(lc10, lc50, filter_func=lambda x: False) -> pd.DataF
     return df
 
 
+def compute_ea_lc(ll5_params, main_c0, lc: float) -> float:
+    frac = 1 - lc / 100
+
+    inv_input = frac * main_c0
+
+    return ll5_inv(inv_input, **ll5_params)
+
+
 def gen_experiment_res_frame():
     dfs = []
 
@@ -149,6 +157,17 @@ def gen_experiment_res_frame():
         main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)
 
+        ea_lc10 = compute_ea_lc(
+            ll5_params=res.control.optim_param,
+            main_c0=res.control.optim_param["d"],
+            lc=10,
+        )
+        ea_lc50 = compute_ea_lc(
+            ll5_params=res.control.optim_param,
+            main_c0=res.control.optim_param["d"],
+            lc=50,
+        )
+
         row = {
             "title": path[:-4],
             "days": meta.days,
@@ -163,6 +182,8 @@ def gen_experiment_res_frame():
             "stress_lc50": lcs.stress_lc50,
             "sam_lc10": lcs.sam_lc10,
             "sam_lc50": lcs.sam_lc50,
+            "ea_lc10": ea_lc10,
+            "ea_lc50": ea_lc50,
             "experiment_name": Path(data.meta.path).parent.name,
             "Name": data.meta.title,
             "add_stress": res.assumed_additional_stress,
@@ -178,6 +199,9 @@ def gen_experiment_res_frame():
     df["true_50_frac"] = df.main_lc50 / df.stress_lc50
     df["sam_10_frac"] = df.main_lc10 / df.sam_lc10
     df["sam_50_frac"] = df.main_lc50 / df.sam_lc50
+    df["ea_10_frac"] = df.main_lc10 / df.ea_lc10
+    df["ea_50_frac"] = df.main_lc50 / df.ea_lc50
+
     df["stress_level"] = df.add_stress
     return df
 
