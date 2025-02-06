@@ -167,14 +167,9 @@ def gen_experiment_res_frame():
             "Name": data.meta.title,
             "add_stress": res.assumed_additional_stress,
         }
-        row["effect_range"] = calculate_effect_range(
-            data.main_series,
-            max_survival=data.meta.max_survival,
-            hormesis_index=data.hormesis_index,
-            start_lc=5,
-            end_lc=95,
-        )
-
+        row["effect_range"] = compute_lc(
+            optim_param=res.control.optim_param, lc=75
+        ) / compute_lc(optim_param=res.control.optim_param, lc=25)
         dfs.append(row)
 
     df = pd.DataFrame(dfs)
