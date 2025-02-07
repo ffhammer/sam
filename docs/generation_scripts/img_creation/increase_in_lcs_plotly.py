@@ -35,7 +35,7 @@ from sam import read_data
 from sklearn.metrics import mean_absolute_percentage_error
 
 
-def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=True):
+def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=False):
     y_title = "Increase of Toxicant Sensitivity"
 
     if norm_by_effect_range:
@@ -84,7 +84,9 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Tr
                         f"<br><b>Main Stressor</b>: {row.chemical}"
                         f"<br><b>Additional Stressor</b>: {row.stress_name}"
                         f"<br><b>Duration</b>: {row.days}"
-                        f"<br><b>Organism</b>: {row.organism}" + add_text
+                        f"<br><b>Organism</b>: {row.organism}"
+                        f"<br><b>E Parameter Factor</b>: {float(row.e_fac):.2f}"
+                        + add_text
                     ),
                     showlegend=False,
                     marker=dict(color=color_mapping["Measurements"]),
@@ -107,7 +109,9 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Tr
                         f"<br><b>Main Stressor</b>: {row.chemical}"
                         f"<br><b>Additional Stressor</b>: {row.stress_name}"
                         f"<br><b>Duration</b>: {row.days}"
-                        f"<br><b>Organism</b>: {row.organism}" + add_text
+                        f"<br><b>Organism</b>: {row.organism}"
+                        f"<br><b>E Parameter Factor</b>: {float(row.e_fac):.2f}"
+                        + add_text
                     ),
                     showlegend=False,
                     marker=dict(color=color_mapping["Predictions"]),
@@ -460,49 +464,45 @@ if __name__ == "__main__":
         [f"{read_data(a).meta.title} - {b}" for a, b, _ in sys_examples]
     )
 
-    # example no/ e-factor1
-    html_original = generate_html_page(
-        original_frame,
-        norm_by_effect_range=False,
-        additional_site_info="Keeping all e-factors untouched.",
-    )
-    with open(dir4imgs / "lcs_original.html", "w", encoding="utf-8") as f:
-        f.write(html_original)
-
-    # Example #1: e-factor=0.25
-    df_025 = overwrite_examples_with_efac(0.25, original_frame)
-
-    html_025 = generate_html_page(
-        df_025,
-        norm_by_effect_range=False,
-        additional_site_info=f"Using new_e=e *0.25 for outliers:\n{outlier_text}",
-    )
-    with open(dir4imgs / "lcs_with_e_fac_025.html", "w", encoding="utf-8") as f:
-        f.write(html_025)
-
-    # Example #2: e-factor="optimal"
-    df_opt = overwrite_examples_with_efac("optimal", original_frame)
-
-    html_opt = generate_html_page(
-        df_opt,
-        norm_by_effect_range=False,
-        additional_site_info=f"Using an optimal e-factor for each of these outliers:\n{outlier_text}",
-    )
-    with open(dir4imgs / "lcs_with_e_fac_optimal.html", "w", encoding="utf-8") as f:
-        f.write(html_opt)
-
-    # Example #3: e-factor="optimal", normalized by effect range
-    df_opt_no_filter = overwrite_examples_with_efac("optimal", original_frame)
-
-    html_opt_norm = generate_html_page(
-        df_opt_no_filter,
-        norm_by_effect_range=True,
-        additional_site_info=(
-            "Effect-range is defined as Control LC95 / LC5.\n"
-            f"Using an optimal e-factor for each of these outliers:\n{outlier_text}"
+    different_frames: list[tuple[pd.DataFrame, str, str]] = [
+        (original_frame, "Keeping all e-factors untouched.", "original"),
+        (
+            overwrite_examples_with_efac(0.25, original_frame),
+            f"Using new_e=e *0.25 for outliers:\n{outlier_text}",
+            "e_fac_0.25",
         ),
-    )
-    with open(
-        dir4imgs / "lcs_optimal_effect_range_norm.html", "w", encoding="utf-8"
-    ) as f:
-        f.write(html_opt_norm)
+        (
+            overwrite_examples_with_efac("optimal", original_frame),
+            f"Using an optimal e-factor for each of these outliers:\n{outlier_text}",
+            "e_fac_optimal_outliers",
+        ),
+        (
+            overwrite_examples_with_efac("optimal", original_frame, all_rows=True),
+            "Using an optimal e-factor for all points.",
+            "e_fac_optimal_all",
+        ),
+    ]
+
+    def save_fig(name, fig):
+        with open(dir4imgs / name, "w", encoding="utf-8") as f:
+            f.write(fig)
+
+    for df, additional_site_info, e_fac_name in different_frames:
+        save_fig(
+            f"sensitivity_increase_{e_fac_name}.html",
+            generate_html_page(
+                df,
+                norm_by_effect_range=False,
+                additional_site_info=additional_site_info,
+            ),
+        )
+
+        save_fig(
+            f"sensitivity_increase_effect_range_normed_{e_fac_name}.html",
+            generate_html_page(
+                df,
+                norm_by_effect_range=True,
+                additional_site_info="Effect-range is defined as Control LC75 / LC25.\n"
+                + additional_site_info,
+            ),
+        )

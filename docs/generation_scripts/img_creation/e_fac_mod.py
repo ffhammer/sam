@@ -7,7 +7,13 @@ import sys
 sys.path.append("docs/generation_scripts/")
 
 
-from sam import generate_sam_prediction, read_data, STANDARD_SAM_SETTING, get_sam_lcs
+from sam import (
+    generate_sam_prediction,
+    read_data,
+    STANDARD_SAM_SETTING,
+    get_sam_lcs,
+    load_datapoints,
+)
 import json
 from copy import deepcopy
 from sklearn.metrics import r2_score
@@ -32,13 +38,21 @@ def find_optimal_efac(
         )
         return -r2_score(res.co_stressor.survival, res.predicted_survival)
 
-    result = minimize_scalar(func, bounds=(0.05, 1.0), method="bounded")
+    result = minimize_scalar(func, bounds=(0.05, 5.0), method="bounded")
     return result.x
 
 
-def overwrite_examples_with_efac(e_fac: float | str, df: pd.DataFrame) -> pd.DataFrame:
-    with open("docs/add_sys_examples.json") as f:
-        sys_examples = json.load(f)
+def overwrite_examples_with_efac(
+    e_fac: float | str, df: pd.DataFrame, all_rows=False
+) -> pd.DataFrame:
+    if all_rows:
+        sys_examples = [
+            (path, stress_name) for path, _, stress_name, _ in load_datapoints()
+        ]
+        assert sys_examples
+    else:
+        with open("docs/add_sys_examples.json") as f:
+            sys_examples = json.load(f)
 
     new_df = df.copy()
     for example in sys_examples:
@@ -56,18 +70,19 @@ def overwrite_examples_with_efac(e_fac: float | str, df: pd.DataFrame) -> pd.Dat
         settings = deepcopy(STANDARD_SAM_SETTING)
 
         if e_fac == "optimal":
-            optimal_e_fac = find_optimal_efac(
+            val = find_optimal_efac(
                 meta=data.meta,
                 co_stressor_data=data.additional_stress[stress_name],
                 control_data=data.main_series,
             )
-            settings.e_param_modifier_pre_sam = lambda x: x * optimal_e_fac
-
-        elif isinstance(e_fac, float):
-            settings.e_param_modifier_pre_sam = lambda x: x * e_fac
         else:
-            raise ValueError("wrong e_fac")
+            val = e_fac
 
+        if not isinstance(val, float):
+            raise ValueError(f"wrong e_fac {e_fac}")
+
+        settings.e_param_modifier_pre_sam = lambda x: x * val
+        row.e_fac = val
         res = generate_sam_prediction(
             meta=data.meta,
             co_stressor_data=data.additional_stress[stress_name],

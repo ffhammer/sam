@@ -203,6 +203,7 @@ def gen_experiment_res_frame():
     df["ea_50_frac"] = df.main_lc50 / df.ea_lc50
 
     df["stress_level"] = df.add_stress
+    df["e_fac"] = 1.0
     return df
 
 
