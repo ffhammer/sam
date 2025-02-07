@@ -25,7 +25,7 @@ import argparse
 
 
 def create_color_map(df):
-    chemicals = df["chemical"].unique()
+    chemicals = sorted(df["chemical"].unique())
     color_map = {
         chemical: color
         for chemical, color in zip(
@@ -36,13 +36,13 @@ def create_color_map(df):
     return color_map
 
 
-def make_fig(surv_col, stres_col, df, color_map):
+def make_fig(surv_col, stres_col, df, color_map, start_lc, end_lc):
     color_map = color_map.copy()
     color_map["Selection Mean"] = "red"
 
     name_to_id = []
 
-    x = np.linspace(1, 99, 1000)
+    x = np.linspace(start_lc, end_lc, 1000)
     fig = make_subplots(rows=1, cols=2)
 
     def gen_traces(y_key, col):
@@ -306,10 +306,10 @@ def make_fig(surv_col, stres_col, df, color_map):
     return fig
 
 
-def graphic(surv_col, stres_col, df, color_map):
+def graphic(surv_col, stres_col, df, color_map, start_lc, end_lc):
     fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
-    x = np.linspace(1, 99, 1000)
+    x = np.linspace(start_lc, end_lc, 1000)
 
     for _, row in df.iterrows():
         axs[0].plot(x, row[surv_col], label=row.chemical, color=color_map[row.chemical])
@@ -361,20 +361,54 @@ if __name__ == "__main__":
     dir4imgs = Path(args.dir4imgs)
     dir4imgs.mkdir(exist_ok=True, parents=True)
 
-    df = create_dose_response_fits_frame()
+    start_lc, end_lc = 1, 99
+
+    df = create_dose_response_fits_frame(start_lc=start_lc, end_lc=end_lc)
     color_map = create_color_map(df)
 
-    cleaned_interactive = make_fig("cleaned_curves", "cleaned_stress", df, color_map)
+    cleaned_interactive = make_fig(
+        "cleaned_curves",
+        "cleaned_stress",
+        df,
+        color_map,
+        start_lc=start_lc,
+        end_lc=end_lc,
+    )
     cleaned_interactive.write_html(dir4imgs / "cleaned_dosecurves.html")
-    raw_interactive = make_fig("normed_curves", "stress", df, color_map)
+    raw_interactive = make_fig(
+        "normed_curves", "stress", df, color_map, start_lc=start_lc, end_lc=end_lc
+    )
     raw_interactive.write_html(dir4imgs / "raw_dosecurves.html")
 
-    cleaned_static = graphic("cleaned_curves", "cleaned_stress", df, color_map)
+    cleaned_static = graphic(
+        "cleaned_curves",
+        "cleaned_stress",
+        df,
+        color_map,
+        start_lc=start_lc,
+        end_lc=end_lc,
+    )
     cleaned_static_path = dir4imgs / "cleaned_dosecurves.png"
     cleaned_static.savefig(cleaned_static_path, format="png")
     plt.close(cleaned_static)
 
-    raw_static = graphic("normed_curves", "stress", df, color_map)
+    raw_static = graphic(
+        "normed_curves", "stress", df, color_map, start_lc=start_lc, end_lc=end_lc
+    )
     raw_static_path = dir4imgs / "raw_dosecurves.png"
     raw_static.savefig(raw_static_path, format="png")
     plt.close(raw_static)
+
+    # shorter lcs
+    start_lc, end_lc = 25, 75
+    df = create_dose_response_fits_frame(start_lc=start_lc, end_lc=end_lc)
+
+    cleaned_interactive = make_fig(
+        "cleaned_curves",
+        "cleaned_stress",
+        df,
+        color_map,
+        start_lc=start_lc,
+        end_lc=end_lc,
+    )
+    cleaned_interactive.write_html(dir4imgs / "cleaned_dosecurves_25_75.html")

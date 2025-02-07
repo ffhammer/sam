@@ -15,6 +15,7 @@ from sam.helpers import (
     detect_hormesis_index,
     pad_c0,
     weibull_2param_inverse,
+    compute_lc,
 )
 from sam.hormesis_free_response_fitting import fit_hormesis_free_response
 
@@ -44,7 +45,7 @@ def predict_cleaned_curv(data: ExperimentData):
     return cleaned_tox_func, inverse
 
 
-def create_dose_response_fits_frame() -> pd.DataFrame:
+def create_dose_response_fits_frame(start_lc=1, end_lc=99) -> pd.DataFrame:
     dfs = []
 
     for path, data in load_files():
@@ -63,8 +64,6 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
             lc = 1 - lc / 100
             return inverse(lc)
 
-        lc1 = find_lc(1)
-        lc99 = find_lc(99)
         dfs.append(
             {
                 "og_conc": res.concentration,
@@ -74,8 +73,8 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
                 "Organism": meta.organism,
                 "model": res,
                 "cleaned_func": cleaned_func,
-                "lc1": lc1,
-                "lc99": lc99,
+                "start_lc": find_lc(start_lc),
+                "end_lc": find_lc(end_lc),
                 "Name": meta.title,
                 "Duration": int(meta.days),
                 "Experiment": Path(meta.path).parent.name,
@@ -85,15 +84,15 @@ def create_dose_response_fits_frame() -> pd.DataFrame:
     df = pd.DataFrame(dfs)
 
     def compute_normalised_curve(model: ConcentrationResponsePrediction):
-        if np.isnan(model.lc1):
-            print("nan")
-            model.lc1 = 0.0
-        x = np.linspace(model.lc1, model.lc99, 1000)
+        start = compute_lc(model.optim_param, start_lc)
+        end = compute_lc(model.optim_param, end_lc)
+
+        x = np.linspace(start, end, 1000)
 
         return model.model(x) * 100
 
     def compute_cleaned_curve(row):
-        x = np.linspace(row.lc1, row.lc99, 1000)
+        x = np.linspace(row.start_lc, row.end_lc, 1000)
 
         return row.cleaned_func(x) * 100
 
