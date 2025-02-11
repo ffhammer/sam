@@ -242,6 +242,8 @@ class ExperimentData:
             cols[name.replace("_", " ")] = ser.survival_rate
 
         df = pd.DataFrame.from_dict(cols, orient="columns")
+        # normalize by max surv
+        df.iloc[:, 1:] = np.round(df.iloc[:, 1:] / self.meta.max_survival, 2)
         markdown_text = df.to_markdown()
 
         # if there is meta data show below the table
