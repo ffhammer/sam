@@ -13,6 +13,7 @@ from sam.stress_addition_model import (
     get_sam_lcs,
     STANDARD_SAM_SETTING,
 )
+from sam import CauseEffectData
 from sam.plotting import plot_sam_prediction
 from sam.data_formats import load_datapoints
 import os
@@ -26,11 +27,20 @@ SETTINGS = STANDARD_SAM_SETTING
 
 def compute_all(plot: bool, dir4imgs: str):
     for path, data, name, val in tqdm(load_datapoints()):
+        original_max_surv = data.meta.max_survival
+
         res = generate_sam_prediction(
-            data.main_series,
-            val,
+            CauseEffectData(
+                data.main_series.concentration,
+                data.main_series.survival_rate / original_max_surv,
+                "main_series",
+            ),
+            CauseEffectData(
+                val.concentration, val.survival_rate / original_max_surv, name
+            ),
             data.meta,
             settings=SETTINGS,
+            max_survival=1.0,
         )
 
         if plot:
