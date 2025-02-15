@@ -28,7 +28,7 @@ def find_optimal_efac(
 ) -> float:
     def func(e_fac):
         settings = deepcopy(STANDARD_SAM_SETTING)
-        settings.e_param_modifier_pre_sam = lambda x: x * e_fac
+        settings.e_param_fac = e_fac
 
         res = generate_sam_prediction(
             meta=meta,
@@ -81,7 +81,7 @@ def overwrite_examples_with_efac(
         if not isinstance(val, float):
             raise ValueError(f"wrong e_fac {e_fac}")
 
-        settings.e_param_modifier_pre_sam = lambda x: x * val
+        settings.e_param_fac = val
         row.e_fac = val
         res = generate_sam_prediction(
             meta=data.meta,

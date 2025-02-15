@@ -5,7 +5,7 @@ from sam.system_stress import generate_sys_adjusted_sam_prediction
 
 def test_sys_adjusted_pred():
     data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
-    ser = data.additional_stress["Food_1% + Prochloraz_100"]
+    ser = data.additional_stress["Prochloraz_1 + Food_1%"]
 
     generate_sys_adjusted_sam_prediction(
         control_data=data.main_series,

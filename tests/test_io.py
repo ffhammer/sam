@@ -66,7 +66,7 @@ def test_saving_and_loading_stays_same_sam():
 
 def gen_sys_adjusted_pred() -> SysAdjustedSamPrediction:
     data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
-    ser = data.additional_stress["Food_1% + Prochloraz_100"]
+    ser = data.additional_stress["Prochloraz_1 + Food_1%"]
 
     return generate_sys_adjusted_sam_prediction(
         control_data=data.main_series,
@@ -110,7 +110,7 @@ def test_saving_and_loading_stays_same_for_sam_with_real_data():
     data = read_data("data/2019 Naeem-Esf, Pro, food/21_days.xlsx")
 
     original_prediction = generate_sam_prediction(
-        data.main_series, data.additional_stress["Food_1% + Prochloraz_1"], data.meta
+        data.main_series, data.additional_stress["Prochloraz_1 + Food_1%"], data.meta
     )
 
     # Save to a temporary file

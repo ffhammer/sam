@@ -60,8 +60,7 @@ class SAM_Settings:
 
     keep_co_stressor_f_parameter_free: bool = False
 
-    f_param_modifier_pre_sam: Callable = lambda x: x
-    e_param_modifier_pre_sam: Callable = lambda x: x
+    e_param_fac: float = 1.0
 
     def __post_init__(
         self,
@@ -228,17 +227,14 @@ def generate_sam_prediction(
     )
 
     # specific calc with f modifier
-    new_f = settings.f_param_modifier_pre_sam(main_fit.optim_param["f"])
-    new_e = settings.e_param_modifier_pre_sam(main_fit.optim_param["e"])
-
     def new_model(x):
         return ll5(
             x,
             b=main_fit.optim_param["b"],
             c=main_fit.optim_param["c"],
             d=main_fit.optim_param["d"],
-            e=new_e,
-            f=new_f,
+            e=main_fit.optim_param["e"] * settings.e_param_fac,
+            f=main_fit.optim_param["f"],
         )
 
     pred_survival = new_model(main_fit.concentration)
