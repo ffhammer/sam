@@ -69,9 +69,6 @@ def compute_lc_from_curve(
 
     arg = np.argmax(normed < val)
 
-    if arg == 0:
-        return np.nan
-
     return float(concentrations[arg])
 
 
