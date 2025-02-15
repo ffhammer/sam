@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from typing import Optional
 from matplotlib.colors import to_rgb, to_hex
 from matplotlib.figure import Figure
-from .helpers import Predicted_LCs
+from .helpers import Predicted_LCs, pad_c0
 from seaborn import color_palette
 
 SCATTER_SIZE = 20
@@ -153,20 +153,23 @@ def plot_survival(
     )
 
     if orig_series is not None:
-        ax.scatter(
-            orig_series.concentration,
-            orig_series.survival_rate,
-            label=label,
-            zorder=5,
-            s=SCATTER_SIZE,
-            color=color,
-        )
+        x = pad_c0(orig_series.concentration)
 
-        if hormesis_index is not None:
-            mask = np.arange(len(orig_series.concentration)) != hormesis_index
+        if hormesis_index is None:
+            ax.scatter(
+                x,
+                orig_series.survival_rate,
+                label=label,
+                zorder=5,
+                s=SCATTER_SIZE,
+                color=color,
+            )
+
+        else:
+            mask = np.arange(len(x)) != hormesis_index
 
             ax.scatter(
-                orig_series.concentration[mask],
+                x[mask],
                 orig_series.survival_rate[mask],
                 label=label,
                 zorder=5,
@@ -175,20 +178,10 @@ def plot_survival(
             )
 
             ax.scatter(
-                [orig_series.concentration[hormesis_index]],
+                [x[hormesis_index]],
                 [orig_series.survival_rate[hormesis_index]],
                 zorder=5,
                 color="red",
-                s=SCATTER_SIZE,
-            )
-
-        else:
-            ax.scatter(
-                orig_series.concentration,
-                orig_series.survival_rate,
-                label=label,
-                zorder=5,
-                color=color,
                 s=SCATTER_SIZE,
             )
 
