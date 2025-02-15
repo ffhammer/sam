@@ -1,4 +1,4 @@
 organism: "Daphnia magna"
 main_stressor: "Esfenvalerate"
-max_survival: 1
+max_survival: 100
 pub: "Environmental Stress Increases Synergistic Eﬀects of Pesticide Mixtures on Daphnia, 10.1021/acs.est.9b04293"
