@@ -148,11 +148,7 @@ def gen_experiment_res_frame():
             settings=STANDARD_SAM_SETTING,
         )
 
-        lcs = get_sam_lcs(
-            stress_fit=res.co_stressor,
-            sam_sur=res.predicted_survival,
-            max_survival=data.meta.max_survival,
-        )
+        lcs = get_sam_lcs(sam_prediction=res)
 
         main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)

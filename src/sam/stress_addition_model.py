@@ -16,7 +16,7 @@ from .concentration_response_fits import (
     Transforms,
     concentration_response_fit,
 )
-from .helpers import Predicted_LCs, compute_lc, compute_lc_from_curve, ll5
+from .helpers import Predicted_LCs, compute_lc, ll5, ll5_inv
 from .io import make_np_config
 from .plotting import plot_sam_prediction
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
@@ -100,6 +100,37 @@ class SAMPrediction:
 
     effect_addition_prediction: np.ndarray = make_np_config()
 
+    concentratation_addition_prediction: np.ndarray = make_np_config()
+
+    normalize_survival_for_stress_conversion_factor: float
+
+    def predict(self, concentration: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        def new_model(x):
+            return ll5(
+                x,
+                b=self.control.optim_param["b"],
+                c=self.control.optim_param["c"],
+                d=self.control.optim_param["d"],
+                e=self.control.optim_param["e"] * self.settings.e_param_fac,
+                f=self.control.optim_param["f"],
+            )
+
+        pred_survival = new_model(concentration)
+        stress_curve = self.settings.survival_to_stress(
+            pred_survival / self.normalize_survival_for_stress_conversion_factor,
+        )
+
+        predicted_stress_curve = np.clip(
+            stress_curve + self.assumed_additional_stress, 0, 1
+        )
+
+        predicted_survival_curve = (
+            self.settings.stress_to_survival(predicted_stress_curve)
+            * self.normalize_survival_for_stress_conversion_factor
+            * self.max_survival
+        )
+        return predicted_survival_curve, predicted_stress_curve
+
     def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
         """
         Plots the SAM prediction with optional lethal concentration (LC) indicators.
@@ -111,15 +142,13 @@ class SAMPrediction:
         Returns:
             Figure: A matplotlib figure containing the plot.
         """
-        lcs = (
-            get_sam_lcs(
-                stress_fit=self.co_stressor,
-                sam_sur=self.predicted_survival,
-                max_survival=self.max_survival,
-            )
-            if with_lcs
-            else None
-        )
+        lcs = None
+        if with_lcs:
+            try:
+                lcs = get_sam_lcs(self)
+            except LC_Verification_Error as e:
+                print(f"There was an error when revalidating the compiuted lcs:\n\t{e}")
+
         return plot_sam_prediction(
             self, lcs=lcs, survival_max=self.max_survival, title=title
         )
@@ -237,30 +266,30 @@ def generate_sam_prediction(
             f=main_fit.optim_param["f"],
         )
 
-    pred_survival = new_model(main_fit.concentration)
-    if settings.normalize_survival_for_stress_conversion:
-        stress_curve = survival_to_stress(
-            pred_survival / main_fit.optim_param["d"],
-            p=settings.beta_p,
-            q=settings.beta_q,
-        )
-    else:
-        stress_curve = survival_to_stress(
-            pred_survival, p=settings.beta_p, q=settings.beta_q
+    normalization_factor = (
+        main_fit.optim_param["d"]
+        if settings.normalize_survival_for_stress_conversion
+        else 1.0
+    )
+
+    def sam_pred(concentration: np.ndarray):
+        pred_survival = new_model(concentration)
+        stress_curve = settings.survival_to_stress(
+            pred_survival / normalization_factor,
         )
 
-    predicted_stress_curve = np.clip(stress_curve + additional_stress, 0, 1)
+        predicted_stress_curve = np.clip(stress_curve + additional_stress, 0, 1)
 
-    if settings.normalize_survival_for_stress_conversion:
         predicted_survival_curve = (
             settings.stress_to_survival(predicted_stress_curve)
-            * main_fit.optim_param["d"]
+            * normalization_factor
             * max_survival
         )
-    else:
-        predicted_survival_curve = (
-            settings.stress_to_survival(predicted_stress_curve) * max_survival
-        )
+        return predicted_survival_curve, predicted_stress_curve
+
+    predicted_survival_curve, predicted_stress_curve = sam_pred(
+        concentration=main_fit.concentration
+    )
 
     # effect addition
     effect_addition_pred = (
@@ -275,8 +304,32 @@ def generate_sam_prediction(
         additional_stress,
         max_survival,
         settings=settings,
-        new_model=pred_survival,
+        new_model=predicted_survival_curve,
         effect_addition_prediction=effect_addition_pred,
+        normalize_survival_for_stress_conversion_factor=normalization_factor,
+        concentratation_addition_prediction=concentration_addition_prediction(
+            control_prediciton=main_fit,
+            co_stressor_prediciton=stressor_fit,
+            max_survival=max_survival,
+        ),
+    )
+
+
+def concentration_addition_prediction(
+    control_prediciton: ConcentrationResponsePrediction,
+    co_stressor_prediciton: ConcentrationResponsePrediction,
+    max_survival: float,
+) -> np.ndarray:
+    pa = control_prediciton.optim_param
+    pb = co_stressor_prediciton.optim_param
+
+    conc_env_ca = pa["e"] * (
+        ((pa["d"] / pb["d"]) ** (1 / pa["f"]) - 1) ** (1 / pa["b"])
+    )
+
+    return (
+        control_prediciton.model(control_prediciton.concentration + conc_env_ca)
+        * max_survival
     )
 
 
@@ -307,11 +360,11 @@ def compute_additional_stress(
         raise ValueError(f"Unknown stress form '{stress_form}'")
 
 
-def get_sam_lcs(
-    stress_fit: ConcentrationResponsePrediction,
-    sam_sur: np.ndarray,
-    max_survival: float,
-) -> Predicted_LCs:
+class LC_Verification_Error(Exception):
+    pass
+
+
+def get_sam_lcs(sam_prediction: SAMPrediction) -> Predicted_LCs:
     """
     Calculates lethal concentrations (LC10 and LC50) for stress and SAM predictions.
 
@@ -322,23 +375,41 @@ def get_sam_lcs(
     Returns:
         Predicted_LCs: Lethal concentrations for both stress (LC10, LC50) and SAM predictions.
     """
-    stress_lc10 = compute_lc(optim_param=stress_fit.optim_param, lc=10)
-    stress_lc50 = compute_lc(optim_param=stress_fit.optim_param, lc=50)
+    stress_fit = sam_prediction.co_stressor
 
-    sam_lc10 = compute_lc_from_curve(
-        stress_fit.concentration,
-        sam_sur,
-        lc=10,
-        survival_max=max_survival,
-        c0=stress_fit.optim_param["d"],
+    sc0 = stress_fit.optim_param["d"]
+
+    stress_lc10 = compute_lc(optim_param=stress_fit.optim_param, lc=10)
+    if not np.isclose(sc0 * 0.9, stress_fit.model(stress_lc10)):
+        raise LC_Verification_Error(
+            f"Stress LC10 calculation error: expected {sc0 * 0.9}, got {stress_fit.model(stress_lc10)}"
+        )
+
+    stress_lc50 = compute_lc(optim_param=stress_fit.optim_param, lc=50)
+    if not np.isclose(sc0 * 0.5, stress_fit.model(stress_lc50)):
+        raise LC_Verification_Error(
+            f"Stress LC50 calculation error: expected {sc0 * 0.5}, got {stress_fit.model(stress_lc50)}"
+        )
+
+    sam_lc10 = compute_sam_lc(pred=sam_prediction, lc=10)
+    sam_recomputed_10 = (
+        sam_prediction.predict(sam_lc10)[0] / sam_prediction.max_survival
     )
-    sam_lc50 = compute_lc_from_curve(
-        stress_fit.concentration,
-        sam_sur,
-        lc=50,
-        survival_max=max_survival,
-        c0=stress_fit.optim_param["d"],
+
+    if not np.isclose(sc0 * 0.9, sam_recomputed_10):
+        raise LC_Verification_Error(
+            f"SAM LC10 calculation error: expected {sc0 * 0.9}, got {sam_recomputed_10}"
+        )
+
+    sam_lc50 = compute_sam_lc(pred=sam_prediction, lc=50)
+    sam_recomputed_50 = (
+        sam_prediction.predict(sam_lc50)[0] / sam_prediction.max_survival
     )
+
+    if not np.isclose(sc0 * 0.5, sam_recomputed_50):
+        raise LC_Verification_Error(
+            f"SAM LC50 calculation error: expected {sc0 * 0.5}, got {sam_recomputed_50}"
+        )
 
     return Predicted_LCs(
         stress_lc10=stress_lc10,
@@ -346,3 +417,23 @@ def get_sam_lcs(
         sam_lc10=sam_lc10,
         sam_lc50=sam_lc50,
     )
+
+
+def compute_sam_lc(pred: SAMPrediction, lc: float) -> float:
+    pa = pred.control.optim_param
+
+    # value in refrence to co stressor c0
+    val = (1 - (lc / 100)) * pred.co_stressor.optim_param["d"]
+
+    fac = pa["d"] if pred.settings.normalize_survival_for_stress_conversion else 1.0
+
+    stress = pred.settings.survival_to_stress(val / fac)
+
+    surv = (
+        pred.settings.stress_to_survival(
+            stress - pred.assumed_additional_stress,
+        )
+        * fac
+    )
+
+    return ll5_inv(surv=surv, **pa)

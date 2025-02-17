@@ -55,21 +55,21 @@ def fix_wlb1(params: wbl1_params) -> Callable:
     return partial(wlb1, b=params.b, c=params.c, d=params.d, e=params.e)
 
 
-def compute_lc_from_curve(
-    concentrations: np.ndarray,
-    survival_curve: np.ndarray,
+def compute_control_addition_lc(
+    control_params: dict[str, float],
+    co_stressor_params: dict[str, float],
     lc: float,
-    survival_max: float,
-    c0: float,
-):
-    normed = survival_curve / survival_max
+) -> float:
+    pa = control_params
+    pb = co_stressor_params
 
-    val = 1 - (lc / 100)
-    val *= c0
+    val = (1 - (lc / 100)) * pb["d"]
 
-    arg = np.argmax(normed < val)
+    conc_env_ca = pa["e"] * (
+        ((pa["d"] / pb["d"]) ** (1 / pa["f"]) - 1) ** (1 / pa["b"])
+    )
 
-    return float(concentrations[arg])
+    return ll5_inv(val, **control_params) - conc_env_ca
 
 
 @dataclass

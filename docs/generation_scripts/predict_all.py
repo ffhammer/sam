@@ -10,11 +10,9 @@ import os
 os.chdir(os.environ["SAM_REPO_PATH"])
 from sam.stress_addition_model import (
     generate_sam_prediction,
-    get_sam_lcs,
     STANDARD_SAM_SETTING,
 )
 from sam import CauseEffectData
-from sam.plotting import plot_sam_prediction
 from sam.data_formats import load_datapoints
 import os
 import matplotlib.pyplot as plt
