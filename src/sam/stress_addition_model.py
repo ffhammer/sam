@@ -461,4 +461,9 @@ def compute_sam_lc(pred: SAMPrediction, lc: float) -> float:
         * fac
     )
 
-    return ll5_inv(surv=surv, **pa)
+    from copy import deepcopy
+
+    pa_copy = deepcopy(pa)
+    pa_copy["e"] *= pred.settings.e_param_fac
+
+    return ll5_inv(surv=surv, **pa_copy)
