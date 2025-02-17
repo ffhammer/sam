@@ -35,7 +35,13 @@ from sam import read_data
 from sklearn.metrics import mean_absolute_percentage_error
 
 
-def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=False):
+def gen_dot_plotly(
+    input_df,
+    x_axis_key: str = "stress_level",
+    x_axis_name: str = "Environmental Stress",
+    norm_by_effect_range=False,
+    with_effect_addition=False,
+):
     y_title = "Increase of Toxicant Sensitivity"
 
     if norm_by_effect_range:
@@ -74,7 +80,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
             # Measurements
             fig.add_trace(
                 go.Scatter(
-                    x=[row.stress_level],
+                    x=[row[x_axis_key]],
                     y=[row[y_col]],
                     mode="markers",
                     name=row.Name,
@@ -99,7 +105,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
             # Predictions
             fig.add_trace(
                 go.Scatter(
-                    x=[row.stress_level],
+                    x=[row[x_axis_key]],
                     y=[row[y_col.replace("true", "sam")]],
                     mode="markers",
                     name=row.Name,
@@ -123,7 +129,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
 
             fig.add_trace(
                 go.Scatter(
-                    x=[row.stress_level, row.stress_level],
+                    x=[row[x_axis_key], row[x_axis_key]],
                     y=[row[y_col], row[y_col.replace("true", "sam")]],
                     mode="lines",
                     line=dict(color="grey", width=2),
@@ -140,7 +146,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
 
             fig.add_trace(
                 go.Scatter(
-                    x=[row.stress_level],
+                    x=[row[x_axis_key]],
                     y=[row[y_col.replace("true", "ea")]],
                     mode="markers",
                     name=row.Name,
@@ -193,7 +199,7 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
         else:
             NotImplementedError("wrong")
 
-        x_data = input_df["stress_level"].values
+        x_data = input_df[x_axis_key].values
 
         # For LC10 subplot
         y_data = input_df[y_key].values
@@ -360,9 +366,9 @@ def gen_dot_plotly(input_df, norm_by_effect_range=False, with_effect_addition=Fa
     # Increase vertical space to avoid squished appearance
     fig.update_layout(height=800)
 
-    fig.update_xaxes(title_text="Environmental Stress", row=1, col=1)
+    fig.update_xaxes(title_text=x_axis_name, row=1, col=1)
     fig.update_yaxes(title_text=y_title, type="log", row=1, col=1)
-    fig.update_xaxes(title_text="Environmental Stress", row=1, col=2)
+    fig.update_xaxes(title_text=x_axis_name, row=1, col=2)
     fig.update_yaxes(title_text=y_title, type="log", row=1, col=2)
 
     return fig, fig_text
@@ -416,14 +422,29 @@ def generate_html_page(
 
         page_sections.append(f"<h3>Day {day}</h3>")
 
-        fig, figtext = gen_dot_plotly(subset, norm_by_effect_range=norm_by_effect_range)
-        # Convert the figure to an HTML snippet
-        fig_html_snippet = pio.to_html(fig, include_plotlyjs=False, full_html=False)
-
-        page_sections.append(fig_html_snippet)
+        page_sections.append("<h4>Generalized Enviromental Stress</h4>")
+        fig, figtext = gen_dot_plotly(
+            subset,
+            norm_by_effect_range=norm_by_effect_range,
+            x_axis_name="Generalized Enviromental Stress",
+        )
+        page_sections.append(pio.to_html(fig, include_plotlyjs=False, full_html=False))
         page_sections.append(
             f"<div style='text-align: center; margin-top: 10px;'>{figtext}</div>"
         )
+
+        page_sections.append("<h4>Environmental Stress Factor</h4>")
+        fig, figtext = gen_dot_plotly(
+            subset,
+            norm_by_effect_range=norm_by_effect_range,
+            x_axis_name="Environmental Stress Factor",
+            x_axis_key="control_div",
+        )
+        page_sections.append(pio.to_html(fig, include_plotlyjs=False, full_html=False))
+        page_sections.append(
+            f"<div style='text-align: center; margin-top: 10px;'>{figtext}</div>"
+        )
+
         page_sections.append("<hr>")
 
     # Final combined page, single <head> & <body>

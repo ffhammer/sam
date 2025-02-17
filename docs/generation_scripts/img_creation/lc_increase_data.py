@@ -183,6 +183,8 @@ def gen_experiment_res_frame():
             "experiment_name": Path(data.meta.path).parent.name,
             "Name": data.meta.title,
             "add_stress": res.assumed_additional_stress,
+            "control_div": 1
+            - (res.co_stressor.optim_param["d"] / res.control.optim_param["d"]),
         }
         row["effect_range"] = compute_lc(
             optim_param=res.control.optim_param, lc=75
