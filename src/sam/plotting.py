@@ -194,19 +194,25 @@ def plot_sam_prediction(
     lcs: Optional[Predicted_LCs] = None,
     survival_max: float = 100,
     title=None,
+    inlcude_control_addition: bool = False,
 ) -> Figure:
     main_fit: ConcentrationResponsePrediction = prediction.control
     stressor_fit: ConcentrationResponsePrediction = prediction.co_stressor
     predicted_survival_curve = prediction.predicted_survival
     predicted_stress_curve = prediction.predicted_general_stress
 
-    colors = color_palette("tab10", 3)
+    colors = color_palette("tab10", 4)
 
     stress_label = "Tox + Env"
     tox_label = "Tox"
     sam_label = "SAM"
-
-    to_color = {tox_label: colors[0], stress_label: colors[1], sam_label: colors[2]}
+    ca_label = "CA"
+    to_color = {
+        tox_label: colors[0],
+        stress_label: colors[1],
+        sam_label: colors[2],
+        ca_label: colors[3],
+    }
 
     fig, axs = plt.subplots(1, 2, figsize=(10, 3))
 
@@ -271,6 +277,15 @@ def plot_sam_prediction(
         stressor_fit.concentration, stressor_fit.general_stress, label=stress_label
     )
     fourth_plot(stressor_fit.concentration, predicted_stress_curve, label=sam_label)
+
+    if inlcude_control_addition:
+        third_plot(
+            main_fit.concentration,
+            prediction.concentratation_addition_prediction,
+            orig_series=None,
+            label=ca_label,
+        )
+        fourth_plot([], [], label=ca_label)
 
     if lcs is not None:
         plt_lcs(

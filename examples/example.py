@@ -10,21 +10,21 @@ control_data = CauseEffectData(
 
 co_stressor_data = CauseEffectData(
     concentration=[0, 0.1, 0.5, 1.0, 5.0],
-    survival_rate=[100, 95, 70, 30, 5],
+    survival_rate=[97, 95, 70, 30, 5],
     name="Stressor",
 )
 
 
 # Run SAM prediction
-prediction = generate_sys_adjusted_sam_prediction(
+prediction = generate_sam_prediction(
     control_data=control_data,
     co_stressor_data=co_stressor_data,
-    additional_stress=0.02,
     max_survival=100,
-    hormesis_index=2,
 )
 
 
-fig = prediction.plot(title="SAM Prediction Example")
+fig = prediction.plot(
+    title="SAM Prediction Example", with_lcs=True, inlcude_control_addition=True
+)
 
 plt.show()

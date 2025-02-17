@@ -316,7 +316,7 @@ def generate_sam_prediction(
         new_model=predicted_survival_curve,
         effect_addition_prediction=effect_addition_pred,
         normalize_survival_for_stress_conversion_factor=normalization_factor,
-        concentratation_addition_prediction=concentration_addition_prediction(
+        concentratation_addition_prediction=concentration_addition_prediction_standard_version(
             control_prediciton=main_fit,
             co_stressor_prediciton=stressor_fit,
             max_survival=max_survival,
@@ -324,7 +324,7 @@ def generate_sam_prediction(
     )
 
 
-def concentration_addition_prediction(
+def concentration_addition_prediction_indicate_version(
     control_prediciton: ConcentrationResponsePrediction,
     co_stressor_prediciton: ConcentrationResponsePrediction,
     max_survival: float,
@@ -335,6 +335,22 @@ def concentration_addition_prediction(
     conc_env_ca = pa["e"] * (
         ((pa["d"] / pb["d"]) ** (1 / pa["f"]) - 1) ** (1 / pa["b"])
     )
+
+    return (
+        control_prediciton.model(control_prediciton.concentration + conc_env_ca)
+        * max_survival
+    )
+
+
+def concentration_addition_prediction_standard_version(
+    control_prediciton: ConcentrationResponsePrediction,
+    co_stressor_prediciton: ConcentrationResponsePrediction,
+    max_survival: float,
+) -> np.ndarray:
+    pa = control_prediciton.optim_param
+    pb = co_stressor_prediciton.optim_param
+
+    conc_env_ca = ll5_inv(min(pb["d"], pa["d"] * 0.99), **pa)
 
     return (
         control_prediciton.model(control_prediciton.concentration + conc_env_ca)

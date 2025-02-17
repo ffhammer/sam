@@ -55,7 +55,7 @@ def fix_wlb1(params: wbl1_params) -> Callable:
     return partial(wlb1, b=params.b, c=params.c, d=params.d, e=params.e)
 
 
-def compute_control_addition_lc(
+def compute_control_addition_lc_indicate_version(
     control_params: dict[str, float],
     co_stressor_params: dict[str, float],
     lc: float,
@@ -70,6 +70,22 @@ def compute_control_addition_lc(
     )
 
     return ll5_inv(val, **control_params) - conc_env_ca
+
+
+def compute_control_addition_lc_standard_version(
+    control_params: dict[str, float],
+    co_stressor_params: dict[str, float],
+    lc: float,
+) -> float:
+    pa = control_params
+    pb = co_stressor_params
+
+    val = (1 - (lc / 100)) * pb["d"]
+
+    # do the min to provide numerical stability for the edgecase, where pa["d"] <= pb["d"]
+    conc_env_ca = ll5_inv(min(pb["d"], pa["d"] * 0.999), **pa)
+
+    return ll5_inv(val, **pa) - conc_env_ca
 
 
 @dataclass
