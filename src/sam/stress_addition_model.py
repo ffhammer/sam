@@ -131,7 +131,12 @@ class SAMPrediction:
         )
         return predicted_survival_curve, predicted_stress_curve
 
-    def plot(self, with_lcs: bool = True, title: Optional[str] = None) -> Figure:
+    def plot(
+        self,
+        with_lcs: bool = True,
+        title: Optional[str] = None,
+        inlcude_control_addition: bool = False,
+    ) -> Figure:
         """
         Plots the SAM prediction with optional lethal concentration (LC) indicators.
 
@@ -150,7 +155,11 @@ class SAMPrediction:
                 print(f"There was an error when revalidating the compiuted lcs:\n\t{e}")
 
         return plot_sam_prediction(
-            self, lcs=lcs, survival_max=self.max_survival, title=title
+            self,
+            lcs=lcs,
+            survival_max=self.max_survival,
+            title=title,
+            inlcude_control_addition=inlcude_control_addition,
         )
 
     def save_to_file(self, file_path: str) -> None:
