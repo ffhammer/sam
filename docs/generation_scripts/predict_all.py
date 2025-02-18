@@ -44,7 +44,7 @@ def compute_all(plot: bool, dir4imgs: str):
         if plot:
             # title = f"Fitted LC10: {lcs.stress_lc10 :.2f} LC50: {lcs.stress_lc50 :.2f} - SAM Predictions LC10: {lcs.sam_lc10 :.2f} LC50: {lcs.sam_lc50 :.2f}"
             title = None
-            fig = res.plot(with_lcs=True, title=title)
+            fig = res.plot(with_lcs=True, title=title, inlcude_control_addition=True)
             name = f"{data.meta.title}_{name}.png"
             save_path = os.path.join(dir4imgs, name)
 
