@@ -1,12 +1,14 @@
 import os
 
+from sam.concentration_addition import compute_control_addition_lc
+
 os.chdir(os.environ["SAM_REPO_PATH"])
 from pathlib import Path
 
 import pandas as pd
 
 from sam.data_formats import load_datapoints
-from sam.helpers import compute_lc, compute_control_addition_lc_standard_version
+from sam.helpers import compute_lc
 from sam.stress_addition_model import (
     STANDARD_SAM_SETTING,
     get_sam_lcs,
@@ -35,12 +37,12 @@ def gen_experiment_res_frame():
         main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)
 
-        ca_lc_10 = compute_control_addition_lc_standard_version(
+        ca_lc_10 = compute_control_addition_lc(
             control_params=res.control.optim_param,
             co_stressor_params=res.control.optim_param,
             lc=10,
         )
-        ca_lc_50 = compute_control_addition_lc_standard_version(
+        ca_lc_50 = compute_control_addition_lc(
             control_params=res.control.optim_param,
             co_stressor_params=res.control.optim_param,
             lc=50,
