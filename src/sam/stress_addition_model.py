@@ -353,28 +353,33 @@ def generate_sam_prediction(
     co_stressor_survival: np.ndarray | list,
     max_survival: Optional[float] = None,
     settings: SAM_Settings = STANDARD_SAM_SETTING,
-    control_name="Control",
-    stressor_name="Stressor",
 ) -> SAMPrediction:
-    """Computes survival and stress predictions based on a main control series and a stressor series
-    using the Stress Addition Model (SAM).
+    """
+    Computes survival and stress predictions using the Stress Addition Model (SAM).
+
+    This function estimates survival outcomes based on a main control series and a co-stressor
+    series, applying the SAM framework to quantify stress interactions.
 
     Parameters:
-        control_data (CauseEffectData): Concentration-response data for the control group.
-        co_stressor_data (CauseEffectData): Concentration-response data for the stressor condition.
-        meta (Optional[ExperimentMetaData]): Metadata, used to infer max survival if not provided.
-        max_survival (Optional[float]): Maximum survival rate. Overrides `meta.max_survival` if given.
-        settings (SAM_Settings): Configuration settings for SAM. Controls stress computation formula,
-            normalization, and additional adjustments.
+        concentration (np.ndarray | list): Concentration levels for both control and co-stressor conditions.
+        control_survival (np.ndarray | list): Survival rates observed in the control group.
+        co_stressor_survival (np.ndarray | list): Survival rates observed in the presence of a co-stressor.
+        max_survival (Optional[float]): Maximum survival rate, used for normalization. If None, inferred from data.
+        settings (SAM_Settings): SAM configuration settings controlling stress computation and normalization.
 
     Returns:
-        SAMPrediction
+        SAMPrediction: An object containing computed survival and stress metrics.
+
     Example:
         ```python
-        prediction =  SAMPrediction.generate(control_data, co_stressor_data, settings=SAM_Settings(stress_form="div"))
+        prediction = generate_sam_prediction(
+            concentration=[0.1, 1, 10],
+            control_survival=[0.9, 0.8, 0.5],
+            co_stressor_survival=[0.85, 0.7, 0.3],
+            max_survival = 1,
+        )
         ```
     """
-
     control_data = CauseEffectData(
         concentration=concentration,
         survival_rate=control_survival,
