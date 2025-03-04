@@ -1,19 +1,25 @@
 # SAM - Stress Addition Model
 
-This is a Python reimplementation of the Stress Addition Model (SAM) from the research paper "Predicting the synergy of multiple stress effects" by Matthias Liess, Kaarina Foit, Saskia Knillmann, Ralf B. Schäfer, and Hans-Dieter Liess.
+SAM is a Python reimplementation of the Stress Addition Model from the paper "[Predicting the synergy of multiple stress effects](https://www.nature.com/articles/srep32965)" by Liess et al. It follows the methodology from [Systemecology](https://www.systemecology.de/indicate/) and achieves nearly identical results across diverse datasets.
 
+We also reimplemented the [$EC_{x-\text{sys}}$ model](https://doi.org/10.1038/s41598-019-51645-4) from Liess et al. (2019) as `sam.ecxsys`. This package lets you predict, visualize, and save outcomes for both SAM and EC$_{x-\text{sys}}$, even with minimal Python experience.
 
-## Website and Documentation
-
-https://ffhamer.github.io/sam/
-
-https://ffhamer.github.io/sam_documentation/
-
+Examples:  
+- `examples/sam.py`  
+- `examples/ec_x-SyS.py`
 
 ## Install
 ```bash
 pip install git+https://github.com/mockaWolke/sam.git
 ```
+
+## Dataset and Publication
+
+This repository is under active development for an upcoming publication. The `data` folder contains collated datasets on the effects of multiple stressors. More details will be available on our publication website: [SAM Publication](https://ffhamer.github.io/sam/).
+
+## Detailed Documentation
+
+Further documentation—including experimental setups and dataset handling—is available at: [SAM Documentation](https://ffhamer.github.io/sam_documentation/).
 
 ## Citation
 ```bibtex
@@ -28,29 +34,27 @@ pip install git+https://github.com/mockaWolke/sam.git
 
 ## Copyright and License
 
-Copyright (c) 2020,  
-Helmholtz-Zentrum fuer Umweltforschung GmbH - UFZ.  
-All rights reserved.
+Copyright (C) 2025 Helmholtz-Zentrum fuer Umweltforschung GmbH - UFZ
 
-The code is a property of:
-
-Helmholtz-Zentrum fuer Umweltforschung GmbH - UFZ  
-Registered Office: Leipzig  
-Registration Office: Amtsgericht Leipzig  
-Trade Register: Nr. B 4703  
-Chairman of the Supervisory Board: MinDirig’in Oda Keppler  
-Scientific Director: Prof. Dr. Georg Teutsch  
-Administrative Director: Dr. Sabine König
-
-SAM (Stress Addition Model) is free software: you can redistribute it and/or modify  
+This program is free software: you can redistribute it and/or modify  
 it under the terms of the GNU General Public License as published by  
 the Free Software Foundation, either version 3 of the License, or  
-(at your option) any later version.
+(at your option) any later version.  
 
 This program is distributed in the hope that it will be useful,  
 but WITHOUT ANY WARRANTY; without even the implied warranty of  
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the  
-GNU General Public License for more details.
+GNU General Public License for more details.  
 
 You should have received a copy of the GNU General Public License  
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+along with this program. If not, see <https://www.gnu.org/licenses/>.  
+
+<!-- 
+## Academic Citation Requirement:
+If you use this software in academic work, research, or publications,  
+you must cite the following reference:  
+
+[Your Name], "[Title of Your Work]," [Journal/Conference], [Year], [DOI or URL].  
+
+Failure to provide appropriate citation in academic works constitutes  
+a violation of this licensing agreement.   -->

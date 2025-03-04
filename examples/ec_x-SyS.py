@@ -1,5 +1,5 @@
 from sam import CauseEffectData
-from sam.ecx_sys import generate_ecx_sys_prediction, ECxSySPrediction
+from sam.ec_x_sys import generate_ecx_sys_prediction, ECxSySPrediction
 import matplotlib.pyplot as plt
 
 data = CauseEffectData(

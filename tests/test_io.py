@@ -6,7 +6,7 @@ import numpy as np
 
 from sam import *
 from sam import SAMPrediction
-from sam.ecx_sys import generate_ecx_sys_prediction, ECxSySPrediction
+from sam.ec_x_sys import generate_ecx_sys_prediction, ECxSySPrediction
 
 
 def generate_example_prediction() -> SAMPrediction:

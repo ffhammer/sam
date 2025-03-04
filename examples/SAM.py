@@ -15,4 +15,10 @@ fig = prediction.plot(
     title="SAM Prediction Example", with_lcs=True, inlcude_control_addition=True
 )
 
+# saving and loading
+prediction.save_to_file("my_sam_prediction")
+
+loaded_prediction: SAMPrediction = SAMPrediction.load_from_file("my_sam_prediction")
+
+
 plt.show()

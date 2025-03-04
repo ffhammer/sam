@@ -11,7 +11,6 @@ from sam import (
     SAMPrediction,
     read_data,
     STANDARD_SAM_SETTING,
-    get_sam_lcs,
     load_datapoints,
 )
 import json
@@ -90,7 +89,7 @@ def overwrite_examples_with_efac(
             settings=settings,
         )
 
-        lcs = get_sam_lcs(sam_prediction=res)
+        lcs = res.get_lethal_concentrations()
 
         row.sam_lc10 = lcs.sam_lc10
         row.sam_lc50 = lcs.sam_lc50
