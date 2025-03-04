@@ -2,7 +2,7 @@
 
 SAM is a Python reimplementation of the Stress Addition Model from the paper "[Predicting the synergy of multiple stress effects](https://www.nature.com/articles/srep32965)" by Liess et al. It follows the methodology from [Systemecology](https://www.systemecology.de/indicate/) and achieves nearly identical results across diverse datasets.
 
-We also reimplemented the [$EC_{x-\text{sys}}$ model](https://doi.org/10.1038/s41598-019-51645-4) from Liess et al. (2019) as `sam.ecxsys`. This package lets you predict, visualize, and save outcomes for both SAM and EC$_{x-\text{sys}}$, even with minimal Python experience.
+We also reimplemented the [$EC_{x-\text{sys}}$ model](https://doi.org/10.1038/s41598-019-51645-4) from Liess et al. (2019) as `sam.ecxsys`. This package lets you predict, visualize, and save outcomes for both SAM and $EC_{x-\text{sys}}$, even with minimal Python experience.
 
 Examples:  
 - `examples/sam.py`  
