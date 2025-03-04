@@ -9,7 +9,7 @@ import os
 
 os.chdir(os.environ["SAM_REPO_PATH"])
 from sam.stress_addition_model import (
-    generate_sam_prediction,
+    SAMPrediction,
     STANDARD_SAM_SETTING,
 )
 from sam import CauseEffectData

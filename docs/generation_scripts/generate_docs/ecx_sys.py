@@ -8,7 +8,7 @@ warnings.filterwarnings(
 import os
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
-from sam.ecx_sys import generate_ecx_sys_prediction
+from sam.ec_x_sys import generate_ecx_sys_prediction
 from sam import load_files, ExperimentData
 from collections import defaultdict
 import matplotlib.pyplot as plt
