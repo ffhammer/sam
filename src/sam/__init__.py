@@ -20,6 +20,7 @@ from .stress_addition_model import (
     SAMPrediction,
 )
 
+
 from .plotting import plot_sam_prediction
 
 __all__ = [

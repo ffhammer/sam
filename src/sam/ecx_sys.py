@@ -1,12 +1,15 @@
 from dataclasses import dataclass
 from typing import Optional
+import os
 
+from dataclasses_json import dataclass_json
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 from py_lbfgs import lbfgs_fit
 from seaborn import color_palette
 
+from .io import make_np_config
 from .data_formats import CauseEffectData
 from .helpers import weibull_2param_inverse, pad_c0, fix_wlb1
 from .stress_survival_conversion import stress_to_survival, survival_to_stress
@@ -74,7 +77,7 @@ def generate_ecx_sys_prediction(
         stress_to_survival(tox_sys_stress_smooth, p=beta_p, q=beta_q) * max_survival
     )
 
-    return ECxSySOutput(
+    return ECxSySPrediction(
         input_data=data,
         hormesis_index=hormesis_index,
         concentration=concentrations_smooth,
@@ -99,16 +102,17 @@ HORMESIS_COLOR = COLORS[3]
 DATA_COLOR = "black"
 
 
+@dataclass_json
 @dataclass
-class ECxSySOutput:
+class ECxSySPrediction:
     input_data: CauseEffectData
     hormesis_index: int
-    concentration: np.ndarray
-    tox_survival: np.ndarray
-    tox_stress: np.ndarray
-    sys_stress: np.ndarray
-    tox_sys_stress: np.ndarray
-    tox_sys_survival: np.ndarray
+    concentration: np.ndarray = make_np_config()
+    tox_survival: np.ndarray = make_np_config()
+    tox_stress: np.ndarray = make_np_config()
+    sys_stress: np.ndarray = make_np_config()
+    tox_sys_stress: np.ndarray = make_np_config()
+    tox_sys_survival: np.ndarray = make_np_config()
 
     beta_q: float
     beta_p: float
@@ -157,3 +161,27 @@ class ECxSySOutput:
             plt.suptitle(title)
         plt.tight_layout()
         return fig
+
+    def save_to_file(self, file_path: str) -> None:
+        """
+        Saves the SAM prediction to a JSON file.
+
+        Parameters:
+            file_path (str): The file path to save the JSON data.
+        """
+        with open(file_path, "w") as f:
+            f.write(self.to_json())
+
+    @classmethod
+    def load_from_file(cls, file_path: str) -> "ECxSySPrediction":
+        """
+        Loads a SAM prediction from a JSON file.
+
+        Parameters:
+            file_path (str): The file path to load the JSON data from.
+        """
+        if not os.path.isfile(file_path):
+            raise ValueError(f"Can't find file at {file_path}")
+
+        with open(file_path, "r") as f:
+            return cls.from_json(f.read())
