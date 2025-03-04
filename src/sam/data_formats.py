@@ -90,9 +90,6 @@ class CauseEffectData:
     #: Array of survival rates corresponding to each concentration value, with matching length to `concentration`.
     survival_rate: np.ndarray = make_np_config()
 
-    #: Label for the concentration-response series, used primarily in plotting.
-    name: str
-
     #: Additional experimental metadata, used mainly for internal purposes.
     meta: Optional["ExperimentMetaData"] = None
 
@@ -131,10 +128,8 @@ class CauseEffectData:
     def __eq__(self, other):
         if not isinstance(other, CauseEffectData):
             return False
-        return (
-            self.name == other.name
-            and np.all(self.concentration == other.concentration)
-            and np.all(self.survival_rate == other.survival_rate)
+        return np.all(self.concentration == other.concentration) and np.all(
+            self.survival_rate == other.survival_rate
         )
 
 
@@ -284,7 +279,6 @@ class ExperimentData:
         main_series = CauseEffectData(
             df["concentration"].values,
             df["survival"].values,
-            name="Toxicant",
             meta=meta_data,
         )
 
@@ -297,7 +291,6 @@ class ExperimentData:
             name: CauseEffectData(
                 df["concentration"].values,
                 df[name].values,
-                name=name,
                 meta=meta_data,
             )
             for name in additional_stresses

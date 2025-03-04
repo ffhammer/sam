@@ -26,7 +26,7 @@ def save_imgs(dir4imgs):
         )
         ser = data.additional_stress[stressor_name]
 
-        sam_fig = generate_sam_prediction(
+        sam_fig = SAMPrediction.generate(
             control_data=data.main_series,
             co_stressor_data=ser,
             meta=data.meta,

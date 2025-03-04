@@ -8,7 +8,7 @@ sys.path.append("docs/generation_scripts/")
 
 
 from sam import (
-    generate_sam_prediction,
+    SAMPrediction,
     read_data,
     STANDARD_SAM_SETTING,
     get_sam_lcs,
@@ -30,7 +30,7 @@ def find_optimal_efac(
         settings = deepcopy(STANDARD_SAM_SETTING)
         settings.e_param_fac = e_fac
 
-        res = generate_sam_prediction(
+        res = SAMPrediction.generate(
             meta=meta,
             co_stressor_data=co_stressor_data,
             control_data=control_data,
@@ -83,7 +83,7 @@ def overwrite_examples_with_efac(
 
         settings.e_param_fac = val
         row.e_fac = val
-        res = generate_sam_prediction(
+        res = SAMPrediction.generate(
             meta=data.meta,
             co_stressor_data=data.additional_stress[stress_name],
             control_data=data.main_series,

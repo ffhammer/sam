@@ -27,7 +27,7 @@ def compute_all(plot: bool, dir4imgs: str):
     for path, data, name, val in tqdm(load_datapoints()):
         original_max_surv = data.meta.max_survival
 
-        res = generate_sam_prediction(
+        res = SAMPrediction.generate(
             CauseEffectData(
                 data.main_series.concentration,
                 data.main_series.survival_rate / original_max_surv,

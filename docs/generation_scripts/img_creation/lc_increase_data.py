@@ -11,8 +11,7 @@ from sam.data_formats import load_datapoints
 from sam.helpers import compute_lc
 from sam.stress_addition_model import (
     STANDARD_SAM_SETTING,
-    get_sam_lcs,
-    generate_sam_prediction,
+    SAMPrediction,
 )
 import sys
 
@@ -25,14 +24,14 @@ def gen_experiment_res_frame():
     for path, data, stress_name, stress_series in load_datapoints():
         meta = data.meta
 
-        res = generate_sam_prediction(
+        res = SAMPrediction.generate(
             data.main_series,
             stress_series,
             data.meta,
             settings=STANDARD_SAM_SETTING,
         )
 
-        lcs = get_sam_lcs(sam_prediction=res)
+        lcs = res.get_lethal_concentrations()
 
         main_lc10 = compute_lc(optim_param=res.control.optim_param, lc=10)
         main_lc50 = compute_lc(optim_param=res.control.optim_param, lc=50)
