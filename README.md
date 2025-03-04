@@ -19,7 +19,7 @@ This repository is under active development for an upcoming publication. The `da
 
 ## Detailed Documentation
 
-Further documentation—including experimental setups and dataset handling—is available at: [SAM Documentation](https://ffhamer.github.io/sam_documentation/).
+Further documentation—including experimental setups and dataset handling—is available at: [SAM Documentation](https://ffhammer.github.io/sam_documentation/).
 
 ## Citation
 ```bibtex
