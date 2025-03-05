@@ -11,7 +11,8 @@ zips
 *.DS_STORE
 docs/imgs
 docs/experiments
-
+.vscode
+dev_requirements.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
