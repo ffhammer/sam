@@ -1,4 +1,4 @@
-devname: Build Jekyll site
+name: Build Jekyll site
 on:
  push:
    branches: ["master"]
